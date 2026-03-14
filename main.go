@@ -497,7 +497,8 @@ func dashboardHandler(c *fiber.Ctx) error {
 
 func loginHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "login", fiber.Map{
-		"Title": T(c, "auth.login", "Login"),
+		"Title":                        T(c, "auth.login", "Login"),
+		"ShowDefaultCredentialsNotice": IsDefaultAdminCredentialsInUse(),
 	})
 }
 

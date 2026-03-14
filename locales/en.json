@@ -313,7 +313,7 @@
     "backup_failed": "Unable to create backup"
   },
   "auth": {
-    "default_credentials_notice": "First boot: default username admin, password admin. Change it after signing in.",
+    "default_credentials_notice": "Username: admin, Password: admin. Change it after signing in.",
     "login_info": "Sign in to continue",
     "login": "Login",
     "logout": "Logout",

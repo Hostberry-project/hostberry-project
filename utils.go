@@ -62,7 +62,7 @@ func createDefaultAdmin() {
 		if adminPassword == "" {
 			adminPassword = "admin"
 			useBootstrap = true
-			log.Printf("SECURITY: usuario admin creado con contraseña por defecto 'admin'. Cámbiala en Ajustes tras el primer acceso.")
+			log.Printf("SECURITY: Primer arranque. Usuario: admin, Contraseña: admin. Cámbiala en Ajustes tras el primer acceso.")
 		} else if err := ValidatePassword(adminPassword); err != nil {
 			LogTf("logs.utils_admin_error", fmt.Errorf("HOSTBERRY_DEFAULT_ADMIN_PASSWORD inválida: %w", err))
 			return

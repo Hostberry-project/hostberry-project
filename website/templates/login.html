@@ -5,10 +5,12 @@
         <p>{{ call .t "auth.login_info" "Inicia sesión para continuar" }}</p>
     </div>
 
-    <div id="first-login-credential-notice" class="alert alert-info alert-default-credentials mb-3" role="alert" style="display: block; visibility: visible; min-height: 2.5rem;">
-        <i class="bi bi-info-circle me-2"></i>
-        {{ call .t "auth.default_credentials_notice" "Primer arranque: usuario por defecto admin, contraseña admin. Cámbiala tras iniciar sesión." }}
+    {{ if .ShowDefaultCredentialsNotice }}
+    <div id="first-login-credential-notice" class="alert alert-warning alert-default-credentials mb-3" role="alert" style="display: block; visibility: visible; min-height: 2.5rem;">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        {{ call .t "auth.default_credentials_notice" "Usuario: admin, Contraseña: admin. Cámbiala tras iniciar sesión." }}
     </div>
+    {{ end }}
 
     <form id="loginForm" method="POST" action="/api/v1/auth/login">
         <div class="mb-3">

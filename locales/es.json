@@ -314,7 +314,7 @@
     "backup_failed": "No se pudo crear el respaldo"
   },
   "auth": {
-    "default_credentials_notice": "Primer arranque: usuario por defecto admin, contraseña admin. Cámbiala tras iniciar sesión.",
+    "default_credentials_notice": "Usuario: admin, Contraseña: admin. Cámbiala tras iniciar sesión.",
     "login_info": "Inicia sesión para continuar",
     "login": "Iniciar Sesión",
     "logout": "Cerrar Sesión",
