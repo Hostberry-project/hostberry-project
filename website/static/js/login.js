@@ -1,13 +1,6 @@
 // JS específico para login: toggles y alerts
 (function(){
-  // Aviso admin/admin: ocultar solo después de que haya iniciado sesión al menos una vez
-  (function(){
-    var KEY = 'hostberry_creds_notice_seen';
-    var el = document.getElementById('first-login-credential-notice');
-    if (el && localStorage.getItem(KEY) === '1') {
-      el.style.display = 'none';
-    }
-  })();
+  // El aviso admin/admin se muestra solo cuando el backend indica credenciales por defecto (ShowDefaultCredentialsNotice).
 
   // i18n desde dataset HTML (multiidioma)
   const __i18nEl = document.getElementById('i18n-data');
@@ -72,8 +65,6 @@
         if(resp && resp.ok){
           // Guardar token en localStorage (para navegadores que no guardan cookies)
           localStorage.setItem('access_token', result.access_token);
-          // Marcar que ya vió el aviso admin/admin (ocultarlo en próximas visitas al login)
-          localStorage.setItem('hostberry_creds_notice_seen', '1');
           showAlert('success', i18n.login_success);
           setTimeout(()=>{
             const lang = (document.documentElement && document.documentElement.lang === 'es') ? 'es' : 'en';
