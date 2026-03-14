@@ -1,3 +1,13 @@
+<!-- Textos i18n para notificaciones JS (login.js) según idioma seleccionado -->
+<div id="i18n-data" style="display:none"
+     data-user-not-found="{{ call .t "auth.user_not_found" "User not found" }}"
+     data-incorrect-password="{{ call .t "auth.incorrect_password" "Incorrect password" }}"
+     data-too-many-attempts="{{ call .t "auth.too_many_attempts" "Too many attempts" }}"
+     data-connection-error="{{ call .t "auth.connection_error" "Connection error" }}"
+     data-login-generic-error="{{ call .t "auth.login_generic_error" "Login error" }}"
+     data-login-success="{{ call .t "auth.login_success" "Login successful" }}"
+></div>
+
 <div class="login-container">
     <div class="login-header">
         <img src="/static/hostberry.png" alt="hostberry" class="logo-image" />
