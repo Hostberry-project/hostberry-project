@@ -26,7 +26,7 @@ SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 CONFIG_FILE="${INSTALL_DIR}/config.yaml"
 LOG_DIR="/var/log/hostberry"
 DATA_DIR="${INSTALL_DIR}/data"
-GITHUB_REPO="https://github.com/aka0kuro/Hostberry.git"
+GITHUB_REPO="https://github.com/Hostberry-project/hostberry-project.git"
 TEMP_CLONE_DIR="/tmp/hostberry-install"
 
 # Modo de operación
