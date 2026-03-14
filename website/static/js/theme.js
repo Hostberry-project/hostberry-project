@@ -55,16 +55,10 @@ function loadTheme() {
         body.classList.add('light-theme');
         updateThemeIcon('light');
     } else {
-        // auto / sin setting: usar preferencia del sistema
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            body.classList.remove('light-theme');
-            body.classList.add('dark-theme');
-            updateThemeIcon('dark');
-        } else {
-            body.classList.remove('dark-theme');
-            body.classList.add('light-theme');
-            updateThemeIcon('light');
-        }
+        // Sin preferencia guardada: tema oscuro por defecto
+        body.classList.remove('light-theme');
+        body.classList.add('dark-theme');
+        updateThemeIcon('dark');
     }
 }
 
@@ -73,16 +67,12 @@ function detectSystemTheme() {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
     mediaQuery.addEventListener('change', (e) => {
+        // Con tema oscuro por defecto ya no seguimos la preferencia del sistema al cambiar
         if (!localStorage.getItem('theme')) {
-            if (e.matches) {
-                document.body.classList.remove('light-theme');
-                document.body.classList.add('dark-theme');
-                updateThemeIcon('dark');
-            } else {
-                document.body.classList.remove('dark-theme');
-                document.body.classList.add('light-theme');
-                updateThemeIcon('light');
-            }
+            // Mantener tema oscuro por defecto (no cambiar según sistema)
+            document.body.classList.remove('light-theme');
+            document.body.classList.add('dark-theme');
+            updateThemeIcon('dark');
         }
     });
 }
