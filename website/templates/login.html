@@ -5,7 +5,7 @@
         <p>{{ call .t "auth.login_info" "Inicia sesión para continuar" }}</p>
     </div>
 
-    <div id="first-login-credential-notice" class="alert alert-info alert-default-credentials mb-3" role="alert">
+    <div id="first-login-credential-notice" class="alert alert-info alert-default-credentials mb-3" role="alert" style="display: block; visibility: visible; min-height: 2.5rem;">
         <i class="bi bi-info-circle me-2"></i>
         {{ call .t "auth.default_credentials_notice" "Primer arranque: usuario por defecto admin, contraseña admin. Cámbiala tras iniciar sesión." }}
     </div>
