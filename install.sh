@@ -87,12 +87,30 @@ print_banner() {
     echo ""
 }
 
+# Ayuda de uso
+show_usage() {
+    echo "Uso: $0 [OPCIÓN]"
+    echo ""
+    echo "Opciones:"
+    echo "  (sin opción)   Instalar HostBerry"
+    echo "  --update       Actualizar instalación existente (preserva datos)"
+    echo "  --uninstall    Desinstalar HostBerry (elimina servicio, archivos, usuario y logs)"
+    echo "  -h, --help     Mostrar esta ayuda"
+    echo ""
+    echo "Ejemplos:"
+    echo "  sudo $0              # Instalar"
+    echo "  sudo $0 --update     # Actualizar"
+    echo "  sudo $0 --uninstall  # Desinstalar"
+    exit 0
+}
+
 # Procesar argumentos
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --update) MODE="update" ;;
+        --update)    MODE="update" ;;
         --uninstall) MODE="uninstall" ;;
-        *) print_error "Opción desconocida: $1"; exit 1 ;;
+        -h|--help)   show_usage ;;
+        *) print_error "Opción desconocida: $1. Usa --help para ver opciones."; exit 1 ;;
     esac
     shift
 done
