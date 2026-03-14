@@ -59,7 +59,8 @@ func loginAPIHandler(c *fiber.Ctx) error {
 	userID := user.ID
 	InsertLog("INFO", fmt.Sprintf("Usuario %s inició sesión", user.Username), "auth", &userID)
 
-	passwordChangeRequired := user.LoginCount == 1
+	// Primer login o credenciales por defecto (admin/admin): forzar cambio de contraseña en first-login
+	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && CheckPassword("admin", user.Password))
 
 	cookieExpiry := time.Duration(appConfig.Security.TokenExpiry) * time.Minute
 	c.Cookie(&fiber.Cookie{
