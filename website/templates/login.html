@@ -1,0 +1,49 @@
+<div class="login-container">
+    <div class="login-header">
+        <img src="/static/hostberry.png" alt="hostberry" class="logo-image" />
+        <h1>HostBerry</h1>
+        <p>{{ call .t "auth.login_info" "Inicia sesión para continuar" }}</p>
+    </div>
+
+    <div id="first-login-credential-notice" class="alert alert-info alert-default-credentials mb-3" role="alert" style="display: none;">
+        <i class="bi bi-info-circle me-2"></i>
+        {{ call .t "auth.default_credentials_notice" "Primer arranque: usuario por defecto admin, contraseña admin. Cámbiala tras iniciar sesión." }}
+    </div>
+
+    <form id="loginForm" method="POST" action="/api/v1/auth/login">
+        <div class="mb-3">
+            <label for="username" class="form-label">
+                <i class="bi bi-person"></i>
+                {{ call .t "auth.username" "" }}
+            </label>
+            <input type="text" class="form-control" id="username" name="username" required placeholder="{{ call .t "auth.username_placeholder" "Usuario" }}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="password" class="form-label">
+                <i class="bi bi-lock"></i>
+                {{ call .t "auth.password" "" }}
+            </label>
+            <div class="password-wrapper">
+                <input type="password" class="form-control" id="password" name="password" required placeholder="{{ call .t "auth.password_placeholder" "Contraseña" }}">
+                <button class="password-toggle" type="button" id="toggle-password" aria-label="{{ call .t "common.show_password" "Mostrar contraseña" }}" title="{{ call .t "common.show_password" "Mostrar contraseña" }}">
+                    <span id="eye-emoji" style="font-size:18px; line-height:1" aria-hidden="true">👁️</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+            <label class="form-check-label" for="remember">
+                {{ call .t "auth.remember_me" "" }}
+            </label>
+        </div>
+        
+        <button type="submit" class="btn btn-login">
+            <i class="bi bi-box-arrow-in-right"></i>
+            {{ call .t "auth.login" "" }}
+        </button>
+    </form>
+</div>
+
+<script defer src="/static/js/login.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>

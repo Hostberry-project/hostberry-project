@@ -1,0 +1,173 @@
+{{/* Página Adblock: solo Blocky y su configuración */}}
+<div class="adblock-page dashboard-page">
+    <!-- Cabecera -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-database-fill-gear me-2"></i>
+                {{ call .t "blocky.title" "Blocky" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "blocky.description" "DNS proxy and ad-blocker. Configure upstreams and block lists below." }}</p>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Blocky (tarjetas individuales arriba) -->
+    <div class="row quick-stats-row mb-4 g-3 g-md-4" id="blocky-stats-row">
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card blocky-stat-service">
+                <div class="stat-icon"><i class="bi bi-heart-pulse"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "blocky.stat_service" "Service" }}</div>
+                    <div class="stat-value" id="blocky-stat-service">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card blocky-stat-blocking">
+                <div class="stat-icon"><i class="bi bi-shield-lock"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "blocky.blocking_status" "Blocking" }}</div>
+                    <div class="stat-value" id="blocky-stat-blocking">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card blocky-stat-blocked">
+                <div class="stat-icon"><i class="bi bi-x-octagon"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "blocky.stat_blocked_queries" "Blocked queries" }}</div>
+                    <div class="stat-value" id="blocky-stat-blocked">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card blocky-stat-total">
+                <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "blocky.stat_total_queries" "Total queries" }}</div>
+                    <div class="stat-value" id="blocky-stat-total">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card blocky-stat-cached">
+                <div class="stat-icon"><i class="bi bi-lightning"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "blocky.stat_cached" "Cached" }}</div>
+                    <div class="stat-value" id="blocky-stat-cached">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card blocky-stat-api">
+                <div class="stat-icon"><i class="bi bi-plug"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "blocky.stat_api" "API" }}</div>
+                    <div class="stat-value small" id="blocky-stat-api">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card blocky-stat-groups">
+                <div class="stat-icon"><i class="bi bi-collection"></i></div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "blocky.stat_disabled_groups" "Disabled groups" }}</div>
+                    <div class="stat-value small text-truncate" id="blocky-stat-groups" title="">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+        <!-- Estado y acciones -->
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-heart-pulse me-2"></i>
+                <span>{{ call .t "adblock.status" "Status" }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="status-indicator status-offline me-2" id="blocky-status-indicator"></span>
+                            <span id="blocky-status-text">{{ call .t "blocky.not_installed" "Not installed" }}</span>
+                        </div>
+                        <div id="blocky-blocking-row" class="text-muted small" style="display: none;">
+                            <span>{{ call .t "blocky.blocking_status" "Blocking" }}:</span>
+                            <span id="blocky-blocking-value">—</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                            <button class="btn btn-primary" id="blocky-install-btn" onclick="installBlocky()">
+                                <i class="bi bi-download"></i>
+                                {{ call .t "blocky.install" "Install Blocky" }}
+                            </button>
+                            <button class="btn btn-outline-secondary" id="blocky-configure-btn" onclick="showBlockyConfig()" style="display: none;">
+                                <i class="bi bi-gear"></i>
+                                {{ call .t "blocky.configure" "Configure" }}
+                            </button>
+                            <button class="btn btn-success" id="blocky-enable-btn" onclick="enableBlocky()" style="display: none;">
+                                <i class="bi bi-play-circle"></i>
+                                {{ call .t "blocky.enable" "Enable" }}
+                            </button>
+                            <button class="btn btn-outline-danger" id="blocky-disable-btn" onclick="disableBlocky()" style="display: none;">
+                                <i class="bi bi-stop-circle"></i>
+                                {{ call .t "blocky.disable" "Disable" }}
+                            </button>
+                            <button class="btn btn-outline-info" id="blocky-refresh-lists-btn" onclick="blockyRefreshLists()" style="display: none;">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                {{ call .t "blocky.refresh_lists" "Refresh lists" }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario de configuración (Blocky) -->
+                <div id="blocky-config-form" class="border-top pt-3" style="display: none;">
+                    <form id="blockyConfigForm">
+                        <div class="mb-3">
+                            <label for="blocky-upstreams" class="form-label">{{ call .t "blocky.upstreams" "Upstream DNS (one per line)" }}</label>
+                            <textarea class="form-control font-monospace" id="blocky-upstreams" name="upstreams" rows="3" placeholder="1.1.1.1&#10;8.8.8.8">1.1.1.1
+8.8.8.8
+https://dns.cloudflare.com/dns-query</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ call .t "blocky.preset_lists" "Suggested block lists" }}</label>
+                            <p class="form-text small text-muted mb-2">{{ call .t "blocky.preset_lists_help" "Select the lists you want to use. Each blocks different types of content (ads, trackers, malware, etc.)." }}</p>
+                            <div id="blocky-preset-lists" class="border rounded p-3 bg-light bg-opacity-50 mb-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="blocky-block-lists" class="form-label">{{ call .t "blocky.custom_lists" "Additional URLs (one per line)" }}</label>
+                            <textarea class="form-control font-monospace" id="blocky-block-lists" name="block_lists" rows="3" placeholder="https://..."></textarea>
+                            <div class="form-text">{{ call .t "blocky.custom_lists_help" "Add any other block list URL not in the list above." }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                {{ call .t "common.save" "Save" }}
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="showBlockyConfig()">
+                                {{ call .t "common.cancel" "Cancel" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ayuda breve -->
+        <div class="card mb-4">
+            <div class="card-body py-3">
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ call .t "blocky.help" "After saving configuration, enable Blocky. Use «Refresh lists» to reload block lists without restarting. DNS listens on port 53; the API on localhost:4000." }}
+                </p>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/adblock.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>

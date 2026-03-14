@@ -1,0 +1,221 @@
+ 
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-12 text-center">
+                <h1 class="dashboard-title">
+                    <i class="bi bi-activity me-2"></i>
+                    {{ call .t "monitoring.title" "Monitoring Control Room" }}
+                </h1>
+                <p class="dashboard-subtitle">{{ call .t "monitoring.subtitle" "Real-time insight on your HostBerry performance data" }}</p>
+                <div class="dashboard-time">
+                    <i class="bi bi-clock me-1"></i>
+                    {{ call .t "monitoring.last_update" "Last update" }}: <span id="monitoring-last-update">--:--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information Cards -->
+    <div class="row mb-4">
+        <!-- Uptime -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h6 class="actions-card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        {{ call .t "monitoring.uptime" "Uptime" }}
+                    </h6>
+                </div>
+                <div class="actions-card-body text-center">
+                    <h2 class="text-white mb-2" id="uptime-value">--</h2>
+                    <small class="text-white-50">{{ call .t "monitoring.since_boot" "Since boot" }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CPU Usage -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h6 class="actions-card-title mb-0">
+                        <i class="bi bi-cpu me-2"></i>
+                        {{ call .t "monitoring.cpu_usage" "CPU Usage" }}
+                    </h6>
+                                    </div>
+                <div class="actions-card-body">
+                    <div class="text-center mb-2">
+                        <h2 class="text-white mb-0" id="cpu-usage">0%</h2>
+                                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div id="cpu-progress" class="progress-bar bg-info" style="width:0%"></div>
+                                </div>
+                    <div class="d-flex justify-content-between text-white-50 small">
+                        <span>{{ call .t "monitoring.cores" "Cores" }}: <strong id="cpu-cores">-</strong></span>
+                        <span>{{ call .t "monitoring.temp" "Temp" }}: <strong id="cpu-temp">--°C</strong></span>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Memory Usage -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h6 class="actions-card-title mb-0">
+                        <i class="bi bi-memory me-2"></i>
+                        {{ call .t "monitoring.memory_usage" "Memory Usage" }}
+                    </h6>
+                                    </div>
+                <div class="actions-card-body">
+                    <div class="text-center mb-2">
+                        <h2 class="text-white mb-0" id="mem-usage">0%</h2>
+                                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div id="mem-progress" class="progress-bar bg-success" style="width:0%"></div>
+                                </div>
+                    <div class="text-center text-white-50 small">
+                        <span>{{ call .t "monitoring.used_of" "Used of" }} <strong id="mem-total">0 GB</strong> · <span id="mem-free">0 GB</span> {{ call .t "monitoring.free" "free" }}</span>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Disk Usage -->
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h6 class="actions-card-title mb-0">
+                        <i class="bi bi-hdd me-2"></i>
+                        {{ call .t "monitoring.disk_usage" "Disk Usage" }}
+                    </h6>
+                                    </div>
+                <div class="actions-card-body">
+                    <div class="text-center mb-2">
+                        <h2 class="text-white mb-0" id="disk-usage">0%</h2>
+                                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div id="disk-progress" class="progress-bar bg-warning" style="width:0%"></div>
+                                </div>
+                    <div class="text-center text-white-50 small">
+                        <span>{{ call .t "monitoring.used" "Used" }} <strong id="disk-used">0 GB</strong> / <span id="disk-total">0 GB</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information and Network Statistics -->
+    <div class="row mb-4">
+        <!-- System Information -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h5 class="actions-card-title">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {{ call .t "monitoring.system_info" "System Information" }}
+                    </h5>
+                </div>
+                <div class="actions-card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.hostname" "Hostname" }}</h6>
+                            <p class="text-white mb-3" id="sys-hostname">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.os_version" "OS Version" }}</h6>
+                            <p class="text-white mb-3" id="sys-os">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.kernel" "Kernel" }}</h6>
+                            <p class="text-white mb-3" id="sys-kernel">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.architecture" "Architecture" }}</h6>
+                            <p class="text-white mb-3" id="sys-arch">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.processor" "Processor" }}</h6>
+                            <p class="text-white mb-3" id="sys-processor">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">
+                                {{ call .t "monitoring.load_average" "Load Average" }}
+                                <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ call .t "monitoring.load_average_desc" "System load: 1min, 5min, 15min averages" }}"></i>
+                            </h6>
+                            <p class="text-white mb-3" id="sys-load">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Statistics -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="actions-card-title mb-0">
+                            <i class="bi bi-wifi me-2"></i>
+                            {{ call .t "monitoring.network_stats" "Network Statistics" }}
+                        </h5>
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary" id="net-interface-select" style="min-width: 150px;">
+                                <option value="">{{ call .t "monitoring.network_auto" "Auto detect" }}</option>
+                            </select>
+                    </div>
+                </div>
+                <div class="actions-card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.interface" "Interface" }}</h6>
+                            <p class="text-white mb-3" id="net-interface">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.ip_address" "IP Address" }}</h6>
+                            <p class="text-white mb-3" id="net-ip">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.download" "Download" }}</h6>
+                            <p class="text-white mb-2" id="net-download" style="font-size: 1.2rem; font-weight: 600;">0 KB/s</p>
+                            <small class="text-white-50">{{ call .t "monitoring.total_received" "Total Rx" }}: <span id="net-bytes-recv">0 MB</span></small>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.upload" "Upload" }}</h6>
+                            <p class="text-white mb-2" id="net-upload" style="font-size: 1.2rem; font-weight: 600;">0 KB/s</p>
+                            <small class="text-white-50">{{ call .t "monitoring.total_sent" "Total Tx" }}: <span id="net-bytes-sent">0 MB</span></small>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.packets" "Packets" }}</h6>
+                            <p class="text-white mb-3" id="net-packets">--</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-white-50 mb-1">{{ call .t "monitoring.errors" "Errors" }}</h6>
+                            <p class="text-white mb-3" id="net-errors">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Traffic Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h5 class="actions-card-title">
+                        <i class="bi bi-graph-up me-2"></i>
+                        {{ call .t "monitoring.network_chart" "Network Traffic Chart" }}
+                    </h5>
+                </div>
+                <div class="actions-card-body" style="position: relative; height: 300px;">
+                    <canvas id="net-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/static/js/lib/chart.umd.min.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
+<script defer src="/static/js/monitoring.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
+

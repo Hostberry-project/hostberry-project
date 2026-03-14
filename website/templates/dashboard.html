@@ -1,0 +1,276 @@
+<div class="dashboard-page">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-speedometer2 me-2"></i>
+                {{ call .t "dashboard.title" "Control Panel" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "dashboard.welcome" "Welcome to HostBerry" }}</p>
+            <div class="dashboard-time">
+                <i class="bi bi-clock me-1"></i>
+                <span id="dashboard-time">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row quick-stats-row mb-4 g-3 g-md-4">
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card cpu-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.cpu" "CPU" }}</div>
+                    <div class="stat-value" id="stat-cpu">--%</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="stat-cpu-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card memory-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-memory"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.memory" "Memory" }}</div>
+                    <div class="stat-value" id="stat-memory">--%</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="stat-memory-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card disk-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-hdd"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.storage" "Storage" }}</div>
+                    <div class="stat-value" id="stat-disk">--%</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="stat-disk-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card uptime-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.uptime" "Uptime" }}</div>
+                    <div class="stat-value" id="stat-uptime">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4 mt-4 mt-md-5">
+            <div class="stat-card wifi-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-wifi" id="stat-wifi-icon"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.wifi" "WiFi" }}</div>
+                    <div class="stat-value" id="stat-wifi">--</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="stat-wifi-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4 mt-4 mt-md-5">
+            <div class="stat-card hostapd-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-router" id="stat-hostapd-icon"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.hostapd" "HostAPD" }}</div>
+                    <div class="stat-value" id="stat-hostapd">--</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="stat-hostapd-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4 mt-4 mt-md-5">
+            <div class="stat-card dnsmasq-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-server" id="stat-dnsmasq-icon"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.dnsmasq" "DNSmasq" }}</div>
+                    <div class="stat-value" id="stat-dnsmasq">--</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="stat-dnsmasq-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4 mt-4 mt-md-5">
+            <div class="stat-card network-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-hdd-network" id="stat-network-icon"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "dashboard.network" "Network" }}</div>
+                    <div class="stat-value" id="stat-network">--</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="stat-network-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row dashboard-grid g-3 g-md-4">
+        <!-- System Information -->
+        <div class="col-12 mb-4">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {{ call .t "dashboard.system_info" "System Information" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" id="refresh-system-info">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="info-grid" id="system-info-grid">
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "dashboard.hostname" "Hostname" }}</span>
+                            <span class="info-value" id="info-hostname">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "dashboard.os_version" "OS Version" }}</span>
+                            <span class="info-value" id="info-os">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "dashboard.kernel_version" "Kernel" }}</span>
+                            <span class="info-value" id="info-kernel">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "dashboard.architecture" "Architecture" }}</span>
+                            <span class="info-value" id="info-arch">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "dashboard.uptime" "Uptime" }}</span>
+                            <span class="info-value" id="info-uptime">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "dashboard.cpu_cores" "CPU Cores" }}</span>
+                            <span class="info-value" id="info-cores">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-12 col-lg-8 mb-4">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-clock-history me-2"></i>
+                        {{ call .t "dashboard.recent_activity" "Recent Activity" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" id="refresh-activity">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="activity-list" id="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="bi bi-arrow-clockwise spinning"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">{{ call .t "common.loading" "Loading..." }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="col-12 mb-4">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-heart-pulse me-2"></i>
+                        {{ call .t "dashboard.system_health" "System Health" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="health-status" id="health-status">
+                        <div class="health-item">
+                            <div class="health-label">{{ call .t "dashboard.cpu" "CPU" }}</div>
+                            <div class="health-indicator">
+                                <span class="health-dot" id="health-cpu"></span>
+                                <span class="health-text" id="health-cpu-text">--</span>
+                            </div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-label">{{ call .t "dashboard.memory" "Memory" }}</div>
+                            <div class="health-indicator">
+                                <span class="health-dot" id="health-memory"></span>
+                                <span class="health-text" id="health-memory-text">--</span>
+                            </div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-label">{{ call .t "dashboard.storage" "Storage" }}</div>
+                            <div class="health-indicator">
+                                <span class="health-dot" id="health-disk"></span>
+                                <span class="health-text" id="health-disk-text">--</span>
+                            </div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-label">{{ call .t "navigation.wireguard" "WireGuard" }}</div>
+                            <div class="health-indicator">
+                                <span class="health-dot" id="health-wireguard"></span>
+                                <span class="health-text" id="health-wireguard-text">--</span>
+                            </div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-label">{{ call .t "dashboard.openvpn" "OpenVPN" }}</div>
+                            <div class="health-indicator">
+                                <span class="health-dot" id="health-openvpn"></span>
+                                <span class="health-text" id="health-openvpn-text">--</span>
+                            </div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-label">{{ call .t "navigation.hostapd" "Hotspot" }}</div>
+                            <div class="health-indicator">
+                                <span class="health-dot" id="health-hostapd"></span>
+                                <span class="health-text" id="health-hostapd-text">--</span>
+                            </div>
+                        </div>
+                        <div class="health-item">
+                            <div class="health-label">{{ call .t "navigation.adblock" "AdBlock" }}</div>
+                            <div class="health-indicator">
+                                <span class="health-dot" id="health-adblock"></span>
+                                <span class="health-text" id="health-adblock-text">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/dashboard.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>

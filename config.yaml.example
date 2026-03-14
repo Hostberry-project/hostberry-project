@@ -1,0 +1,28 @@
+server:
+  host: "0.0.0.0"  # Escuchar en todas las interfaces (permite acceso por IP de red)
+  port: 8000
+  debug: false
+  read_timeout: 30
+  write_timeout: 30
+
+database:
+  type: "sqlite"  # sqlite, postgres, mysql
+  path: "data/hostberry.db"
+  # Para PostgreSQL/MySQL:
+  # host: "localhost"
+  # port: 5432
+  # user: "hostberry"
+  # password: "password"
+  # database: "hostberry"
+
+security:
+  jwt_secret: "cambiar-este-secreto-en-produccion-usar-secretos-seguros"
+  token_expiry: 60  # minutos (1 hora)
+  bcrypt_cost: 10
+  rate_limit_rps: 10
+
+logging:
+  level: "info"  # debug, info, warn, error
+  file: "logs/hostberry.log"
+  max_size: 10  # MB
+  max_backups: 5

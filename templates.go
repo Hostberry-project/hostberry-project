@@ -1,0 +1,370 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"html/template"
+	"io"
+	"io/fs"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/html/v2"
+)
+
+func registerTemplateFuncs(engine *html.Engine) {
+	if engine == nil {
+		return
+	}
+
+	engine.AddFunc("t", func(key string, defaultValue ...string) string {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return key
+	})
+	
+	engine.AddFunc("json", func(v interface{}) template.HTML {
+		b, err := json.Marshal(v)
+		if err != nil {
+			return template.HTML("{}")
+		}
+		return template.HTML(b)
+	})
+	
+	engine.AddFunc("eq", func(a, b interface{}) bool {
+		return a == b
+	})
+	
+	engine.AddFunc("ne", func(a, b interface{}) bool {
+		return a != b
+	})
+	
+	engine.AddFunc("contains", func(s, substr string) bool {
+		return strings.Contains(s, substr)
+	})
+
+	engine.AddFunc("Seq", func(start, end int) []int {
+		var seq []int
+		for i := start; i <= end; i++ {
+			seq = append(seq, i)
+		}
+		return seq
+	})
+}
+
+func createTemplateEngine() *html.Engine {
+	var engine *html.Engine
+	
+	paths := []string{
+		"/opt/hostberry/website/templates",  // Ruta de instalación estándar
+	}
+	
+	if wd, err := os.Getwd(); err == nil && wd != "" {
+		cur := wd
+		for i := 0; i < 6; i++ {
+			candidate := filepath.Join(cur, "website", "templates")
+			if candidate != "/opt/hostberry/website/templates" {
+				paths = append(paths, candidate)
+			}
+			parent := filepath.Dir(cur)
+			if parent == cur {
+				break
+			}
+			cur = parent
+		}
+	}
+	
+	exePath, _ := os.Executable()
+	if exePath != "" {
+		exeDir := filepath.Dir(exePath)
+		templatesPath := filepath.Join(exeDir, "website", "templates")
+		if templatesPath != "/opt/hostberry/website/templates" {
+			paths = append(paths, templatesPath)
+		}
+	}
+	
+	paths = append(paths, "./website/templates")
+	
+	for _, path := range paths {
+		if stat, err := os.Stat(path); err == nil {
+			if stat.IsDir() {
+				if entries, err := os.ReadDir(path); err == nil {
+					htmlFiles := 0
+					var foundTemplates []string
+					for _, entry := range entries {
+						if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".html") {
+							htmlFiles++
+							if len(foundTemplates) < 10 {
+								foundTemplates = append(foundTemplates, entry.Name())
+							}
+						}
+					}
+						if htmlFiles > 0 {
+							LogTf("logs.templates_found", htmlFiles, path)
+							criticalTemplates := []string{"dashboard.html", "login.html", "base.html", "error.html"}
+							missingCritical := false
+							for _, tmpl := range criticalTemplates {
+								if _, err := os.Stat(filepath.Join(path, tmpl)); err != nil {
+									LogTf("logs.templates_missing", tmpl, path)
+									missingCritical = true
+								}
+							}
+							if missingCritical {
+								LogTf("logs.templates_rejected", path)
+								continue
+							}
+
+							engine = html.New(path, ".html")
+						if engine == nil {
+							LogTf("logs.templates_engine_nil", path)
+							continue
+						}
+						
+						registerTemplateFuncs(engine)
+						
+						if err := engine.Load(); err != nil {
+							LogTf("logs.templates_load_error", path, err)
+							engine = nil
+							continue
+						}
+
+						LogTf("logs.templates_loaded", path)
+						LogTf("logs.templates_html_count", htmlFiles)
+						LogTf("logs.templates_registered", foundTemplates)
+
+						engine.Reload(!appConfig.Server.Debug)
+						break // Salir del loop, engine encontrado y cargado con éxito
+					} else {
+						LogTf("logs.templates_no_html", path)
+					}
+				}
+			}
+		}
+	}
+	
+	if engine == nil {
+		LogTln("logs.templates_fs_unavailable")
+		tmplFS, err := fs.Sub(templatesFS, "website/templates")
+		if err == nil {
+			if entries, err := fs.ReadDir(tmplFS, "."); err == nil {
+				htmlFiles := 0
+				var templateNames []string
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".html") {
+						htmlFiles++
+						if len(templateNames) < 5 {
+							templateNames = append(templateNames, entry.Name())
+						}
+					}
+				}
+				if htmlFiles > 0 {
+					criticalTemplates := []string{"dashboard.html", "login.html", "base.html"}
+					allCriticalFound := true
+					for _, tmpl := range criticalTemplates {
+						if testFile, err := tmplFS.Open(tmpl); err == nil {
+							testFile.Close()
+							LogTf("logs.templates_embedded_verified", tmpl)
+						} else {
+							LogTf("logs.templates_embedded_open_error", tmpl, err)
+							allCriticalFound = false
+						}
+					}
+					
+					if !allCriticalFound {
+						LogT("logs.templates_embedded_incomplete")
+						err = fmt.Errorf("templates críticos faltantes")
+					} else {
+						engine = html.NewFileSystem(http.FS(tmplFS), ".html")
+						if engine != nil {
+							registerTemplateFuncs(engine)
+							
+							if err := engine.Load(); err != nil {
+								LogTf("logs.templates_embedded_load_error", err)
+								engine = nil
+								err = err // para el log de abajo
+							} else {
+								engine.Reload(false)
+								LogTf("logs.templates_embedded_loaded", htmlFiles)
+								LogTf("logs.templates_embedded_list", templateNames)
+							}
+						} else {
+							LogT("logs.templates_embedded_nil")
+							err = fmt.Errorf("engine es nil")
+						}
+					}
+				} else {
+					LogT("logs.templates_embedded_empty")
+					err = fmt.Errorf("templates embebidos vacíos")
+				}
+			} else {
+				LogTf("logs.templates_embedded_read_error", err)
+			}
+		} else {
+			log.Printf("⚠️  Error creando sub-FS de templates embebidos: %v", err)
+			log.Printf("   Intentando acceder directamente al FS...")
+			if entries, err := fs.ReadDir(templatesFS, "website/templates"); err == nil {
+				htmlFiles := 0
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".html") {
+						htmlFiles++
+					}
+				}
+				if htmlFiles > 0 {
+					log.Printf("✅ Templates encontrados directamente en website/templates: %d archivos", htmlFiles)
+					if tmplFS2, err2 := fs.Sub(templatesFS, "website/templates"); err2 == nil {
+						engine = html.NewFileSystem(http.FS(tmplFS2), ".html")
+						if engine != nil {
+							registerTemplateFuncs(engine)
+							log.Printf("✅ Motor de templates configurado usando sub-FS directo")
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	if engine == nil {
+		log.Println("⚠️  No se encontró engine después de todos los intentos, forzando desde /opt/hostberry/website/templates")
+		forcePath := "/opt/hostberry/website/templates"
+		if stat, err := os.Stat(forcePath); err == nil && stat.IsDir() {
+			engine = html.New(forcePath, ".html")
+			if engine != nil {
+				registerTemplateFuncs(engine)
+				if err := engine.Load(); err != nil {
+					log.Printf("❌ Error cargando templates forzados desde %s: %v", forcePath, err)
+					engine = nil
+				} else {
+					engine.Reload(!appConfig.Server.Debug)
+					log.Printf("✅ Engine forzado desde %s", forcePath)
+				}
+			} else {
+				log.Printf("❌ Error: engine es nil después de forzar desde %s", forcePath)
+			}
+		} else {
+			log.Printf("❌ Error: No se pudo acceder a %s: %v", forcePath, err)
+		}
+	}
+	
+	if engine == nil {
+		log.Fatal("❌ Error crítico: engine es nil después de todos los intentos de carga")
+	}
+	
+	return engine
+}
+
+func renderTemplate(c *fiber.Ctx, name string, data fiber.Map) error {
+	language := GetCurrentLanguage(c)
+	
+	i18nFuncs := TemplateFuncs(c)
+	
+	if data == nil {
+		data = fiber.Map{}
+	}
+
+	data["page"] = name
+	// cache-busting de assets (si el handler no lo provee)
+	if _, ok := data["last_update"]; !ok {
+		data["last_update"] = time.Now().Unix()
+	}
+	
+	data["language"] = language
+	data["t"] = i18nFuncs["t"]
+	data["common"] = i18nFuncs["common"]
+	data["navigation"] = i18nFuncs["navigation"]
+	data["dashboard"] = i18nFuncs["dashboard"]
+	data["auth"] = i18nFuncs["auth"]
+	data["system"] = i18nFuncs["system"]
+	data["network"] = i18nFuncs["network"]
+	data["wifi"] = i18nFuncs["wifi"]
+	data["vpn"] = i18nFuncs["vpn"]
+	data["wireguard"] = i18nFuncs["wireguard"]
+	data["adblock"] = i18nFuncs["adblock"]
+	data["settings"] = i18nFuncs["settings"]
+	data["errors"] = i18nFuncs["errors"]
+	// Traducciones se cargan por API en el cliente (sin embeber JSON en la página)
+
+	if user := c.Locals("user"); user != nil {
+		data["current_user"] = user
+	}
+	
+	templateName := name
+	
+	log.Printf("📂 Intentando renderizar template: %s", templateName)
+
+	if err := c.Render(templateName, data, "base"); err == nil {
+		return nil
+	}
+
+	if err := c.Render(templateName+".html", data, "base"); err == nil {
+		return nil
+	}
+	if err := c.Render(templateName, data, "base.html"); err == nil {
+		return nil
+	}
+	if err := c.Render(templateName+".html", data, "base.html"); err == nil {
+		return nil
+	}
+
+	if err := c.Render(templateName, data); err == nil {
+		return nil
+	}
+
+	log.Printf("   ❌ Todos los intentos fallaron para: %s", name)
+	if views := c.App().Config().Views; views != nil {
+		log.Printf("   ℹ️ Motor de templates está presente")
+	} else {
+		log.Printf("   ⚠️ Motor de templates NO está configurado")
+	}
+	return fiber.NewError(500, "Error renderizando template")
+}
+
+func copyStaticFiles() error {
+	sourceDir := "website/static"
+	targetDir := "go-backend/website/static"
+	
+	if _, err := os.Stat(sourceDir); os.IsNotExist(err) {
+		return nil // No hay archivos estáticos que copiar
+	}
+	
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		return err
+	}
+	
+	return filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		
+		relPath, err := filepath.Rel(sourceDir, path)
+		if err != nil {
+			return err
+		}
+		
+		targetPath := filepath.Join(targetDir, relPath)
+		
+		if info.IsDir() {
+			return os.MkdirAll(targetPath, info.Mode())
+		}
+		
+		source, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer source.Close()
+		
+		target, err := os.Create(targetPath)
+		if err != nil {
+			return err
+		}
+		defer target.Close()
+		
+		_, err = io.Copy(target, source)
+		return err
+	})
+}

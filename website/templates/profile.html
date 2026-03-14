@@ -1,0 +1,280 @@
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-12 text-center">
+                <h1 class="dashboard-title">
+                    <i class="bi bi-person-circle me-2"></i>
+                    {{ call .t "auth.profile" "Profile" }}
+                </h1>
+                <p class="dashboard-subtitle">{{ call .t "profile.subtitle" "Manage your personal information and preferences" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row settings-cards-row">
+    <!-- Información del Perfil -->
+        <div class="col-lg-8 col-md-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-white text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-person-circle me-2"></i>{{ call .t "auth.profile" "Profile Information" }}
+                </h5>
+            </div>
+                <div class="card-body px-4 pb-4">
+                <form id="profileForm" action="/api/v1/auth/profile" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label text-white">{{ call .t "auth.username" "Username" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary text-center" id="username" name="username" value="{{ .user.Username }}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label text-white">{{ call .t "auth.email" "Email" }}</label>
+                                <input type="email" class="form-control bg-dark text-white border-secondary text-center" id="email" name="email" value="{{ if .user.Email }}{{ .user.Email }}{{ end }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label text-white">{{ call .t "profile.first_name" "First Name" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary text-center" id="first_name" name="first_name" value="{{ if .user.FirstName }}{{ .user.FirstName }}{{ end }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label text-white">{{ call .t "profile.last_name" "Last Name" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary text-center" id="last_name" name="last_name" value="{{ if .user.LastName }}{{ .user.LastName }}{{ end }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label for="role" class="form-label text-white">{{ call .t "profile.role" "Role" }}</label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary text-center" id="role" name="role" value="{{ if .user.Role }}{{ .user.Role }}{{ else }}{{ call .t "profile.default_role" "admin" }}{{ end }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label for="timezone" class="form-label text-white text-center d-block">{{ call .t "settings.timezone" "Timezone" }}</label>
+                            <select class="form-select bg-dark text-white border-secondary text-center" id="timezone" name="timezone">
+                            <option value="UTC" {{ if eq .user.Timezone "UTC" }}selected{{ end }}>UTC</option>
+                            <option value="Europe/Madrid" {{ if eq .user.Timezone "Europe/Madrid" }}selected{{ end }}>Europe/Madrid</option>
+                            <option value="America/New_York" {{ if eq .user.Timezone "America/New_York" }}selected{{ end }}>America/New_York</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "common.save" "Save" }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cambiar Contraseña -->
+        <div class="col-lg-4 col-md-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-white text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-key me-2"></i>{{ call .t "auth.change_password" "Change Password" }}
+                </h5>
+            </div>
+                <div class="card-body px-4 pb-4">
+                <form id="passwordForm" action="/api/v1/auth/change-password" method="POST">
+                    <div class="mb-3">
+                            <label for="current_password" class="form-label text-white">{{ call .t "auth.current_password" "Current Password" }}</label>
+                            <input type="password" class="form-control bg-dark text-white border-secondary text-center" id="current_password" name="current_password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label for="new_password" class="form-label text-white">{{ call .t "auth.new_password" "New Password" }}</label>
+                            <input type="password" class="form-control bg-dark text-white border-secondary text-center" id="new_password" name="new_password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label for="confirm_password" class="form-label text-white">{{ call .t "auth.confirm_password" "Confirm Password" }}</label>
+                            <input type="password" class="form-control bg-dark text-white border-secondary text-center" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-key me-2"></i>
+                                {{ call .t "auth.change_password" "Change Password" }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del Usuario -->
+        <div class="col-lg-6 col-md-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-white text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-graph-up me-2"></i>{{ call .t "profile.statistics" "Statistics" }}
+                </h5>
+            </div>
+                <div class="card-body px-4 pb-4">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                                <h6 class="text-white">{{ call .t "profile.last_login" "Last Login" }}</h6>
+                                <p class="text-white-50 mb-0">{{ if .user.LastLogin }}{{ .user.LastLogin }}{{ else }}{{ call .t "profile.never" "Never" }}{{ end }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                                <h6 class="text-white">{{ call .t "profile.login_count" "Login Count" }}</h6>
+                                <p class="text-white-50 mb-0">{{ if .user.LoginCount }}{{ .user.LoginCount }}{{ else }}0{{ end }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                                <h6 class="text-white">{{ call .t "profile.failed_attempts" "Failed Attempts" }}</h6>
+                                <p class="text-white-50 mb-0">{{ if .user.FailedAttempts }}{{ .user.FailedAttempts }}{{ else }}0{{ end }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                                <h6 class="text-white">{{ call .t "profile.account_age" "Account Age" }}</h6>
+                                <p class="text-white-50 mb-0">{{ if .user.CreatedAt }}{{ .user.CreatedAt }}{{ else }}{{ call .t "profile.zero_days" "0 days" }}{{ end }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividad Reciente -->
+        <div class="col-lg-6 col-md-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-white text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-clock-history me-2"></i>{{ call .t "profile.recent_activity" "Recent Activity" }}
+                </h5>
+            </div>
+                <div class="card-body px-4 pb-4">
+                <div class="list-group list-group-flush">
+                    {{ range .recent_activities }}
+                        <div class="list-group-item bg-transparent border-secondary text-white mb-2">
+                        <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 text-white">{{ .Action }}</h6>
+                                <small class="text-white-50">{{ .Timestamp }}</small>
+                            </div>
+                            <p class="mb-1 text-white-50">{{ .Description }}</p>
+                            <small class="text-white-50">{{ .IPAddress }}</small>
+                        </div>
+                        {{ else }}
+                        <div class="text-center text-white-50">
+                            <p>{{ call .t "profile.no_activity" "No recent activity" }}</p>
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración de Notificaciones -->
+        <div class="col-lg-6 col-md-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-white text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-bell me-2"></i>{{ call .t "profile.notifications" "Notifications" }}
+                </h5>
+            </div>
+                <div class="card-body px-4 pb-4">
+                <form id="notificationForm" action="/api/v1/auth/preferences" method="POST">
+                    <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "profile.email_notifications" "Email Notifications" }}</label>
+                            <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {{ if .user.EmailNotifications }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="email_notifications">
+                                    {{ call .t "profile.enable_email_notifications" "Enable email notifications" }}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "profile.system_alerts" "System Alerts" }}</label>
+                            <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="system_alerts" name="system_alerts" {{ if .user.SystemAlerts }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="system_alerts">
+                                    {{ call .t "profile.enable_system_alerts" "Enable system alerts" }}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "profile.security_alerts" "Security Alerts" }}</label>
+                            <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="security_alerts" name="security_alerts" {{ if .user.SecurityAlerts }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="security_alerts">
+                                    {{ call .t "profile.enable_security_alerts" "Enable security alerts" }}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "common.save" "Save" }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración de Privacidad -->
+        <div class="col-lg-6 col-md-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-white text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-shield-lock me-2"></i>{{ call .t "profile.privacy" "Privacy" }}
+                </h5>
+            </div>
+                <div class="card-body px-4 pb-4">
+                <form id="privacyForm" action="/api/v1/auth/preferences" method="POST">
+                    <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "profile.show_activity" "Show Activity" }}</label>
+                            <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="show_activity" name="show_activity" {{ if .user.ShowActivity }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="show_activity">
+                                    {{ call .t "profile.enable_activity_visibility" "Enable activity visibility" }}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "profile.data_collection" "Data Collection" }}</label>
+                            <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="data_collection" name="data_collection" {{ if .user.DataCollection }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="data_collection">
+                                    {{ call .t "profile.enable_data_collection" "Enable data collection" }}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "profile.analytics" "Analytics" }}</label>
+                            <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="analytics" name="analytics" {{ if .user.Analytics }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="analytics">
+                                    {{ call .t "profile.enable_analytics" "Enable analytics" }}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "common.save" "Save" }}
+                        </button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/static/js/profile.js?v={{ .last_update }}"></script>

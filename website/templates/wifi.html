@@ -1,0 +1,317 @@
+<div class="wifi-page">
+    <!-- WiFi Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-wifi me-2"></i>
+                {{ call .t "wifi.title" "WiFi Management" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "wifi.subtitle" "Manage your wireless network connections" }}</p>
+        </div>
+    </div>
+
+    <!-- WiFi Status Cards -->
+    <div class="row quick-stats-row mb-4 g-3 g-md-4">
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card wifi-status-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-wifi" id="wifi-status-icon"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "wifi.wifi_status" "WiFi Status" }}</div>
+                    <div class="stat-value" id="wifi-status-value">--</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="wifi-status-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card connection-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-router"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "wifi.connection_status" "Connection" }}</div>
+                    <div class="stat-value" id="connection-status-value">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card signal-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-bar-chart"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "wifi.network_signal" "Signal" }}</div>
+                    <div class="stat-value" id="signal-value">--</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="signal-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card networks-stat">
+                <div class="stat-icon">
+                    <i class="bi bi-list-ul"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "wifi.available_networks" "Networks" }}</div>
+                    <div class="stat-value" id="networks-count-value">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row dashboard-grid">
+        <!-- WiFi Controls -->
+        <div class="col-12 mb-4">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-sliders me-2"></i>
+                        {{ call .t "wifi.actions" "Actions" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" id="refresh-wifi-status" onclick="loadConnectionStatus()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="wifi-controls">
+                        <div class="control-item mb-3">
+                            <label class="form-label wifi-interface-label">
+                                <i class="bi bi-router me-2"></i>
+                                {{ call .t "wifi.interface" "WiFi Interface" }}
+                            </label>
+                            <div class="wifi-interface-select-wrapper">
+                                <select class="form-select wifi-interface-select" id="wifi-interface" name="interface">
+                                    <option value="">{{ call .t "wifi.auto_detect" "Auto-detect" }}</option>
+                                </select>
+                                <i class="bi bi-chevron-down wifi-interface-select-icon"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="control-item mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-globe me-2"></i>
+                                {{ call .t "wifi.country" "Country Code" }}
+                            </label>
+                            <select class="form-select" id="wifi-country" name="country">
+                                <option value="US" selected>United States (US)</option>
+                                <option value="ES">Spain (ES)</option>
+                                <option value="MX">Mexico (MX)</option>
+                                <option value="AR">Argentina (AR)</option>
+                                <option value="CO">Colombia (CO)</option>
+                                <option value="CL">Chile (CL)</option>
+                                <option value="PE">Peru (PE)</option>
+                                <option value="VE">Venezuela (VE)</option>
+                                <option value="EC">Ecuador (EC)</option>
+                                <option value="GT">Guatemala (GT)</option>
+                                <option value="CU">Cuba (CU)</option>
+                                <option value="BO">Bolivia (BO)</option>
+                                <option value="DO">Dominican Republic (DO)</option>
+                                <option value="HN">Honduras (HN)</option>
+                                <option value="PY">Paraguay (PY)</option>
+                                <option value="SV">El Salvador (SV)</option>
+                                <option value="NI">Nicaragua (NI)</option>
+                                <option value="CR">Costa Rica (CR)</option>
+                                <option value="PA">Panama (PA)</option>
+                                <option value="UY">Uruguay (UY)</option>
+                                <option value="GB">United Kingdom (GB)</option>
+                                <option value="FR">France (FR)</option>
+                                <option value="DE">Germany (DE)</option>
+                                <option value="IT">Italy (IT)</option>
+                                <option value="PT">Portugal (PT)</option>
+                                <option value="BR">Brazil (BR)</option>
+                                <option value="CA">Canada (CA)</option>
+                                <option value="AU">Australia (AU)</option>
+                                <option value="NZ">New Zealand (NZ)</option>
+                                <option value="JP">Japan (JP)</option>
+                                <option value="CN">China (CN)</option>
+                                <option value="IN">India (IN)</option>
+                                <option value="RU">Russia (RU)</option>
+                                <option value="KR">South Korea (KR)</option>
+                                <option value="SG">Singapore (SG)</option>
+                                <option value="MY">Malaysia (MY)</option>
+                                <option value="TH">Thailand (TH)</option>
+                                <option value="ID">Indonesia (ID)</option>
+                                <option value="PH">Philippines (PH)</option>
+                                <option value="VN">Vietnam (VN)</option>
+                                <option value="AE">United Arab Emirates (AE)</option>
+                                <option value="SA">Saudi Arabia (SA)</option>
+                                <option value="IL">Israel (IL)</option>
+                                <option value="TR">Turkey (TR)</option>
+                                <option value="ZA">South Africa (ZA)</option>
+                                <option value="EG">Egypt (EG)</option>
+                                <option value="NG">Nigeria (NG)</option>
+                                <option value="KE">Kenya (KE)</option>
+                                <option value="MA">Morocco (MA)</option>
+                                <option value="DZ">Algeria (DZ)</option>
+                                <option value="TZ">Tanzania (TZ)</option>
+                                <option value="ET">Ethiopia (ET)</option>
+                                <option value="UG">Uganda (UG)</option>
+                                <option value="GH">Ghana (GH)</option>
+                                <option value="AO">Angola (AO)</option>
+                                <option value="SD">Sudan (SD)</option>
+                                <option value="MZ">Mozambique (MZ)</option>
+                                <option value="MW">Malawi (MW)</option>
+                                <option value="ZM">Zambia (ZM)</option>
+                                <option value="ZW">Zimbabwe (ZW)</option>
+                                <option value="SN">Senegal (SN)</option>
+                                <option value="CI">Ivory Coast (CI)</option>
+                                <option value="CM">Cameroon (CM)</option>
+                                <option value="MG">Madagascar (MG)</option>
+                                <option value="BF">Burkina Faso (BF)</option>
+                                <option value="ML">Mali (ML)</option>
+                                <option value="NE">Niger (NE)</option>
+                                <option value="TD">Chad (TD)</option>
+                                <option value="SO">Somalia (SO)</option>
+                                <option value="ER">Eritrea (ER)</option>
+                                <option value="DJ">Djibouti (DJ)</option>
+                                <option value="RW">Rwanda (RW)</option>
+                                <option value="BI">Burundi (BI)</option>
+                                <option value="SS">South Sudan (SS)</option>
+                                <option value="CF">Central African Republic (CF)</option>
+                                <option value="CD">DR Congo (CD)</option>
+                                <option value="CG">Congo (CG)</option>
+                                <option value="GA">Gabon (GA)</option>
+                                <option value="GQ">Equatorial Guinea (GQ)</option>
+                                <option value="ST">Sao Tome and Principe (ST)</option>
+                                <option value="GW">Guinea-Bissau (GW)</option>
+                                <option value="GN">Guinea (GN)</option>
+                                <option value="SL">Sierra Leone (SL)</option>
+                                <option value="LR">Liberia (LR)</option>
+                                <option value="TG">Togo (TG)</option>
+                                <option value="BJ">Benin (BJ)</option>
+                                <option value="MR">Mauritania (MR)</option>
+                                <option value="GM">Gambia (GM)</option>
+                                <option value="CV">Cape Verde (CV)</option>
+                                <option value="KM">Comoros (KM)</option>
+                                <option value="SC">Seychelles (SC)</option>
+                                <option value="MU">Mauritius (MU)</option>
+                                <option value="RE">Reunion (RE)</option>
+                                <option value="YT">Mayotte (YT)</option>
+                                <option value="SH">Saint Helena (SH)</option>
+                                <option value="IO">British Indian Ocean Territory (IO)</option>
+                                <option value="TF">French Southern Territories (TF)</option>
+                                <option value="EH">Western Sahara (EH)</option>
+                            </select>
+                            <small class="form-text text-muted">{{ call .t "wifi.country_help" "Select your country/region for WiFi compliance" }}</small>
+                        </div>
+                        
+                        <div class="wifi-buttons-group">
+                            <button class="btn btn-warning btn-lg w-100 mb-2" id="unblock-wifi-btn" onclick="unblockWiFi()" style="display: none;">
+                                <i class="bi bi-unlock me-2"></i>
+                                <span>{{ call .t "wifi.unblock_wifi" "Unblock WiFi" }}</span>
+                            </button>
+                            <div class="wifi-buttons-row">
+                                <button class="btn btn-secondary btn-sm" id="toggle-software-switch-btn" onclick="toggleSoftwareSwitch()">
+                                    <i class="bi bi-toggle-off" id="software-switch-icon"></i>
+                                    <span id="software-switch-text">{{ call .t "wifi.enable_software_switch" "Enable Software Switch" }}</span>
+                                </button>
+                                <button class="btn btn-primary btn-sm" id="toggle-wifi-btn" onclick="toggleWiFi()">
+                                    <i class="bi bi-wifi" id="toggle-wifi-icon"></i>
+                                    <span id="toggle-wifi-text">{{ call .t "wifi.enable_wifi" "Enable WiFi" }}</span>
+                                </button>
+                                <button class="btn btn-info btn-sm" id="scan-btn" onclick="scanNetworks()">
+                                    <i class="bi bi-search me-2"></i>
+                                    <span>{{ call .t "wifi.scan_networks" "Scan Networks" }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Networks -->
+        <div class="col-12 mb-4">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-list me-2"></i>
+                        {{ call .t "wifi.available_networks" "Available Networks" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <div id="networks-loading" class="text-center py-5" style="display: none;">
+                        <div class="spinning mb-3"><i class="bi bi-arrow-clockwise" style="font-size: 2rem;"></i></div>
+                        <p class="mt-2">{{ call .t "wifi.scanning" "Scanning..." }}</p>
+                        <small class="text-muted">{{ call .t "wifi.scan_time" "This may take 10-15 seconds" }}</small>
+                    </div>
+                    <div id="networks-empty" class="text-center py-5" style="display: none;">
+                        <i class="bi bi-wifi-off" style="font-size: 4rem; opacity: 0.5;"></i>
+                        <p class="mt-3">{{ call .t "wifi.no_networks" "No networks found" }}</p>
+                        <p class="text-muted small">{{ call .t "wifi.no_networks_desc" "No WiFi networks were found in your area. Make sure WiFi is enabled and try again." }}</p>
+                        <button class="btn btn-primary mt-3" onclick="scanNetworks()">
+                            <i class="bi bi-search me-2"></i>
+                            {{ call .t "wifi.scan_networks" "Scan Networks" }}
+                        </button>
+                    </div>
+                    <div id="networks-table-container" style="display: none;">
+                        <div class="networks-cards-container" id="networksTable">
+                            <!-- Networks will be loaded here as cards -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Details -->
+        <div class="col-12 mb-4">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {{ call .t "wifi.connection_details" "Connection Details" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="info-grid" id="connection-info">
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.status" "Status" }}</span>
+                            <span class="info-value" id="connection-status">
+                                <span class="spinning"><i class="bi bi-arrow-clockwise"></i></span> {{ call .t "common.loading" "Loading..." }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.network_ssid" "SSID" }}</span>
+                            <span class="info-value" id="connection-ssid">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.network_signal" "Signal" }}</span>
+                            <span class="info-value" id="connection-signal">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.network_security" "Security" }}</span>
+                            <span class="info-value" id="connection-security">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.network_channel" "Channel" }}</span>
+                            <span class="info-value" id="connection-channel">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.ip_address" "IP Address" }}</span>
+                            <span class="info-value" id="connection-ip">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.mac_address" "MAC Address" }}</span>
+                            <span class="info-value" id="connection-mac">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">{{ call .t "wifi.speed" "Speed" }}</span>
+                            <span class="info-value" id="connection-speed">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/wifi_page.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>

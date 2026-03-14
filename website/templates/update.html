@@ -1,0 +1,138 @@
+ 
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-12 text-center">
+                <h1 class="dashboard-title">
+                    <i class="bi bi-arrow-repeat me-2"></i>
+                    {{ call .t "navigation.update" "Updates" }}
+                </h1>
+                <p class="dashboard-subtitle">{{ call .t "update.subtitle" "Update Debian system and HostBerry project" }}</p>
+                <div class="dashboard-time">
+                    <i class="bi bi-clock me-1"></i>
+                    {{ call .t "update.last_check" "Last check" }}: <span id="update-last-check">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h5 class="actions-card-title">
+                        <i class="bi bi-lightning-charge me-2"></i>
+                        {{ call .t "update.actions_heading" "Update Actions" }}
+                    </h5>
+                </div>
+                <div class="actions-card-body">
+                    <div class="quick-actions">
+                        <button class="action-btn action-update" id="action-check-updates">
+                            <i class="bi bi-search"></i>
+                            <span>{{ call .t "update.check_updates" "Check for updates" }}</span>
+                        </button>
+                        <button class="action-btn action-update" id="action-update-system">
+                            <i class="bi bi-arrow-up-circle"></i>
+                            <span>{{ call .t "update.update_system" "Update Debian" }}</span>
+                        </button>
+                        <button class="action-btn action-update" id="action-update-project">
+                            <i class="bi bi-code-slash"></i>
+                            <span>{{ call .t "update.update_project" "Update HostBerry" }}</span>
+                        </button>
+                        <button class="action-btn action-update" id="action-update-all">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>{{ call .t "update.update_all" "Update All" }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Updates Status -->
+    <div class="row mb-4">
+        <div class="col-lg-6 col-md-12">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="actions-card-title">
+                                <i class="bi bi-ubuntu me-2"></i>
+                                {{ call .t "update.system_updates" "System Updates" }}
+                            </h5>
+                            <p class="text-white-50 mb-0 small">{{ call .t "update.system_caption" "Available updates for Debian" }}</p>
+                        </div>
+                        <button class="btn btn-sm btn-outline-light" id="systemUpdatesRefresh">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="actions-card-body">
+                    <div id="system-updates-list">
+                        <div class="text-center py-4 text-white-50">
+                            <i class="bi bi-info-circle"></i>
+                            <p class="mb-0 mt-2">{{ call .t "update.click_to_check" "Click 'Check for updates' to start" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Update Status -->
+        <div class="col-lg-6 col-md-12">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="actions-card-title">
+                                <i class="bi bi-github me-2"></i>
+                                {{ call .t "update.project_status" "Project Status" }}
+                            </h5>
+                            <p class="text-white-50 mb-0 small">{{ call .t "update.project_caption" "HostBerry version information" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions-card-body">
+                    <div id="project-status">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <h6 class="text-white-50 mb-1">{{ call .t "update.current_version" "Current Version" }}</h6>
+                                <p class="text-white mb-3" id="project-version">--</p>
+                            </div>
+                            <div class="col-12">
+                                <h6 class="text-white-50 mb-1">{{ call .t "update.last_update" "Last Update" }}</h6>
+                                <p class="text-white mb-3" id="project-last-update">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Log -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h5 class="actions-card-title">
+                        <i class="bi bi-file-text me-2"></i>
+                        {{ call .t "update.update_log" "Update Log" }}
+                    </h5>
+                </div>
+                <div class="actions-card-body">
+                    <div class="logs-container" id="update-log">
+                        <div class="text-center py-4 text-white-50">
+                            <i class="bi bi-file-text"></i>
+                            <p class="mb-0 mt-2">{{ call .t "update.no_logs" "No update logs yet" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script defer src="/static/js/update.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
+

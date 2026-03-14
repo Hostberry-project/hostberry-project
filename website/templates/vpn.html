@@ -1,0 +1,313 @@
+<div class="row">
+    <!-- Vista General de VPN -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield-lock"></i>
+                    {{ call .t "vpn.overview" "Overview" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-shield-check text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "vpn.connections" "Connections" }}</h6>
+                            <h4 class="text-primary">{{ if .vpn_stats.connections_count }}{{ .vpn_stats.connections_count }}{{ else }}2{{ end }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-server text-success" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "vpn.servers" "Servers" }}</h6>
+                            <h4 class="text-success">{{ if .vpn_stats.servers_count }}{{ .vpn_stats.servers_count }}{{ else }}1{{ end }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-people text-warning" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "vpn.clients" "Clients" }}</h6>
+                            <h4 class="text-warning">{{ if .vpn_stats.clients_count }}{{ .vpn_stats.clients_count }}{{ else }}3{{ end }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-speedometer2 text-info" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "vpn.bandwidth" "Bandwidth" }}</h6>
+                            <h4 class="text-info">{{ if .vpn_stats.total_bandwidth }}{{ .vpn_stats.total_bandwidth }}{{ else }}{{ call .t "vpn.default_bandwidth" "50 Mbps" }}{{ end }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado de VPN -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-heart-pulse"></i>
+                    {{ call .t "vpn.status" "Status" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="status-indicator status-{{ if .vpn_status.enabled }}online{{ else }}offline{{ end }}"></span>
+                    <span>{{ if .vpn_status.enabled }}{{ call .t "vpn.vpn_enabled" "VPN Enabled" }}{{ else }}{{ call .t "vpn.vpn_disabled" "VPN Disabled" }}{{ end }}</span>
+                </div>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <span class="status-indicator status-{{ if .vpn_status.connected }}online{{ else }}offline{{ end }}"></span>
+                    <span>{{ if .vpn_status.connected }}{{ call .t "vpn.vpn_connected" "Connected" }}{{ else }}{{ call .t "vpn.vpn_disconnected" "Disconnected" }}{{ end }}</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "vpn.server_name" "Server Name" }}</label>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-server text-primary me-2"></i>
+                        <span class="h6 mb-0">{{ if .vpn_status.current_server }}{{ .vpn_status.current_server }}{{ else }}{{ call .t "vpn.default_server_name" "HostBerry-VPN" }}{{ end }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "vpn.server_address" "Server Address" }}</label>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-geo-alt text-info me-2"></i>
+                        <span class="h6 mb-0">{{ if .vpn_status.server_address }}{{ .vpn_status.server_address }}{{ else }}{{ call .t "vpn.default_server_address" "192.168.1.100" }}{{ end }}</span>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success" onclick="toggleVPN()">
+                        <i class="bi bi-shield-check"></i>
+                        {{ if .vpn_status.enabled }}{{ call .t "vpn.disable_vpn" "Disable VPN" }}{{ else }}{{ call .t "vpn.enable_vpn" "Enable VPN" }}{{ end }}
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="connectVPN()">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        {{ if .vpn_status.connected }}{{ call .t "vpn.disconnect_vpn" "Disconnect" }}{{ else }}{{ call .t "vpn.connect_vpn" "Connect" }}{{ end }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conexiones VPN -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-diagram-3"></i>
+                    {{ call .t "vpn.connections" "Connections" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{{ call .t "vpn.connection_name" "Name" }}</th>
+                                <th>{{ call .t "vpn.connection_type" "Type" }}</th>
+                                <th>{{ call .t "vpn.connection_status" "Status" }}</th>
+                                <th>{{ call .t "vpn.connection_bandwidth" "Bandwidth" }}</th>
+                                <th>{{ call .t "common.actions" "Actions" }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="connectionsTable">
+                            <!-- Las conexiones se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Servidores VPN -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-server"></i>
+                    {{ call .t "vpn.servers" "Servers" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{{ call .t "vpn.server_name" "Name" }}</th>
+                                <th>{{ call .t "vpn.server_address" "Address" }}</th>
+                                <th>{{ call .t "vpn.server_status" "Status" }}</th>
+                                <th>{{ call .t "vpn.server_clients" "Clients" }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serversTable">
+                            <!-- Los servidores se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clientes VPN -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people"></i>
+                    {{ call .t "vpn.clients" "Clients" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{{ call .t "vpn.client_name" "Name" }}</th>
+                                <th>{{ call .t "vpn.client_address" "Address" }}</th>
+                                <th>{{ call .t "vpn.client_connected" "Connected" }}</th>
+                                <th>{{ call .t "vpn.client_bandwidth" "Bandwidth" }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientsTable">
+                            <!-- Los clientes se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración OpenVPN (cliente): pegar o subir archivo .ovpn -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    {{ call .t "vpn.openvpn_config_title" "OpenVPN client configuration" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">{{ call .t "vpn.openvpn_config_help" "Paste the contents of your .ovpn file or upload the file. Then save and connect." }}</p>
+                <div class="mb-3">
+                    <label for="openvpn_config_file" class="form-label">{{ call .t "vpn.upload_file" "Upload .ovpn file" }}</label>
+                    <input type="file" class="form-control" id="openvpn_config_file" accept=".ovpn,.conf,.txt">
+                </div>
+                <div class="mb-3">
+                    <label for="openvpn_config" class="form-label">{{ call .t "vpn.paste_config" "Or paste configuration" }}</label>
+                    <textarea class="form-control font-monospace" id="openvpn_config" name="openvpn_config" rows="12" placeholder="client&#10;dev tun&#10;remote server.example.com 1194&#10;..."></textarea>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary" id="openvpn_save_btn" onclick="saveOpenVPNConfig()">
+                        <i class="bi bi-check-circle"></i>
+                        {{ call .t "common.save" "Save" }}
+                    </button>
+                    <button type="button" class="btn btn-outline-success" id="openvpn_connect_btn" onclick="connectOpenVPN()">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        {{ call .t "vpn.connect_vpn" "Connect" }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seguridad de VPN -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield-lock"></i>
+                    {{ call .t "vpn.security" "Security" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "vpn.authentication" "Authentication" }}</label>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-key text-success me-2"></i>
+                        <span class="h6 mb-0">{{ if .vpn_security.auth_method }}{{ .vpn_security.auth_method }}{{ else }}Certificate + Username/Password{{ end }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "vpn.encryption" "Encryption" }}</label>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-lock text-primary me-2"></i>
+                        <span class="h6 mb-0">{{ if .vpn_security.encryption }}{{ .vpn_security.encryption }}{{ else }}AES-256-GCM{{ end }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "vpn.key_exchange" "Key Exchange" }}</label>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-arrow-left-right text-info me-2"></i>
+                        <span class="h6 mb-0">{{ if .vpn_security.key_exchange }}{{ .vpn_security.key_exchange }}{{ else }}ECDH P-256{{ end }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "vpn.certificate" "Certificate" }}</label>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-certificate text-warning me-2"></i>
+                        <span class="h6 mb-0">{{ if .vpn_security.certificate_status }}{{ .vpn_security.certificate_status }}{{ else }}Valid{{ end }}</span>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="generateCertificates()">
+                        <i class="bi bi-file-earmark-certificate"></i>
+                        {{ call .t "vpn.generate_certificates" "Generate Certificates" }}
+                    </button>
+                    <button class="btn btn-outline-info" onclick="viewSecurityLogs()">
+                        <i class="bi bi-journal-text"></i>
+                        {{ call .t "vpn.view_security_logs" "View Logs" }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de VPN -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    {{ call .t "vpn.statistics" "Statistics" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h6>{{ call .t "vpn.total_traffic" "Total Traffic" }}</h6>
+                            <h4 class="text-primary">{{ if .vpn_stats.total_traffic }}{{ .vpn_stats.total_traffic }}{{ else }}1.8 GB{{ end }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h6>{{ call .t "vpn.active_connections" "Active Connections" }}</h6>
+                            <h4 class="text-success">{{ if .vpn_stats.active_connections }}{{ .vpn_stats.active_connections }}{{ else }}2{{ end }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h6>{{ call .t "vpn.peak_bandwidth" "Peak Bandwidth" }}</h6>
+                            <h4 class="text-warning">{{ if .vpn_stats.peak_bandwidth }}{{ .vpn_stats.peak_bandwidth }}{{ else }}25 Mbps{{ end }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <h6>{{ call .t "vpn.uptime" "Uptime" }}</h6>
+                            <h4 class="text-info">{{ if .vpn_stats.uptime }}{{ .vpn_stats.uptime }}{{ else }}3 días{{ end }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/static/js/vpn.js?v={{ .last_update }}"></script>

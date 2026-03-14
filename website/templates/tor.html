@@ -1,0 +1,229 @@
+<div class="row">
+    <!-- Vista General de Tor -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield-lock"></i>
+                    {{ call .t "tor.overview" "Tor Overview" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">{{ call .t "tor.description" "Tor (The Onion Router) is a free software for enabling anonymous communication. It directs Internet traffic through a free, worldwide, volunteer overlay network consisting of more than seven thousand relays." }}</p>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-router text-primary" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "tor.status" "Status" }}</h6>
+                            <h4 class="text-primary" id="tor-status-text">{{ call .t "tor.inactive" "Inactive" }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-globe text-success" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "tor.tor_ip" "Tor IP" }}</h6>
+                            <h4 class="text-success" id="tor-ip-text">--</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-shield-check text-warning" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "tor.socks_port" "SOCKS Port" }}</h6>
+                            <h4 class="text-warning" id="tor-socks-port-text">9050</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <i class="bi bi-clock text-info" style="font-size: 2rem;"></i>
+                            <h6 class="mt-2">{{ call .t "tor.uptime" "Uptime" }}</h6>
+                            <h4 class="text-info" id="tor-uptime">--</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado de Tor -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-heart-pulse"></i>
+                    {{ call .t "tor.status" "Status" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="status-indicator status-offline" id="tor-status-indicator"></span>
+                    <span id="tor-status-label">{{ call .t "tor.inactive" "Inactive" }}</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "tor.installation" "Installation" }}</label>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle text-success me-2" id="tor-installed-icon" style="display: none;"></i>
+                        <i class="bi bi-x-circle text-danger me-2" id="tor-not-installed-icon"></i>
+                        <span id="tor-installation-text">{{ call .t "tor.not_installed" "Not installed" }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">{{ call .t "tor.service" "Service" }}</label>
+                    <div class="d-flex align-items-center">
+                        <span class="status-indicator status-offline" id="tor-service-indicator"></span>
+                        <span id="tor-service-text">{{ call .t "tor.stopped" "Stopped" }}</span>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" id="tor-install-btn" onclick="installTor()">
+                        <i class="bi bi-download"></i>
+                        {{ call .t "tor.install" "Install Tor" }}
+                    </button>
+                    <button class="btn btn-outline-success" id="tor-configure-btn" onclick="showTorConfig()" style="display: none;">
+                        <i class="bi bi-gear"></i>
+                        {{ call .t "tor.configure" "Configure" }}
+                    </button>
+                    <button class="btn btn-outline-success" id="tor-enable-btn" onclick="enableTor()" style="display: none;">
+                        <i class="bi bi-play-circle"></i>
+                        {{ call .t "tor.enable" "Enable" }}
+                    </button>
+                    <button class="btn btn-outline-danger" id="tor-disable-btn" onclick="disableTor()" style="display: none;">
+                        <i class="bi bi-stop-circle"></i>
+                        {{ call .t "tor.disable" "Disable" }}
+                    </button>
+                </div>
+                <hr class="my-3">
+                <div class="mb-2">
+                    <label class="form-label small text-muted">{{ call .t "tor.torify_ap_title" "Redirect AP traffic through Tor" }}</label>
+                    <p class="small text-muted mb-1">{{ call .t "tor.torify_ap_help" "All clients on the Hostberry WiFi will use Tor (Onion Pi style). Interface: " }}<span id="tor-iptables-interface">ap0</span></p>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="status-indicator status-offline" id="tor-iptables-indicator"></span>
+                        <span id="tor-iptables-label" class="small">{{ call .t "tor.torify_inactive" "Inactive" }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="tor-iptables-enable-btn" onclick="enableTorIptables()" style="display: none;">
+                            <i class="bi bi-funnel"></i>
+                            {{ call .t "tor.torify_enable" "Torify network" }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="tor-iptables-disable-btn" onclick="disableTorIptables()" style="display: none;">
+                            <i class="bi bi-funnel-fill"></i>
+                            {{ call .t "tor.torify_disable" "Stop torifying" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración de Tor -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-gear"></i>
+                    {{ call .t "tor.configuration" "Configuration" }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Configuración de Tor (oculta por defecto) -->
+                <div id="tor-config-form" style="display: none;">
+                    <form id="torConfigForm">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="tor-enable-socks" name="enable_socks" checked>
+                                <label class="form-check-label" for="tor-enable-socks">
+                                    {{ call .t "tor.enable_socks" "Enable SOCKS Proxy" }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tor-socks-port" class="form-label">{{ call .t "tor.socks_port" "SOCKS Port" }}</label>
+                            <input type="number" class="form-control" id="tor-socks-port" name="socks_port" value="9050" min="1024" max="65535">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="tor-enable-control" name="enable_control_port" checked>
+                                <label class="form-check-label" for="tor-enable-control">
+                                    {{ call .t "tor.enable_control" "Enable Control Port" }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tor-control-port" class="form-label">{{ call .t "tor.control_port" "Control Port" }}</label>
+                            <input type="number" class="form-control" id="tor-control-port" name="control_port" value="9051" min="1024" max="65535">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="tor-enable-hidden" name="enable_hidden_service">
+                                <label class="form-check-label" for="tor-enable-hidden">
+                                    {{ call .t "tor.enable_hidden_service" "Enable Hidden Service (Advanced)" }}
+                                </label>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <h6 class="text-muted mb-3"><i class="bi bi-onion me-1"></i> {{ call .t "tor.onion_pi_options" "Onion Pi style (transparent proxy + DNS)" }}</h6>
+                        <p class="small text-muted">{{ call .t "tor.onion_pi_help" "Redirect all traffic through Tor: transparent proxy (TransPort) and DNS (DNSPort). Use iptables to redirect traffic from an interface to these ports." }}</p>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="tor-enable-trans" name="enable_trans_port" checked>
+                                <label class="form-check-label" for="tor-enable-trans">
+                                    {{ call .t "tor.enable_trans_port" "Enable Transparent Proxy (TransPort)" }}
+                                </label>
+                            </div>
+                            <label for="tor-trans-port" class="form-label small">{{ call .t "tor.trans_port" "TransPort" }}</label>
+                            <input type="number" class="form-control form-control-sm" id="tor-trans-port" name="trans_port" value="9040" min="1024" max="65535">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="tor-enable-dns" name="enable_dns_port" checked>
+                                <label class="form-check-label" for="tor-enable-dns">
+                                    {{ call .t "tor.enable_dns_port" "Enable DNS through Tor (DNSPort)" }}
+                                </label>
+                            </div>
+                            <label for="tor-dns-port" class="form-label small">{{ call .t "tor.dns_port" "DNSPort" }}</label>
+                            <input type="number" class="form-control form-control-sm" id="tor-dns-port" name="dns_port" value="53" min="1024" max="65535">
+                            <div class="form-text small">{{ call .t "tor.dns_port_help" "Port 53 may conflict with systemd-resolved or dnsmasq. Stop them or use another port." }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="tor-client-only" name="client_only" checked>
+                                <label class="form-check-label" for="tor-client-only">
+                                    {{ call .t "tor.client_only" "Client only (no relay/exit)" }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="tor-automap-hosts" name="automap_hosts_on_resolve" checked>
+                                <label class="form-check-label" for="tor-automap-hosts">
+                                    {{ call .t "tor.automap_hosts" "Resolve .onion and .exit through Tor" }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                {{ call .t "common.save" "Save" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Información del Circuito -->
+                <div id="tor-circuit-info" style="display: none;">
+                    <h6>{{ call .t "tor.circuit_info" "Circuit Information" }}</h6>
+                    <div class="alert alert-info">
+                        <pre id="tor-circuit-text" class="mb-0"></pre>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadTorCircuit()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        {{ call .t "tor.refresh_circuit" "Refresh Circuit" }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/tor.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>

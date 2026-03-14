@@ -1,0 +1,272 @@
+<div class="network-page dashboard-page">
+    <!-- Network Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-hdd-network me-2"></i>
+                {{ call .t "network.title" "Network Management" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "network.subtitle" "Configure and monitor your network settings" }}</p>
+        </div>
+    </div>
+
+    <!-- Network Status Cards -->
+    <div class="row quick-stats-row mb-4 g-3 g-md-4">
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card network-status-card">
+                <div class="stat-icon">
+                    <i class="bi bi-wifi"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "network.status" "Network Status" }}</div>
+                    <div class="stat-value" id="network-status-value">--</div>
+                    <div class="stat-progress">
+                        <div class="stat-progress-bar" id="network-status-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card interface-card">
+                <div class="stat-icon">
+                    <i class="bi bi-ethernet"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "network.active_interfaces" "Active Interfaces" }}</div>
+                    <div class="stat-value" id="active-interfaces-count">--</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card traffic-card">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "monitoring.download" "Download" }}</div>
+                    <div class="stat-value" id="traffic-download-value">0 B/s</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-md-4">
+            <div class="stat-card traffic-card">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-down"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">{{ call .t "monitoring.upload" "Upload" }}</div>
+                    <div class="stat-value" id="traffic-upload-value">0 B/s</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Interfaces and Routing Table -->
+    <div class="row dashboard-grid mb-4 g-3">
+        <!-- Network Interfaces -->
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-hdd-network me-2"></i>
+                        {{ call .t "network.interfaces" "Network Interfaces" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadInterfaces()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div id="interfacesContainer">
+                        <div class="text-center py-4">
+                            <div class="spinning mb-3"><i class="bi bi-arrow-clockwise" style="font-size: 2rem;"></i></div>
+                            <p class="text-muted">{{ call .t "network.loading_interfaces" "Loading interfaces..." }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Routing Table -->
+        <div class="col-12 col-lg-6">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-diagram-3 me-2"></i>
+                        {{ call .t "network.routing_table" "Routing Table" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadRoutingTable()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ call .t "network.destination" "Destination" }}</th>
+                                    <th>{{ call .t "network.gateway" "Gateway" }}</th>
+                                    <th>{{ call .t "network.interface" "Interface" }}</th>
+                                    <th>{{ call .t "network.metric" "Metric" }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="routingTable">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">
+                                        <div class="spinning mb-2"><i class="bi bi-arrow-clockwise"></i></div>
+                                        <p class="mb-0">{{ call .t "network.loading_routes" "Loading routes..." }}</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Traffic Chart -->
+    <div class="row dashboard-grid mb-4 g-3">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-graph-up me-2"></i>
+                        {{ call .t "monitoring.network_chart" "Network Traffic" }}
+                        <span class="badge bg-secondary ms-2" id="net-traffic-interface-badge" style="font-size: 0.7rem; font-weight: normal;">
+                            {{ call .t "monitoring.network_auto" "Auto" }}
+                        </span>
+                    </h5>
+                    <select class="form-select form-select-sm" id="net-traffic-interface-select" style="max-width: 200px;">
+                        <option value="">{{ call .t "monitoring.network_auto" "Auto" }}</option>
+                    </select>
+                </div>
+                <div class="dashboard-card-body" style="position: relative; height: 400px; min-height: 400px;">
+                    <canvas id="net-traffic-chart"></canvas>
+                    <div id="chart-loading" class="text-center" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        <div class="spinning mb-2"><i class="bi bi-arrow-clockwise"></i></div>
+                        <small class="text-muted">{{ call .t "common.loading" "Loading..." }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LibreSpeed - Speed Test -->
+    <div class="row dashboard-grid mb-4 g-3">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        {{ call .t "network.speedtest_title" "LibreSpeed - Speed Test" }}
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-primary" id="speedtest-run-btn" onclick="runSpeedtest()">
+                        <i class="bi bi-play-fill me-1"></i>
+                        {{ call .t "network.speedtest_run" "Run test" }}
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <p class="text-muted small mb-3">{{ call .t "network.speedtest_desc" "Test your Internet speed with LibreSpeed. Requires librespeed-cli installed (see GitHub)." }}</p>
+                    <div id="speedtest-result" class="d-none">
+                        <div class="row g-3 mb-3">
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded border text-center">
+                                    <div class="small text-muted">{{ call .t "network.speedtest_ping" "Ping" }}</div>
+                                    <div class="fw-bold" id="speedtest-ping">—</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded border text-center">
+                                    <div class="small text-muted">{{ call .t "network.speedtest_jitter" "Jitter" }}</div>
+                                    <div class="fw-bold" id="speedtest-jitter">—</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded border text-center">
+                                    <div class="small text-muted">{{ call .t "network.speedtest_download" "Download" }}</div>
+                                    <div class="fw-bold text-success" id="speedtest-download">—</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded border text-center">
+                                    <div class="small text-muted">{{ call .t "network.speedtest_upload" "Upload" }}</div>
+                                    <div class="fw-bold text-primary" id="speedtest-upload">—</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="small text-muted">
+                            <span id="speedtest-server"></span>
+                            <span class="ms-2" id="speedtest-client"></span>
+                        </div>
+                    </div>
+                    <div id="speedtest-progress" class="text-center py-4 d-none">
+                        <div class="spinning mb-2"><i class="bi bi-speedometer2" style="font-size: 2rem;"></i></div>
+                        <p class="mb-0 text-muted">{{ call .t "network.speedtest_running" "Running speed test (up to 2 min)..." }}</p>
+                    </div>
+                    <div id="speedtest-error" class="alert alert-warning d-none" role="alert"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Configuration -->
+    <div class="row dashboard-grid mb-4 g-3">
+        <!-- Hostname and DNS Configuration -->
+        <div class="col-12">
+            <div class="dashboard-card info-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-gear me-2"></i>
+                        {{ call .t "network.basic_config" "Basic Configuration" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <form id="networkBasicConfigForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="hostname" class="form-label">{{ call .t "network.hostname" "Hostname" }}</label>
+                                <input type="text" class="form-control" id="hostname" name="hostname" placeholder="{{ call .t "network.hostname_placeholder" "hostberry" }}" required>
+                                <small class="form-text text-muted">{{ call .t "network.hostname_help" "System hostname identifier" }}</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="gateway" class="form-label">{{ call .t "network.gateway" "Gateway" }}</label>
+                                <input type="text" class="form-control" id="gateway" name="gateway" placeholder="{{ call .t "network.gateway_placeholder" "192.168.1.1" }}">
+                                <small class="form-text text-muted">{{ call .t "network.gateway_help" "Default gateway IP address" }}</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dns-preset" class="form-label">{{ call .t "network.dns_preset" "DNS Preset" }}</label>
+                            <select class="form-select" id="dns-preset" onchange="applyDNSPreset()">
+                                <option value="custom">{{ call .t "network.custom_dns" "Custom" }}</option>
+                                <option value="google">{{ call .t "network.dns_google" "Google DNS" }} (8.8.8.8, 8.8.4.4)</option>
+                                <option value="cloudflare">{{ call .t "network.dns_cloudflare" "Cloudflare DNS" }} (1.1.1.1, 1.0.0.1)</option>
+                                <option value="opendns">{{ call .t "network.dns_opendns" "OpenDNS" }} (208.67.222.222, 208.67.220.220)</option>
+                                <option value="quad9">{{ call .t "network.dns_quad9" "Quad9" }} (9.9.9.9, 149.112.112.112)</option>
+                                <option value="adguard">{{ call .t "network.dns_adguard" "AdGuard DNS" }} (94.140.14.14, 94.140.15.15)</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dns1" class="form-label">{{ call .t "network.primary_dns" "Primary DNS" }}</label>
+                                <input type="text" class="form-control" id="dns1" name="dns1" placeholder="{{ call .t "network.dns1_placeholder" "8.8.8.8" }}" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dns2" class="form-label">{{ call .t "network.secondary_dns" "Secondary DNS" }}</label>
+                                <input type="text" class="form-control" id="dns2" name="dns2" placeholder="{{ call .t "network.dns2_placeholder" "8.8.4.4" }}" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$">
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "network.save_configuration" "Save Configuration" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/lib/chart.umd.min.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
+<script defer src="/static/js/network.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>

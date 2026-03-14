@@ -1,0 +1,172 @@
+/* HostBerry Auth (Login / First Login)
+   Se carga solo en `login` y `first_login` desde `base.html`.
+*/
+
+body.hb-page-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2.5rem 1rem;
+}
+
+body.hb-page-auth .login-container {
+  width: min(420px, 92vw);
+  padding: 2rem 1.75rem;
+  border-radius: 18px;
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-border);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.40);
+}
+
+body.light-theme.hb-page-auth .login-container {
+  background: var(--hb-surface-2);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.14);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.logo-image {
+  display: block;
+  margin: 0 auto 1rem auto;
+  width: 132px;
+  height: auto;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.35));
+}
+
+.login-header h1 {
+  margin: 0.25rem 0 0.25rem 0;
+  font-size: 1.85rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.login-header p {
+  margin: 0;
+  color: var(--hb-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Notificación primer arranque (admin/admin) */
+body.hb-page-auth .login-container .alert-default-credentials {
+  background: rgba(var(--hb-primary-rgb), 0.12);
+  border: 1px solid rgba(var(--hb-primary-rgb), 0.35);
+  color: var(--hb-text-light);
+  font-size: 0.9rem;
+  border-radius: 12px;
+}
+
+body.light-theme.hb-page-auth .login-container .alert-default-credentials {
+  background: rgba(var(--hb-primary-rgb), 0.08);
+  border-color: rgba(var(--hb-primary-rgb), 0.4);
+  color: var(--hb-text-dark, #1a1a1a);
+}
+
+body.hb-page-auth .form-label {
+  color: var(--hb-text-light);
+  font-weight: 650;
+  margin-bottom: 0.5rem;
+}
+
+body.hb-page-auth .form-control {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--hb-border);
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--hb-text-light);
+}
+
+body.light-theme.hb-page-auth .form-control {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body.hb-page-auth .form-control::placeholder {
+  color: rgba(246, 241, 232, 0.55);
+}
+
+body.light-theme.hb-page-auth .form-control::placeholder {
+  color: rgba(36, 26, 18, 0.45);
+}
+
+/* Password wrapper */
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+body.hb-page-auth .password-wrapper .form-control {
+  padding-right: 3.2rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--hb-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.password-toggle:hover {
+  background: rgba(255, 244, 235, 0.08);
+  border-color: var(--hb-border);
+  color: var(--hb-text-light);
+  transform: translateY(-50%) scale(1.03);
+}
+
+/* CTA */
+.btn-login {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.95rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--hb-primary-rgb), 0.45);
+  background: linear-gradient(135deg, rgba(var(--hb-primary-rgb), 0.98) 0%, var(--hb-primary-dark) 100%);
+  color: #fff;
+  font-weight: 850;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 14px 34px rgba(var(--hb-primary-rgb), 0.18);
+}
+
+.btn-login:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+  box-shadow: 0 16px 40px rgba(var(--hb-primary-rgb), 0.24);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+/* Remember me */
+body.hb-page-auth .form-check {
+  margin: 1rem 0 0.5rem 0;
+  gap: 0.6rem;
+}
+
+body.hb-page-auth .form-check-input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--hb-primary);
+}
+
+body.hb-page-auth .form-check-label {
+  color: var(--hb-text-muted);
+  cursor: pointer;
+}
+

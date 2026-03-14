@@ -1,0 +1,13 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1 class="display-1 text-white">{{ .Code }}</h1>
+            <h2 class="text-white mb-4">{{ call .t "errors.error_occurred" "An error occurred" }}</h2>
+            <p class="text-white-50 mb-4">{{ .Message }}</p>
+            <a href="/dashboard" class="btn btn-primary">
+                <i class="bi bi-house me-2"></i>
+                {{ call .t "common.back" "Back to Dashboard" }}
+            </a>
+        </div>
+    </div>
+</div>

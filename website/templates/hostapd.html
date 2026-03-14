@@ -1,0 +1,393 @@
+<div class="hostapd-page dashboard-page">
+    <!-- HostAPD Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-router me-2"></i>
+                {{ call .t "hostapd.title" "HostAPD Hotspot" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "hostapd.subtitle" "Manage your wireless access point" }}</p>
+        </div>
+    </div>
+
+    <!-- HostAPD Status Cards -->
+    <div class="row mb-4 g-4">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="dashboard-card info-card hostapd-status-stat">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-heart-pulse me-2" id="hostapd-status-icon"></i>
+                        {{ call .t "hostapd.status" "Status" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="stat-content">
+                        <div class="stat-value" id="hostapd-status-value">--</div>
+                        <div class="stat-progress mt-2">
+                            <div class="stat-progress-bar" id="hostapd-status-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="dashboard-card info-card access-points-stat">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-wifi me-2"></i>
+                        {{ call .t "hostapd.access_points" "Access Points" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="stat-content">
+                        <div class="stat-value" id="access-points-count">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="dashboard-card info-card clients-stat">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-people me-2"></i>
+                        {{ call .t "hostapd.clients" "Clients" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="stat-content">
+                        <div class="stat-value" id="clients-count">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="dashboard-card info-card bandwidth-stat">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        {{ call .t "hostapd.bandwidth" "Bandwidth" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <div class="stat-content">
+                        <div class="stat-value" id="bandwidth-value">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row dashboard-grid mb-4 g-3">
+        <!-- HostAPD Status and Controls -->
+        <div class="col-12">
+            <div class="dashboard-card info-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-heart-pulse me-2"></i>
+                        {{ call .t "hostapd.status" "Status" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadHostAPDStatus()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div id="hostapdStatusContainer">
+                        <div class="text-center py-4">
+                            <div class="spinning mb-3"><i class="bi bi-arrow-clockwise" style="font-size: 2rem;"></i></div>
+                            <p class="text-muted">{{ call .t "common.loading" "Loading..." }}</p>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-outline-success" id="toggle-hostapd-btn" onclick="toggleHostAPD()">
+                            <i class="bi bi-router me-2"></i>
+                            <span id="toggle-hostapd-text">{{ call .t "hostapd.enable_hostapd" "Enable HostAPD" }}</span>
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="restartHostAPD()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            {{ call .t "hostapd.restart_hostapd" "Restart HostAPD" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Access Points -->
+        <div class="col-12">
+            <div class="dashboard-card info-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-wifi me-2"></i>
+                        {{ call .t "hostapd.access_points" "Access Points" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadAccessPoints()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div id="accessPointsContainer">
+                        <div class="text-center py-4">
+                            <div class="spinning mb-3"><i class="bi bi-arrow-clockwise" style="font-size: 2rem;"></i></div>
+                            <p class="text-muted">{{ call .t "common.loading" "Loading..." }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diagnostics (shown when service is running but not transmitting) -->
+        <div class="col-12" id="diagnosticsSection" style="display: none;">
+            <div class="dashboard-card info-card border-warning">
+                <div class="dashboard-card-header bg-warning bg-opacity-10">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                        {{ call .t "hostapd.diagnostics" "HostAPD Diagnostics" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-warning" onclick="loadDiagnostics()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div id="diagnosticsContainer">
+                        <div class="text-center py-4">
+                            <div class="spinning mb-3"><i class="bi bi-arrow-clockwise" style="font-size: 2rem;"></i></div>
+                            <p class="text-muted">{{ call .t "common.loading" "Loading..." }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clients and Configuration -->
+    <div class="row dashboard-grid mb-4 g-3">
+        <!-- Connected Clients -->
+        <div class="col-12">
+            <div class="dashboard-card info-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-people me-2"></i>
+                        {{ call .t "hostapd.clients" "Connected Clients" }}
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" onclick="loadClients()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="dashboard-card-body">
+                    <div id="clientsContainer">
+                        <div class="text-center py-4">
+                            <div class="spinning mb-3"><i class="bi bi-arrow-clockwise" style="font-size: 2rem;"></i></div>
+                            <p class="text-muted">{{ call .t "common.loading" "Loading..." }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HostAPD Configuration -->
+        <div class="col-12">
+            <div class="dashboard-card info-card">
+                <div class="dashboard-card-header">
+                    <h5 class="dashboard-card-title">
+                        <i class="bi bi-gear me-2"></i>
+                        {{ call .t "hostapd.configuration" "Configuration" }}
+                    </h5>
+                </div>
+                <div class="dashboard-card-body">
+                    <form id="hostapdConfigForm">
+                        <div class="mb-3">
+                            <label for="hostapd-interface" class="form-label">{{ call .t "hostapd.interface" "Interface" }}</label>
+                            <select class="form-select" id="hostapd-interface" name="interface" required>
+                                <option value="">{{ call .t "hostapd.select_interface" "Select Interface" }}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hostapd-ssid" class="form-label">{{ call .t "hostapd.access_point_ssid" "SSID" }}</label>
+                            <input type="text" class="form-control" id="hostapd-ssid" name="ssid" placeholder="{{ call .t "hostapd.ssid_placeholder" "HostBerry-AP" }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hostapd-password" class="form-label">{{ call .t "hostapd.access_point_password" "Password" }}</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" class="form-control" id="hostapd-password" name="password" placeholder="{{ call .t "hostapd.password_placeholder" "Enter password" }}">
+                                <button type="button" class="btn btn-outline-secondary password-toggle-btn" onclick="toggleHostAPDPassword()">
+                                    <i class="bi bi-eye" id="hostapd-password-toggle-icon"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">{{ call .t "hostapd.password_help" "Leave empty for open network" }}</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="hostapd-channel" class="form-label">{{ call .t "hostapd.access_point_channel" "Channel" }}</label>
+                                <select class="form-select" id="hostapd-channel" name="channel" required>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6" selected>6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="hostapd-security" class="form-label">{{ call .t "hostapd.access_point_security" "Security" }}</label>
+                                <select class="form-select" id="hostapd-security" name="security" required>
+                                    <option value="wpa2" selected>WPA2</option>
+                                    <option value="wpa3">WPA3</option>
+                                    <option value="open">{{ call .t "hostapd.open" "Open" }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hostapd-country" class="form-label">{{ call .t "hostapd.country" "Country Code" }}</label>
+                            <select class="form-select" id="hostapd-country" name="country" required>
+                                <option value="US" selected>United States (US)</option>
+                                <option value="ES">Spain (ES)</option>
+                                <option value="MX">Mexico (MX)</option>
+                                <option value="AR">Argentina (AR)</option>
+                                <option value="CO">Colombia (CO)</option>
+                                <option value="CL">Chile (CL)</option>
+                                <option value="PE">Peru (PE)</option>
+                                <option value="VE">Venezuela (VE)</option>
+                                <option value="EC">Ecuador (EC)</option>
+                                <option value="GT">Guatemala (GT)</option>
+                                <option value="CU">Cuba (CU)</option>
+                                <option value="BO">Bolivia (BO)</option>
+                                <option value="DO">Dominican Republic (DO)</option>
+                                <option value="HN">Honduras (HN)</option>
+                                <option value="PY">Paraguay (PY)</option>
+                                <option value="SV">El Salvador (SV)</option>
+                                <option value="NI">Nicaragua (NI)</option>
+                                <option value="CR">Costa Rica (CR)</option>
+                                <option value="PA">Panama (PA)</option>
+                                <option value="UY">Uruguay (UY)</option>
+                                <option value="GB">United Kingdom (GB)</option>
+                                <option value="FR">France (FR)</option>
+                                <option value="DE">Germany (DE)</option>
+                                <option value="IT">Italy (IT)</option>
+                                <option value="PT">Portugal (PT)</option>
+                                <option value="BR">Brazil (BR)</option>
+                                <option value="CA">Canada (CA)</option>
+                                <option value="AU">Australia (AU)</option>
+                                <option value="NZ">New Zealand (NZ)</option>
+                                <option value="JP">Japan (JP)</option>
+                                <option value="CN">China (CN)</option>
+                                <option value="IN">India (IN)</option>
+                                <option value="RU">Russia (RU)</option>
+                                <option value="KR">South Korea (KR)</option>
+                                <option value="SG">Singapore (SG)</option>
+                                <option value="MY">Malaysia (MY)</option>
+                                <option value="TH">Thailand (TH)</option>
+                                <option value="ID">Indonesia (ID)</option>
+                                <option value="PH">Philippines (PH)</option>
+                                <option value="VN">Vietnam (VN)</option>
+                                <option value="AE">United Arab Emirates (AE)</option>
+                                <option value="SA">Saudi Arabia (SA)</option>
+                                <option value="IL">Israel (IL)</option>
+                                <option value="TR">Turkey (TR)</option>
+                                <option value="ZA">South Africa (ZA)</option>
+                                <option value="EG">Egypt (EG)</option>
+                                <option value="NG">Nigeria (NG)</option>
+                                <option value="KE">Kenya (KE)</option>
+                                <option value="MA">Morocco (MA)</option>
+                                <option value="DZ">Algeria (DZ)</option>
+                                <option value="TZ">Tanzania (TZ)</option>
+                                <option value="ET">Ethiopia (ET)</option>
+                                <option value="UG">Uganda (UG)</option>
+                                <option value="GH">Ghana (GH)</option>
+                                <option value="AO">Angola (AO)</option>
+                                <option value="SD">Sudan (SD)</option>
+                                <option value="MZ">Mozambique (MZ)</option>
+                                <option value="MW">Malawi (MW)</option>
+                                <option value="ZM">Zambia (ZM)</option>
+                                <option value="ZW">Zimbabwe (ZW)</option>
+                                <option value="SN">Senegal (SN)</option>
+                                <option value="CI">Ivory Coast (CI)</option>
+                                <option value="CM">Cameroon (CM)</option>
+                                <option value="MG">Madagascar (MG)</option>
+                                <option value="BF">Burkina Faso (BF)</option>
+                                <option value="ML">Mali (ML)</option>
+                                <option value="NE">Niger (NE)</option>
+                                <option value="TD">Chad (TD)</option>
+                                <option value="SO">Somalia (SO)</option>
+                                <option value="ER">Eritrea (ER)</option>
+                                <option value="DJ">Djibouti (DJ)</option>
+                                <option value="RW">Rwanda (RW)</option>
+                                <option value="BI">Burundi (BI)</option>
+                                <option value="SS">South Sudan (SS)</option>
+                                <option value="CF">Central African Republic (CF)</option>
+                                <option value="CD">DR Congo (CD)</option>
+                                <option value="CG">Congo (CG)</option>
+                                <option value="GA">Gabon (GA)</option>
+                                <option value="GQ">Equatorial Guinea (GQ)</option>
+                                <option value="ST">Sao Tome and Principe (ST)</option>
+                                <option value="GW">Guinea-Bissau (GW)</option>
+                                <option value="GN">Guinea (GN)</option>
+                                <option value="SL">Sierra Leone (SL)</option>
+                                <option value="LR">Liberia (LR)</option>
+                                <option value="TG">Togo (TG)</option>
+                                <option value="BJ">Benin (BJ)</option>
+                                <option value="MR">Mauritania (MR)</option>
+                                <option value="GM">Gambia (GM)</option>
+                                <option value="CV">Cape Verde (CV)</option>
+                                <option value="KM">Comoros (KM)</option>
+                                <option value="SC">Seychelles (SC)</option>
+                                <option value="MU">Mauritius (MU)</option>
+                                <option value="RE">Reunion (RE)</option>
+                                <option value="YT">Mayotte (YT)</option>
+                                <option value="SH">Saint Helena (SH)</option>
+                                <option value="IO">British Indian Ocean Territory (IO)</option>
+                                <option value="TF">French Southern Territories (TF)</option>
+                                <option value="EH">Western Sahara (EH)</option>
+                            </select>
+                            <small class="form-text text-muted">{{ call .t "hostapd.country_help" "Select your country/region for WiFi compliance" }}</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hostapd-gateway" class="form-label">{{ call .t "hostapd.gateway" "Gateway (Router)" }}</label>
+                            <input type="text" class="form-control" id="hostapd-gateway" name="gateway" placeholder="{{ call .t "hostapd.gateway_placeholder" "192.168.4.1" }}" value="192.168.4.1" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$">
+                            <small class="form-text text-muted">{{ call .t "hostapd.gateway_help" "IP address for the access point gateway" }}</small>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="hostapd-dhcp-start" class="form-label">{{ call .t "hostapd.dhcp_range_start" "DHCP Range Start" }}</label>
+                                <input type="text" class="form-control" id="hostapd-dhcp-start" name="dhcp_range_start" placeholder="{{ call .t "hostapd.dhcp_start_placeholder" "192.168.4.2" }}" value="192.168.4.2" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hostapd-dhcp-end" class="form-label">{{ call .t "hostapd.dhcp_range_end" "DHCP Range End" }}</label>
+                                <input type="text" class="form-control" id="hostapd-dhcp-end" name="dhcp_range_end" placeholder="{{ call .t "hostapd.dhcp_end_placeholder" "192.168.4.254" }}" value="192.168.4.254" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hostapd-lease-time" class="form-label">{{ call .t "hostapd.lease_time" "Lease Time" }}</label>
+                                <input type="text" class="form-control" id="hostapd-lease-time" name="lease_time" placeholder="{{ call .t "hostapd.lease_time_placeholder" "12h" }}" value="12h">
+                                <small class="form-text text-muted">{{ call .t "hostapd.lease_time_help" "Example: 12h, 30m, 1d" }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "common.save" "Save Configuration" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/hostapd.js?v={{ .last_update }}"></script>

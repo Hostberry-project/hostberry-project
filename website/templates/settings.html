@@ -1,0 +1,378 @@
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-12 text-center">
+                <h1 class="dashboard-title">
+                    <i class="bi bi-gear me-2"></i>
+                    {{ call .t "navigation.settings" "Settings" }}
+                </h1>
+                <p class="dashboard-subtitle">{{ call .t "settings.subtitle" "Configure your HostBerry system preferences" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row settings-cards-row">
+        <!-- Configuración General -->
+        <div class="col-12 settings-card general-settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-gear me-2"></i>{{ call .t "settings.general" "General" }}
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <form id="generalConfigForm">
+                        <div class="mb-3">
+                            <label for="language" class="form-label text-white">{{ call .t "settings.language" "Language" }}</label>
+                            <select class="form-select form-select-custom bg-white text-dark border-secondary" id="language" name="language" style="width: 100%; background-color: #ffffff !important;">
+                                {{ $current_lang := index .settings "language" }}
+                                {{ if eq $current_lang "" }}{{ $current_lang = .language }}{{ end }}
+                                <option value="es" {{ if eq $current_lang "es" }}selected{{ end }}>🇪🇸 Español</option>
+                                <option value="en" {{ if eq $current_lang "en" }}selected{{ end }}>🇺🇸 English</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="theme" class="form-label text-white">{{ call .t "settings.theme" "Theme" }}</label>
+                            <select class="form-select form-select-custom bg-white text-dark border-secondary" id="theme" name="theme" style="width: 100%; background-color: #ffffff !important;">
+                                {{ $current_theme := index .settings "theme" }}
+                                {{ if eq $current_theme "" }}{{ $current_theme = "dark" }}{{ end }}
+                                <option value="light" {{ if eq $current_theme "light" }}selected{{ end }}>{{ call .t "settings.theme_light" "Light" }}</option>
+                                <option value="dark" {{ if eq $current_theme "dark" }}selected{{ end }}>{{ call .t "settings.theme_dark" "Dark" }}</option>
+                                <option value="auto" {{ if eq $current_theme "auto" }}selected{{ end }}>{{ call .t "settings.theme_auto" "Auto" }}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="timezone" class="form-label text-white">{{ call .t "settings.timezone" "Timezone" }}</label>
+                            <div class="timezone-selector-wrapper position-relative" style="width: 100%;">
+                                <input type="text" 
+                                       class="form-control bg-white text-dark border-secondary text-center" 
+                                       id="timezone_search" 
+                                       placeholder="{{ call .t "settings.search_timezone" "Search timezone..." }}"
+                                       autocomplete="off"
+                                       style="background-color: #ffffff !important;">
+                                {{ $tz := index .settings "timezone" }}
+                                <input type="hidden" id="timezone" name="timezone" value="{{ if $tz }}{{ $tz }}{{ else }}UTC{{ end }}">
+                                <div class="timezone-dropdown bg-dark border border-secondary rounded mt-1 position-absolute w-100" 
+                                     id="timezone_dropdown" 
+                                     style="display: none; max-height: 300px; overflow-y: auto; z-index: 1000;">
+                                    <div class="text-center text-white-50 p-2">
+                                        <i class="bi bi-arrow-clockwise spinning"></i> {{ call .t "settings.loading_timezones" "Loading timezones..." }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "common.save" "Save" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Red -->
+        <div class="col-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-wifi me-2"></i>{{ call .t "settings.network" "Network" }}
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <form id="networkConfigForm">
+                        <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "settings.dhcp_server" "DHCP Server" }}</label>
+                            <div class="form-check form-switch">
+                                {{ $dhcp := index .settings "dhcp_enabled" }}
+                                <input class="form-check-input" type="checkbox" id="dhcp_enabled" name="dhcp_enabled" {{ if eq $dhcp "true" }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="dhcp_enabled">
+                                    {{ call .t "settings.enable_dhcp" "Enable DHCP server" }}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="dhcp_interface" class="form-label text-white">{{ call .t "settings.dhcp_interface" "DHCP Interface" }}</label>
+                                <select class="form-select form-select-custom bg-white text-dark border-secondary text-center" id="dhcp_interface" name="dhcp_interface" style="background-color: #ffffff !important;">
+                                    <option value="">{{ call .t "settings.loading_interfaces" "Loading interfaces..." }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="dhcp_range_start" class="form-label text-white">{{ call .t "settings.dhcp_range_start" "Range Start" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="dhcp_range_start" name="dhcp_range_start" value="{{ index .settings "dhcp_range_start" }}" placeholder="192.168.1.100">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="dhcp_range_end" class="form-label text-white">{{ call .t "settings.dhcp_range_end" "Range End" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="dhcp_range_end" name="dhcp_range_end" value="{{ index .settings "dhcp_range_end" }}" placeholder="192.168.1.200">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dhcp_gateway" class="form-label text-white">{{ call .t "settings.dhcp_gateway" "Gateway (router)" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="dhcp_gateway" name="dhcp_gateway" value="{{ index .settings "dhcp_gateway" }}" placeholder="192.168.1.1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dhcp_lease_time" class="form-label text-white">{{ call .t "settings.dhcp_lease_time" "Lease Time" }}</label>
+                                {{ $lease := index .settings "dhcp_lease_time" }}
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="dhcp_lease_time" name="dhcp_lease_time" value="{{ if $lease }}{{ $lease }}{{ else }}12h{{ end }}" placeholder="12h">
+                                <small class="text-white-50">{{ call .t "settings.dhcp_lease_hint" "Example: 12h, 30m, 1d" }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dns_primary" class="form-label text-white">{{ call .t "settings.dns_primary" "Primary DNS" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary text-center" id="dns_primary" name="dns_primary" placeholder="8.8.8.8">
+                        </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dns_secondary" class="form-label text-white">{{ call .t "settings.dns_secondary" "Secondary DNS" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary text-center" id="dns_secondary" name="dns_secondary" placeholder="8.8.4.4">
+                            </div>
+                        </div>
+                        <!-- Campo oculto para mantener compatibilidad con el backend -->
+                        <input type="hidden" id="dns_server" name="dns_server" value="{{ index .settings "dns_server" }}">
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "common.save" "Save" }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Seguridad -->
+        <div class="col-lg-6 col-md-12 settings-card security-settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-shield-check me-2"></i>{{ call .t "settings.security" "Security" }}
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4 d-flex flex-column">
+                    <form id="securityConfigForm" class="d-flex flex-column flex-grow-1">
+                        <div class="mb-3">
+                            <label for="max_login_attempts" class="form-label text-white">{{ call .t "settings.max_login_attempts" "Max Login Attempts" }}</label>
+                            {{ $max_attempts := index .settings "max_login_attempts" }}
+                            <input type="number" class="form-control bg-dark text-white border-secondary text-center" id="max_login_attempts" name="max_login_attempts" value="{{ if $max_attempts }}{{ $max_attempts }}{{ else }}3{{ end }}" min="1" max="10">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="session_timeout" class="form-label text-white">{{ call .t "settings.session_timeout" "Session Timeout" }}</label>
+                            {{ $timeout := index .settings "session_timeout" }}
+                            <input type="number" class="form-control bg-dark text-white border-secondary text-center" id="session_timeout" name="session_timeout" value="{{ if $timeout }}{{ $timeout }}{{ else }}60{{ end }}" min="5" max="1440">
+                            <small class="text-white-50">{{ call .t "settings.minutes" "minutes" }}</small>
+                        </div>
+                    </form>
+
+                    <div class="d-grid security-save-wrapper">
+                        <button type="submit" class="btn btn-primary" form="securityConfigForm">
+                            <i class="bi bi-check-circle me-2"></i>
+                            {{ call .t "common.save" "Save" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Rendimiento -->
+        <div class="col-lg-6 col-md-12 settings-card performance-settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-speedometer2 me-2"></i>{{ call .t "settings.performance" "Performance" }}
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4 d-flex flex-column">
+                    <form id="performanceConfigForm" class="d-flex flex-column flex-grow-1">
+                        <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "settings.cache" "Cache" }}</label>
+                            <div class="form-check form-switch">
+                                {{ $cache := index .settings "cache_enabled" }}
+                                <input class="form-check-input" type="checkbox" id="cache_enabled" name="cache_enabled" {{ if or (eq $cache "true") (not $cache) }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="cache_enabled">
+                                    {{ call .t "settings.enable_cache" "Enable cache" }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cache_size" class="form-label text-white">{{ call .t "settings.cache_size" "Cache Size" }}</label>
+                            {{ $cache_size := index .settings "cache_size" }}
+                            <input type="number" class="form-control bg-dark text-white border-secondary text-center" id="cache_size" name="cache_size" value="{{ if $cache_size }}{{ $cache_size }}{{ else }}75{{ end }}" min="10" max="200">
+                            <small class="text-white-50">{{ call .t "settings.mb" "MB" }} (Raspberry Pi 3 optimized)</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "settings.compression" "Compression" }}</label>
+                            <div class="form-check form-switch">
+                                {{ $compression := index .settings "compression_enabled" }}
+                                <input class="form-check-input" type="checkbox" id="compression_enabled" name="compression_enabled" {{ if eq $compression "true" }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="compression_enabled">
+                                    {{ call .t "settings.enable_compression" "Enable compression" }}
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="d-grid performance-save-wrapper">
+                        <button type="submit" class="btn btn-primary" form="performanceConfigForm">
+                            <i class="bi bi-check-circle me-2"></i>
+                            {{ call .t "common.save" "Save" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración de Notificaciones -->
+        <div class="col-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-bell me-2"></i>{{ call .t "settings.notifications" "Notifications" }}
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <form id="notificationConfigForm">
+                        <div class="mb-3">
+                            <label class="form-label text-white d-flex align-items-center justify-content-between">
+                                <span>{{ call .t "settings.email_notifications" "Email Notifications" }}</span>
+                            <div class="form-check form-switch">
+                                {{ $email_notif := index .settings "email_notifications" }}
+                                <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {{ if eq $email_notif "true" }}checked{{ end }}>
+                                    <label class="form-check-label text-white" for="email_notifications"></label>
+                                </div>
+                                </label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email_address" class="form-label text-white">{{ call .t "settings.email_address" "Email Address" }}</label>
+                            <input type="email" class="form-control bg-dark text-white border-secondary" id="email_address" name="email_address" value="{{ index .settings "email_address" }}">
+                        </div>
+
+                        <hr class="border-secondary">
+
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="smtp_host" class="form-label text-white">{{ call .t "settings.smtp_host" "SMTP Host" }}</label>
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="smtp_host" name="smtp_host" value="{{ index .settings "smtp_host" }}" placeholder="smtp.gmail.com">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="smtp_port" class="form-label text-white">{{ call .t "settings.smtp_port" "SMTP Port" }}</label>
+                                {{ $port := index .settings "smtp_port" }}
+                                <input type="number" class="form-control bg-dark text-white border-secondary" id="smtp_port" name="smtp_port" value="{{ if $port }}{{ $port }}{{ else }}587{{ end }}" min="1" max="65535">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_user" class="form-label text-white">{{ call .t "settings.smtp_user" "SMTP User" }}</label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" id="smtp_user" name="smtp_user" value="{{ index .settings "smtp_user" }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_password" class="form-label text-white">{{ call .t "settings.smtp_password" "SMTP Password" }}</label>
+                            <input type="password" class="form-control bg-dark text-white border-secondary" id="smtp_password" name="smtp_password" value="{{ index .settings "smtp_password" }}" autocomplete="new-password">
+                            <small class="text-white-50">{{ call .t "settings.smtp_password_hint" "If you use Gmail, use an App Password" }}</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="smtp_from" class="form-label text-white">{{ call .t "settings.smtp_from" "From Email" }}</label>
+                            <input type="email" class="form-control bg-dark text-white border-secondary" id="smtp_from" name="smtp_from" value="{{ index .settings "smtp_from" }}" placeholder="hostberry@tu-dominio.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "settings.smtp_tls" "Use TLS (STARTTLS)" }}</label>
+                            <div class="form-check form-switch">
+                                {{ $tls := index .settings "smtp_tls" }}
+                                <input class="form-check-input" type="checkbox" id="smtp_tls" name="smtp_tls" {{ if eq $tls "true" }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="smtp_tls">
+                                    {{ call .t "settings.enable_smtp_tls" "Enable TLS" }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-white">{{ call .t "settings.system_alerts" "System Alerts" }}</label>
+                            <div class="form-check form-switch">
+                                {{ $alerts := index .settings "system_alerts" }}
+                                <input class="form-check-input" type="checkbox" id="system_alerts" name="system_alerts" {{ if eq $alerts "true" }}checked{{ end }}>
+                                <label class="form-check-label text-white" for="system_alerts">
+                                    {{ call .t "settings.enable_system_alerts" "Enable system alerts" }}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>
+                                {{ call .t "common.save" "Save" }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="d-grid mt-3">
+                        <button type="button" class="btn btn-outline-info" id="sendTestEmailBtn">
+                            <i class="bi bi-send me-2"></i>
+                            {{ call .t "settings.send_test_email" "Send test email" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="col-12 settings-card">
+            <div class="card h-100 glass-card border-0">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-center align-items-center">
+                    <h5 class="card-title mb-0 fw-bold text-center d-flex align-items-center justify-content-center">
+                        <i class="bi bi-info-circle me-2"></i>{{ call .t "settings.about" "About" }}
+                    </h5>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="row">
+                        <div class="col-md-4 mb-3 text-center">
+                            <h6 class="text-white">{{ call .t "settings.version" "Version" }}</h6>
+                            <p class="text-white-50">1.0.0 (Go)</p>
+                            
+                            <h6 class="text-white mt-3">{{ call .t "system.hostname" "Hostname" }}</h6>
+                            <p class="text-white-50" id="about-hostname">--</p>
+                            
+                            <h6 class="text-white mt-3">{{ call .t "system.architecture" "Architecture" }}</h6>
+                            <p class="text-white-50" id="about-architecture">--</p>
+                        </div>
+                        <div class="col-md-4 mb-3 text-center">
+                            <h6 class="text-white">{{ call .t "system.os" "OS" }}</h6>
+                            <p class="text-white-50" id="about-os">--</p>
+                            
+                            <h6 class="text-white mt-3">{{ call .t "system.kernel" "Kernel" }}</h6>
+                            <p class="text-white-50" id="about-kernel">--</p>
+                            
+                            <h6 class="text-white mt-3">{{ call .t "monitoring.processor" "Processor" }}</h6>
+                            <p class="text-white-50" id="about-processor">--</p>
+                        </div>
+                        <div class="col-md-4 mb-3 text-center">
+                            <h6 class="text-white">{{ call .t "monitoring.uptime" "Uptime" }}</h6>
+                            <p class="text-white-50" id="about-uptime">--</p>
+                            
+                            <h6 class="text-white mt-3">{{ call .t "system.boot_time" "Boot Time" }}</h6>
+                            <p class="text-white-50" id="about-boot-time">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/settings.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
