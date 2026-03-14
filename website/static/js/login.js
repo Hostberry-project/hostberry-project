@@ -1,6 +1,6 @@
 // JS específico para login: toggles y alerts
 (function(){
-  // Mostrar aviso admin/admin solo la primera vez (primer login)
+  // Mostrar aviso admin/admin solo la primera vez; ocultar si ya lo vió
   (function(){
     var KEY = 'hostberry_creds_notice_seen';
     var el = document.getElementById('first-login-credential-notice');
@@ -8,7 +8,7 @@
       if (localStorage.getItem(KEY) === '1') {
         el.style.display = 'none';
       } else {
-        el.style.display = '';
+        el.style.display = 'block';
         localStorage.setItem(KEY, '1');
       }
     }
