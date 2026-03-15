@@ -162,14 +162,14 @@
       if (btnText) btnText.textContent = t('setup_wizard.connecting', d('Connecting...', 'Conectando...'));
     }
     var timeoutId;
-    var timeoutMs = 28000;
+    var timeoutMs = 90000; // 90 s: el backend puede tardar hasta ~80 s (WPA + DHCP)
     var connectPromise = apiRequest('/api/v1/wifi/connect', {
       method: 'POST',
       body: { ssid: selectedSSID, password: password, country: 'ES' }
     });
     var timeoutPromise = new Promise(function(_, reject) {
       timeoutId = setTimeout(function() {
-        reject(new Error(t('setup_wizard.error_connect_timeout', d('Connection timed out. Check the password and try again.', 'Tiempo de espera agotado. Comprueba la contraseña e inténtalo de nuevo.'))));
+        reject(new Error(t('setup_wizard.error_connect_timeout', d('Connection is taking too long. If the password is correct, wait 1–2 minutes and open the panel again (the device may have connected and have a new IP).', 'La conexión tarda más de lo esperado. Si la contraseña es correcta, espera 1–2 minutos y abre de nuevo el panel (el dispositivo puede haberse conectado y tener otra IP).')));
       }, timeoutMs);
     });
     try {
