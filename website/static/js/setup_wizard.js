@@ -92,13 +92,21 @@
     });
   }
 
-  function showCurrentWifiBanner(ssid) {
+  function showCurrentWifiBanner(ssid, connectionType) {
     var banner = document.getElementById('wizard-current-wifi-banner');
     var textEl = document.getElementById('wizard-current-wifi-text');
+    var iconWrap = banner && banner.querySelector('.wizard-connection-icon');
     if (!banner || !textEl) return;
-    currentConnectedSSID = ssid;
-    var label = t('setup_wizard.connected_to_wifi', d('Connected to', 'Conectado a'));
-    textEl.textContent = label + ' ' + ssid;
+    currentConnectedSSID = ssid || null;
+    var msg;
+    if (connectionType === 'ethernet' || (!ssid && connectionType === 'ethernet')) {
+      msg = t('setup_wizard.connected_via_cable', d('Connected via cable (Ethernet)', 'Conectado por cable (Ethernet)'));
+      if (iconWrap) { iconWrap.innerHTML = '<i class="bi bi-ethernet me-2"></i>'; }
+    } else {
+      msg = (t('setup_wizard.connected_to_wifi', d('Connected to', 'Conectado a')) + ' ' + (ssid || '')).trim();
+      if (iconWrap) { iconWrap.innerHTML = '<i class="bi bi-wifi me-2"></i>'; }
+    }
+    textEl.textContent = msg;
     banner.classList.remove('d-none');
   }
 
@@ -114,7 +122,12 @@
       if (!resp || !resp.ok) return;
       var data = await resp.json().catch(function() { return {}; });
       var ssid = data.ssid || data.current_connection || '';
-      if (data.connected && ssid) showCurrentWifiBanner(ssid);
+      var connectionType = data.connection_type || '';
+      if (connectionType === 'ethernet') {
+        showCurrentWifiBanner(null, 'ethernet');
+      } else if (data.connected && ssid) {
+        showCurrentWifiBanner(ssid, 'wifi');
+      }
     } catch (e) {}
   }
 
