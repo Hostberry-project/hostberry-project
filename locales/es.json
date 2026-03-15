@@ -68,7 +68,8 @@
     "switch_to_light_theme": "Cambiar a tema claro",
     "switch_to_dark_theme": "Cambiar a tema oscuro",
     "show_password": "Mostrar contraseña",
-    "hide_password": "Ocultar contraseña"
+    "hide_password": "Ocultar contraseña",
+    "saved": "Guardado"
   },
   "time": {
     "days_hours": "{days} días, {hours} horas",
@@ -884,6 +885,8 @@
     "vpn_performance": "Rendimiento de VPN",
     "vpn_optimization": "Optimización de VPN",
     "config_uploaded": "Archivo de configuración VPN subido exitosamente",
+    "config_required": "Pega o sube una configuración primero",
+    "connect_vpn": "Conectado",
     "connecting": "Conectando a VPN: {server}",
     "disconnecting": "Desconectando de VPN"
   },
@@ -2284,9 +2287,12 @@
     "error_scan": "Error al buscar redes",
     "error_connect": "Error al conectar",
     "error_connect_timeout": "Tiempo de espera agotado. Comprueba la contraseña e inténtalo de nuevo.",
+    "error_network_device_switching": "La conexión puede haberse completado, pero el dispositivo está cambiando de red. Espera unos 30 segundos y abre de nuevo el panel (el HostBerry puede tener una nueva IP en tu WiFi).",
     "error_save_ap": "Error al guardar la configuración del punto de acceso",
     "success_ap": "Punto de acceso configurado correctamente",
     "show_password": "Ver contraseña",
-    "hide_password": "Ocultar contraseña"
+    "hide_password": "Ocultar contraseña",
+    "go_to_config": "Ir a configurar",
+    "wg_config_empty": "Escribe o pega la configuración."
   }
 }

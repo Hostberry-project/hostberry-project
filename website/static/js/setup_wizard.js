@@ -140,7 +140,14 @@
       }
     } catch (e) {
       clearTimeout(timeoutId);
-      showAlert('danger', e && e.message ? e.message : t('setup_wizard.error_connect', d('Error connecting', 'Error al conectar')));
+      var msg = e && e.message ? e.message : t('setup_wizard.error_connect', d('Error connecting', 'Error al conectar'));
+      var isNetworkError = (e && (e.name === 'TypeError' || e.message === 'Failed to fetch' || (typeof e.message === 'string' && (e.message.indexOf('fetch') !== -1 || e.message.indexOf('NetworkError') !== -1))));
+      if (isNetworkError) {
+        msg = t('setup_wizard.error_network_device_switching', d('The connection may have succeeded, but the device is switching networks. Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).', 'La conexión puede haberse completado, pero el dispositivo está cambiando de red. Espera unos 30 segundos y abre de nuevo el panel (el HostBerry puede tener una nueva IP en tu WiFi).'));
+        showAlert('warning', msg);
+      } else {
+        showAlert('danger', msg);
+      }
     } finally {
       if (connectBtn) {
         connectBtn.disabled = false;

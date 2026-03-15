@@ -2,7 +2,11 @@
   var step = window.WIZARD_STEP4;
   if (!step) return;
 
-  var t = window.HostBerry && window.HostBerry.t ? function (k, d) { return HostBerry.t(k, d); } : function (_, d) { return d || _; };
+  var lang = (document.documentElement && document.documentElement.getAttribute('lang')) || document.querySelector('html') && document.querySelector('html').getAttribute('lang') || 'es';
+  var isEn = (lang === 'en');
+  function d(enVal, esVal) { return isEn ? enVal : (esVal || enVal); }
+
+  var t = window.HostBerry && window.HostBerry.t ? function (k, fallback) { return HostBerry.t(k, fallback); } : function (_, fallback) { return fallback || _; };
   var showAlert = window.HostBerry && window.HostBerry.showAlert ? function (type, msg) { HostBerry.showAlert(type, msg); } : function (_, msg) { alert(msg); };
   var apiRequest = window.HostBerry && window.HostBerry.apiRequest ? function (u, o) { return HostBerry.apiRequest(u, o); } : function (u, o) { return fetch(u, Object.assign({ credentials: 'include' }, o)); };
 
@@ -29,22 +33,22 @@
       saveBtn.addEventListener('click', function () {
         var ta = document.getElementById('wizard-openvpn-config');
         var config = (ta && ta.value) ? ta.value.trim() : '';
-        if (!config) { showAlert('warning', t('vpn.config_required', 'Pega o sube una configuración primero')); return; }
-        apiRequest('/api/v1/vpn/config', { method: 'POST', body: { config: config } }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-          if (d && !d.error) showAlert('success', d.message || t('common.saved', 'Guardado'));
-          else showAlert('danger', d.error || 'Error');
-        }).catch(function (e) { showAlert('danger', e.message || 'Error'); });
+        if (!config) { showAlert('warning', t('vpn.config_required', d('Paste or upload a configuration first', 'Pega o sube una configuración primero'))); return; }
+        apiRequest('/api/v1/vpn/config', { method: 'POST', body: { config: config } }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+          if (data && !data.error) showAlert('success', data.message || t('common.saved', d('Saved', 'Guardado')));
+          else showAlert('danger', data.error || d('Error', 'Error'));
+        }).catch(function (e) { showAlert('danger', e.message || d('Error', 'Error')); });
       });
     }
     if (connectBtn) {
       connectBtn.addEventListener('click', function () {
         var ta = document.getElementById('wizard-openvpn-config');
         var config = (ta && ta.value) ? ta.value.trim() : '';
-        if (!config) { showAlert('warning', t('vpn.config_required', 'Pega o sube una configuración primero')); return; }
-        apiRequest('/api/v1/vpn/connect', { method: 'POST', body: { config: config, type: 'openvpn' } }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-          if (d && !d.error) { showAlert('success', d.message || t('vpn.connect_vpn', 'Conectar')); }
-          else showAlert('danger', d.error || 'Error');
-        }).catch(function (e) { showAlert('danger', e.message || 'Error'); });
+        if (!config) { showAlert('warning', t('vpn.config_required', d('Paste or upload a configuration first', 'Pega o sube una configuración primero'))); return; }
+        apiRequest('/api/v1/vpn/connect', { method: 'POST', body: { config: config, type: 'openvpn' } }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+          if (data && !data.error) { showAlert('success', data.message || t('vpn.connect_vpn', d('Connected', 'Conectado'))); }
+          else showAlert('danger', data.error || d('Error', 'Error'));
+        }).catch(function (e) { showAlert('danger', e.message || d('Error', 'Error')); });
       });
     }
   }
@@ -71,11 +75,11 @@
       saveBtn.addEventListener('click', function () {
         var ta = document.getElementById('wizard-wg-config');
         var config = (ta && ta.value) ? ta.value.trim() : '';
-        if (!config) { showAlert('warning', t('setup_wizard.wg_config_empty', 'Escribe o pega la configuración.')); return; }
-        apiRequest('/api/v1/wireguard/config', { method: 'POST', body: { config: config } }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-          if (d && !d.error) showAlert('success', t('common.saved', 'Guardado'));
-          else showAlert('danger', d.error || 'Error');
-        }).catch(function (e) { showAlert('danger', e.message || 'Error'); });
+        if (!config) { showAlert('warning', t('setup_wizard.wg_config_empty', d('Enter or paste the configuration.', 'Escribe o pega la configuración.'))); return; }
+        apiRequest('/api/v1/wireguard/config', { method: 'POST', body: { config: config } }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+          if (data && !data.error) showAlert('success', t('common.saved', d('Saved', 'Guardado')));
+          else showAlert('danger', data.error || d('Error', 'Error'));
+        }).catch(function (e) { showAlert('danger', e.message || d('Error', 'Error')); });
       });
     }
   }
@@ -93,13 +97,13 @@
       if (!text) return;
       if (s.installed) {
         if (dot) dot.className = 'status-indicator ' + (s.active ? 'status-online' : 'status-offline');
-        text.textContent = s.active ? t('tor.active', 'Activo') : t('tor.inactive', 'Inactivo');
+        text.textContent = s.active ? t('tor.active', d('Active', 'Activo')) : t('tor.inactive', d('Inactive', 'Inactivo'));
         if (installBtn) installBtn.classList.add('d-none');
-        if (enableBtn) { enableBtn.classList.remove('d-none'); enableBtn.textContent = s.active ? t('tor.disable', 'Deshabilitar') : t('tor.enable', 'Habilitar'); }
+        if (enableBtn) { enableBtn.classList.remove('d-none'); enableBtn.textContent = s.active ? t('tor.disable', d('Disable', 'Deshabilitar')) : t('tor.enable', d('Enable', 'Habilitar')); }
         if (s.active && iptDot && iptLabel && iptEnable && iptDisable) {
           var iptActive = !!s.iptables_active;
           iptDot.className = 'status-indicator ' + (iptActive ? 'status-online' : 'status-offline');
-          iptLabel.textContent = iptActive ? t('tor.torify_active', 'Activo') : t('tor.torify_inactive', 'Inactivo');
+          iptLabel.textContent = iptActive ? t('tor.torify_active', d('Active', 'Activo')) : t('tor.torify_inactive', d('Inactive', 'Inactivo'));
           iptEnable.classList.remove('d-none');
           iptDisable.classList.remove('d-none');
           iptEnable.style.display = iptActive ? 'none' : 'inline-block';
@@ -107,10 +111,10 @@
         }
       } else {
         if (dot) dot.className = 'status-indicator status-offline';
-        text.textContent = t('tor.not_installed', 'No instalado');
+        text.textContent = t('tor.not_installed', d('Not installed', 'No instalado'));
         if (installBtn) installBtn.classList.remove('d-none');
         if (enableBtn) enableBtn.classList.add('d-none');
-        if (iptLabel) iptLabel.textContent = t('tor.torify_inactive', 'Inactivo');
+        if (iptLabel) iptLabel.textContent = t('tor.torify_inactive', d('Inactive', 'Inactivo'));
         if (iptDot) iptDot.className = 'status-indicator status-offline';
         if (iptEnable) iptEnable.classList.add('d-none');
         if (iptDisable) iptDisable.classList.add('d-none');
@@ -126,13 +130,13 @@
       installBtn.addEventListener('click', function () {
         var btn = this;
         btn.disabled = true;
-        btn.textContent = t('common.loading', 'Cargando...');
-        apiRequest('/api/v1/tor/install', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-          if (d && !d.error) { showAlert('success', d.message || t('tor.installed', 'Instalado')); loadTorStatus(); }
-          else showAlert('danger', d.error || 'Error');
-        }).catch(function (e) { showAlert('danger', e.message || 'Error'); }).finally(function () {
+        btn.textContent = t('common.loading', d('Loading...', 'Cargando...'));
+        apiRequest('/api/v1/tor/install', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+          if (data && !data.error) { showAlert('success', data.message || t('tor.installed', d('Installed', 'Instalado'))); loadTorStatus(); }
+          else showAlert('danger', data.error || d('Error', 'Error'));
+        }).catch(function (e) { showAlert('danger', e.message || d('Error', 'Error')); }).finally(function () {
           btn.disabled = false;
-          btn.textContent = t('tor.install', 'Instalar Tor');
+          btn.textContent = t('tor.install', d('Install Tor', 'Instalar Tor'));
         });
       });
     }
@@ -142,24 +146,25 @@
       enableBtn.addEventListener('click', function () {
         var btn = this;
         btn.disabled = true;
-        apiRequest('/api/v1/tor/enable', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-          if (d && !d.error) { showAlert('success', d.message || t('tor.enabled', 'Habilitado')); loadTorStatus(); }
-          else showAlert('danger', d.error || 'Error');
-        }).catch(function (e) { showAlert('danger', e.message || 'Error'); }).finally(function () { btn.disabled = false; loadTorStatus(); });
+        apiRequest('/api/v1/tor/enable', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+          if (data && !data.error) { showAlert('success', data.message || t('tor.enabled', d('Enabled', 'Habilitado'))); loadTorStatus(); }
+          else showAlert('danger', data.error || d('Error', 'Error'));
+        }).catch(function (e) { showAlert('danger', e.message || d('Error', 'Error')); }).finally(function () { btn.disabled = false; loadTorStatus(); });
       });
     }
 
     var iptEn = document.getElementById('wizard-tor-iptables-enable');
     var iptDis = document.getElementById('wizard-tor-iptables-disable');
     if (iptEn) iptEn.addEventListener('click', function () {
-      apiRequest('/api/v1/tor/iptables-enable', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-        if (d && !d.error) { showAlert('success', d.message || t('tor.torify_enabled', 'Red torificada')); loadTorStatus(); }
-        else showAlert('danger', d.error || 'Error');
+      apiRequest('/api/v1/tor/iptables-enable', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+        if (data && !data.error) { showAlert('success', data.message || t('tor.torify_enabled', d('Network torified', 'Red torificada'))); loadTorStatus(); }
+        else showAlert('danger', data.error || d('Error', 'Error'));
       });
     });
     if (iptDis) iptDis.addEventListener('click', function () {
-      apiRequest('/api/v1/tor/iptables-disable', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
-        if (d && !d.error) { showAlert('success', d.message || t('tor.torify_disabled', 'Redirección desactivada')); loadTorStatus(); }
+      apiRequest('/api/v1/tor/iptables-disable', { method: 'POST' }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+        if (data && !data.error) { showAlert('success', data.message || t('tor.torify_disabled', d('Redirect disabled', 'Redirección desactivada'))); loadTorStatus(); }
+        else showAlert('danger', data.error || d('Error', 'Error'));
       });
     });
   }

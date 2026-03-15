@@ -65,7 +65,8 @@
     "switch_to_light_theme": "Switch to light theme",
     "switch_to_dark_theme": "Switch to dark theme",
     "show_password": "Show password",
-    "hide_password": "Hide password"
+    "hide_password": "Hide password",
+    "saved": "Saved"
   },
   "time": {
     "days_hours": "{days} days, {hours} hours",
@@ -878,6 +879,8 @@
     "vpn_performance": "VPN Performance",
     "vpn_optimization": "VPN Optimization",
     "config_uploaded": "VPN configuration file uploaded successfully",
+    "config_required": "Paste or upload a configuration first",
+    "connect_vpn": "Connected",
     "connecting": "Connecting to VPN: {server}",
     "disconnecting": "Disconnecting from VPN"
   },
@@ -2257,9 +2260,12 @@
     "error_scan": "Error scanning networks",
     "error_connect": "Error connecting",
     "error_connect_timeout": "Connection timed out. Check the password and try again.",
+    "error_network_device_switching": "The connection may have succeeded, but the device is switching networks. Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).",
     "error_save_ap": "Error saving access point configuration",
     "success_ap": "Access point configured successfully",
     "show_password": "Show password",
-    "hide_password": "Hide password"
+    "hide_password": "Hide password",
+    "go_to_config": "Go to configure",
+    "wg_config_empty": "Enter or paste the configuration."
   }
 }

@@ -554,16 +554,13 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 		}
 	}
 
-	nmActiveCmd := exec.Command("sh", "-c", "nmcli -t -f STATE general status 2>/dev/null | head -1")
-	nmActiveOut, _ := nmActiveCmd.Output()
-	nmState := strings.TrimSpace(string(nmActiveOut))
-	if nmState == "connected" || nmState == "connecting" {
+	// Solo tocar la interfaz WiFi que vamos a configurar. No parar NetworkManager globalmente
+	// para no cortar ethernet (eth0) u otras conexiones que den internet al dispositivo.
+	nmCheck := exec.Command("sh", "-c", "command -v nmcli 2>/dev/null")
+	if nmCheck.Run() == nil {
 		LogTf("logs.wifi_networkmanager_active", interfaceName)
 		executeCommand(fmt.Sprintf("sudo nmcli dev disconnect %s 2>/dev/null || true", interfaceName))
 		executeCommand(fmt.Sprintf("sudo nmcli dev set %s managed no 2>/dev/null || true", interfaceName))
-	} else {
-		LogT("logs.wifi_networkmanager_stopping")
-		executeCommand("sudo systemctl stop NetworkManager 2>/dev/null || true")
 	}
 
 	LogTf("logs.wifi_preparing_interface", interfaceName)
