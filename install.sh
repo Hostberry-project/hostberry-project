@@ -172,6 +172,75 @@ install_git() {
     fi
 }
 
+# Instalar Go (Golang) - necesario para compilar HostBerry
+install_golang() {
+    if command -v go &> /dev/null; then
+        print_success "Go ya instalado: $(go version)"
+        export PATH="$PATH:/usr/local/go/bin"
+        return 0
+    fi
+
+    print_info "Instalando Go (Golang)..."
+
+    ARCH=$(uname -m)
+    case $ARCH in
+        x86_64)
+            GO_ARCH="amd64"
+            ;;
+        armv7l|armv6l)
+            GO_ARCH="armv6l"
+            ;;
+        aarch64)
+            GO_ARCH="arm64"
+            ;;
+        *)
+            print_warning "Arquitectura no reconocida: $ARCH, instalando desde repositorio del sistema..."
+            apt-get update -qq
+            apt-get install -y golang-go
+            print_success "Go instalado desde repositorio (golang-go)"
+            return 0
+            ;;
+    esac
+
+    GO_VERSION="1.21.5"
+    GO_TAR="go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
+    GO_URL="https://go.dev/dl/${GO_TAR}"
+
+    print_info "Descargando Go ${GO_VERSION} para ${GO_ARCH}..."
+    if ! wget -q "${GO_URL}" -O "/tmp/${GO_TAR}" || [ ! -s "/tmp/${GO_TAR}" ]; then
+        print_warning "No se pudo descargar Go desde go.dev, instalando desde repositorio..."
+        apt-get update -qq
+        apt-get install -y golang-go
+        print_success "Go instalado desde repositorio (golang-go)"
+        rm -f "/tmp/${GO_TAR}"
+        return 0
+    fi
+
+    print_info "Extrayendo Go en /usr/local/go..."
+    rm -rf /usr/local/go
+    if ! tar -C /usr/local -xzf "/tmp/${GO_TAR}"; then
+        print_error "Error extrayendo Go. Instalando desde repositorio..."
+        apt-get update -qq
+        apt-get install -y golang-go
+        rm -f "/tmp/${GO_TAR}"
+        return 0
+    fi
+    rm -f "/tmp/${GO_TAR}"
+
+    # Añadir Go al PATH global y a esta sesión
+    if ! grep -q "/usr/local/go/bin" /etc/profile 2>/dev/null; then
+        echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile
+    fi
+    export PATH="$PATH:/usr/local/go/bin"
+
+    if command -v go &> /dev/null; then
+        print_success "Go instalado: $(go version)"
+    else
+        print_error "Go no está en el PATH tras la instalación"
+        return 1
+    fi
+}
+
 # Instalar dependencias del sistema
 install_dependencies() {
     print_info "Instalando dependencias..."
