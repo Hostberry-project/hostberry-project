@@ -371,58 +371,6 @@ install_dependencies() {
         fi
     done
     
-    # Verificar si Go está instalado
-    if ! command -v go &> /dev/null; then
-        print_info "Go no está instalado, instalando..."
-        
-        # Detectar arquitectura
-        ARCH=$(uname -m)
-        case $ARCH in
-            x86_64)
-                GO_ARCH="amd64"
-                ;;
-            armv7l|armv6l)
-                GO_ARCH="armv6l"
-                ;;
-            aarch64)
-                GO_ARCH="arm64"
-                ;;
-            *)
-                print_warning "Arquitectura no reconocida: $ARCH, intentando instalar desde repositorio"
-                apt-get install -y golang-go
-                return
-                ;;
-        esac
-        
-        # Descargar e instalar Go (versión fija para evitar que el toolchain intente descargar otra, p. ej. en Raspberry Pi)
-        GO_VERSION="1.21.5"
-        GO_TAR="go${GO_VERSION}.linux-${GO_ARCH}.tar.gz"
-        GO_URL="https://go.dev/dl/${GO_TAR}"
-        
-        print_info "Instalando Go ${GO_VERSION} para ${GO_ARCH}..."
-        if ! wget -q "${GO_URL}" -O "/tmp/${GO_TAR}" || [ ! -s "/tmp/${GO_TAR}" ]; then
-            print_warning "No se pudo descargar Go desde go.dev (${GO_ARCH}), intentando desde el repositorio del sistema..."
-            apt-get update -qq
-            apt-get install -y golang-go
-            return
-        fi
-        rm -rf /usr/local/go
-        if ! tar -C /usr/local -xzf "/tmp/${GO_TAR}"; then
-            print_error "Error extrayendo Go. Instalando desde repositorio..."
-            apt-get update -qq
-            apt-get install -y golang-go
-            rm -f "/tmp/${GO_TAR}"
-            return
-        fi
-        rm -f "/tmp/${GO_TAR}"
-        
-        # Agregar Go al PATH
-        if ! grep -q "/usr/local/go/bin" /etc/profile; then
-            echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile
-        fi
-        export PATH=$PATH:/usr/local/go/bin
-    fi
-    
     # Verificar e instalar iw si no está disponible
     if ! command -v iw &> /dev/null; then
         apt-get install -y iw > /dev/null 2>&1 || true
@@ -2148,6 +2096,7 @@ main() {
     download_project
     clean_previous_installation
     install_dependencies
+    install_golang
     create_user
     install_files
     build_project
