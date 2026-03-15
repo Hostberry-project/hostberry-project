@@ -885,6 +885,8 @@
     "vpn_performance": "Rendimiento de VPN",
     "vpn_optimization": "Optimización de VPN",
     "config_uploaded": "Archivo de configuración VPN subido exitosamente",
+    "upload_file": "Subir archivo .ovpn",
+    "paste_config": "O pegar configuración",
     "config_required": "Pega o sube una configuración primero",
     "connect_vpn": "Conectado",
     "connecting": "Conectando a VPN: {server}",
@@ -931,6 +933,8 @@
     "wireguard_statistics": "Estadísticas de WireGuard",
     "wireguard_performance": "Rendimiento de WireGuard",
     "wireguard_optimization": "Optimización de WireGuard",
+    "upload_file": "Subir archivo .conf",
+    "paste_config": "O pegar configuración",
     "started": "WireGuard iniciado exitosamente",
     "stopped": "WireGuard detenido exitosamente"
   },
@@ -2293,6 +2297,18 @@
     "show_password": "Ver contraseña",
     "hide_password": "Ocultar contraseña",
     "go_to_config": "Ir a configurar",
-    "wg_config_empty": "Escribe o pega la configuración."
+    "wg_config_empty": "Escribe o pega la configuración.",
+    "step_security_title": "Seguridad de la conexión",
+    "step_security_desc": "Elige una opción para cifrar tu tráfico. Pasa a la pantalla de configuración de la elegida.",
+    "step_security_desc_vpn": "Configura la VPN.",
+    "step_security_desc_wg": "Configura WireGuard.",
+    "step_security_desc_tor": "Instala y habilita Tor.",
+    "vpn_config_help": "Sube tu archivo .ovpn o pega la configuración. Guarda y conecta.",
+    "wg_config_help": "Sube un archivo .conf o pega la configuración y guarda.",
+    "tor_config_help": "Tras instalar y habilitar puedes torificar la red Hostberry. Más opciones en el panel Tor.",
+    "open_full_config": "Abrir configuración completa",
+    "open_full_config_vpn": "Abrir configuración VPN completa",
+    "open_full_config_wireguard": "Abrir WireGuard completo",
+    "open_full_config_tor": "Abrir Tor completo"
   }
 }

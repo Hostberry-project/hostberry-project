@@ -2266,6 +2266,18 @@
     "show_password": "Show password",
     "hide_password": "Hide password",
     "go_to_config": "Go to configure",
-    "wg_config_empty": "Enter or paste the configuration."
+    "wg_config_empty": "Enter or paste the configuration.",
+    "step_security_title": "Connection security",
+    "step_security_desc": "Choose an option to encrypt your traffic. Go to the configuration screen for the selected option.",
+    "step_security_desc_vpn": "Configure the VPN.",
+    "step_security_desc_wg": "Configure WireGuard.",
+    "step_security_desc_tor": "Install and enable Tor.",
+    "vpn_config_help": "Upload your .ovpn file or paste the configuration. Save and connect.",
+    "wg_config_help": "Upload a .conf file or paste the configuration and save.",
+    "tor_config_help": "After installing and enabling you can torify the Hostberry network. More options in the Tor panel.",
+    "open_full_config": "Open full configuration",
+    "open_full_config_vpn": "Open full VPN configuration",
+    "open_full_config_wireguard": "Open full WireGuard",
+    "open_full_config_tor": "Open full Tor"
   }
 }
