@@ -2299,6 +2299,7 @@
     "go_to_config": "Ir a configurar",
     "wg_config_empty": "Escribe o pega la configuración.",
     "step_security_title": "Seguridad de la conexión",
+    "step_security_short": "Seguridad",
     "step_security_desc": "Elige una opción para cifrar tu tráfico. Pasa a la pantalla de configuración de la elegida.",
     "step_security_desc_vpn": "Configura la VPN.",
     "step_security_desc_wg": "Configura WireGuard.",

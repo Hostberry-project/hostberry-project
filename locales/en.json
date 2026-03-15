@@ -2272,6 +2272,7 @@
     "go_to_config": "Go to configure",
     "wg_config_empty": "Enter or paste the configuration.",
     "step_security_title": "Connection security",
+    "step_security_short": "Security",
     "step_security_desc": "Choose an option to encrypt your traffic. Go to the configuration screen for the selected option.",
     "step_security_desc_vpn": "Configure the VPN.",
     "step_security_desc_wg": "Configure WireGuard.",
