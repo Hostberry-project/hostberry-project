@@ -746,25 +746,9 @@ body.dark-theme .sidebar-nav {
 .position-fixed { position:fixed; }
 .bg-primary-gradient { background: linear-gradient(135deg, var(--hb-primary) 0%, var(--hb-primary-dark) 100%); }
 
- /* Bootstrap Icons (empty fallback to avoid breaking layout) */
- [class^="bi"]::before, [class*=" bi-"]::before {
-     content: "";
-     display: inline-block;
-     width: 1em;
-     height: 1em;
-     vertical-align: -0.125em;
-     background-color: currentColor;
-     -webkit-mask-repeat: no-repeat;
-     mask-repeat: no-repeat;
-     -webkit-mask-position: center;
-     mask-position: center;
-     -webkit-mask-size: contain;
-     mask-size: contain;
-     -webkit-mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3e%3c/svg%3e");
-     mask-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3e%3c/svg%3e");
- }
+/* Icones: fuente local Bootstrap Icons (bootstrap-icons-local.css) + definiciones SVG concretas debajo para consistencia visual */
 
-/* Icon Definitions - Mask Implementation */
+/* Icon Definitions - Mask Implementation (algunos iconos usan SVG local para coincidir con el tema) */
 .bi-arrow-clockwise::before {
     background-color: currentColor;
     -webkit-mask-repeat: no-repeat;
