@@ -2284,6 +2284,9 @@
     "open_full_config": "Open full configuration",
     "open_full_config_vpn": "Open full VPN configuration",
     "open_full_config_wireguard": "Open full WireGuard",
-    "open_full_config_tor": "Open full Tor"
+    "open_full_config_tor": "Open full Tor",
+    "connected_to_wifi": "Connected to",
+    "continue_stay_connected": "Continue (stay connected)",
+    "error_network_device_switching_ssid": "The connection may have succeeded to «{ssid}». Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi)."
   }
 }

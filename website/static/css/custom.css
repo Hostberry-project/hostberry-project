@@ -675,6 +675,10 @@ body.light-theme .health-text { color: #212529; }
   border-color: var(--hb-primary);
   background: rgba(var(--hb-primary-rgb), 0.15);
 }
+.wizard-network-card.wizard-network-connected {
+  border-color: rgba(var(--hb-success-rgb, 34, 197, 94), 0.6);
+  background: rgba(var(--hb-success-rgb, 34, 197, 94), 0.08);
+}
 .wizard-network-icon {
   position: relative;
   font-size: 1.75rem;

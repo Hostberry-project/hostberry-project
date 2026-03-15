@@ -18,6 +18,15 @@
                     {{ call .t "setup_wizard.step_wifi_title" "Conectar a tu WiFi" }}
                 </h2>
                 <p class="wizard-page-desc text-muted">{{ call .t "setup_wizard.step_wifi_desc" "Selecciona tu red e introduce la contraseña para conectar el equipo a Internet." }}</p>
+                <div id="wizard-current-wifi-banner" class="alert alert-success mb-3 d-none" role="status">
+                    <i class="bi bi-wifi me-2"></i>
+                    <span id="wizard-current-wifi-text"></span>
+                    <span class="ms-2">
+                        <button type="button" class="btn btn-sm btn-outline-success" id="wizard-continue-connected-btn">
+                            {{ call .t "setup_wizard.continue_stay_connected" "Continuar (mantener conexión)" }}
+                        </button>
+                    </span>
+                </div>
                 <div class="card glass-card wizard-card">
                     <div class="card-body">
                         <div class="mb-3">

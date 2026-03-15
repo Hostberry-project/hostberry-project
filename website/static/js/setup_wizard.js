@@ -7,6 +7,7 @@
   const apiRequest = window.HostBerry && window.HostBerry.apiRequest ? function(u, o) { return HostBerry.apiRequest(u, o); } : function(u, o) { return fetch(u, Object.assign({ credentials: 'include' }, o)); };
 
   let selectedSSID = null;
+  let currentConnectedSSID = null; // SSID al que está conectado el dispositivo (desde wifi/status)
   let wizardStep = 1;
   let selectedSecurityOption = null; // 'vpn' | 'wireguard' | 'tor'
 
@@ -43,15 +44,19 @@
     networks.forEach(function(net) {
       const ssid = net.ssid || net.SSID || '';
       if (!ssid) return;
+      const isConnected = currentConnectedSSID && ssid === currentConnectedSSID;
       const signal = net.signal != null ? net.signal : net.signal_strength;
       const bars = signalBars(signal);
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = 'wizard-network-card';
+      card.className = 'wizard-network-card' + (isConnected ? ' wizard-network-connected' : '');
       card.dataset.ssid = ssid;
       card.innerHTML =
         '<span class="wizard-network-icon"><i class="bi bi-wifi"></i><span class="wizard-signal-bars" data-bars="' + bars + '"></span></span>' +
+        '<span class="d-flex align-items-center justify-content-center flex-wrap gap-1">' +
         '<span class="wizard-network-ssid">' + escapeHtml(ssid) + '</span>' +
+        (isConnected ? '<span class="badge bg-success">' + t('setup_wizard.connected', d('Connected', 'Conectado')) + '</span>' : '') +
+        '</span>' +
         (signal !== '' && signal != null ? '<span class="wizard-network-signal">' + signal + ' dBm</span>' : '');
       card.addEventListener('click', function() {
         selectedSSID = ssid;
@@ -85,6 +90,32 @@
         if (icon) { icon.classList.remove('bi-eye-slash'); icon.classList.add('bi-eye'); }
       }
     });
+  }
+
+  function showCurrentWifiBanner(ssid) {
+    var banner = document.getElementById('wizard-current-wifi-banner');
+    var textEl = document.getElementById('wizard-current-wifi-text');
+    if (!banner || !textEl) return;
+    currentConnectedSSID = ssid;
+    var label = t('setup_wizard.connected_to_wifi', d('Connected to', 'Conectado a'));
+    textEl.textContent = label + ' ' + ssid;
+    banner.classList.remove('d-none');
+  }
+
+  function hideCurrentWifiBanner() {
+    var banner = document.getElementById('wizard-current-wifi-banner');
+    if (banner) banner.classList.add('d-none');
+    currentConnectedSSID = null;
+  }
+
+  async function fetchWifiStatus() {
+    try {
+      var resp = await apiRequest('/api/v1/wifi/status', { method: 'GET' });
+      if (!resp || !resp.ok) return;
+      var data = await resp.json().catch(function() { return {}; });
+      var ssid = data.ssid || data.current_connection || '';
+      if (data.connected && ssid) showCurrentWifiBanner(ssid);
+    } catch (e) {}
   }
 
   async function scanNetworks() {
@@ -143,7 +174,11 @@
       var msg = e && e.message ? e.message : t('setup_wizard.error_connect', d('Error connecting', 'Error al conectar'));
       var isNetworkError = (e && (e.name === 'TypeError' || e.message === 'Failed to fetch' || (typeof e.message === 'string' && (e.message.indexOf('fetch') !== -1 || e.message.indexOf('NetworkError') !== -1))));
       if (isNetworkError) {
-        msg = t('setup_wizard.error_network_device_switching', d('The connection may have succeeded, but the device is switching networks. Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).', 'La conexión puede haberse completado, pero el dispositivo está cambiando de red. Espera unos 30 segundos y abre de nuevo el panel (el HostBerry puede tener una nueva IP en tu WiFi).'));
+        if (selectedSSID) {
+          msg = (t('setup_wizard.error_network_device_switching_ssid', d('The connection may have succeeded to «{ssid}». Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).', 'La conexión puede haberse completado a «{ssid}». Espera unos 30 segundos y abre de nuevo el panel (el HostBerry puede tener una nueva IP en tu WiFi).')).replace(/\{ssid\}/g, selectedSSID));
+        } else {
+          msg = t('setup_wizard.error_network_device_switching', d('The connection may have succeeded, but the device is switching networks. Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).', 'La conexión puede haberse completado, pero el dispositivo está cambiando de red. Espera unos 30 segundos y abre de nuevo el panel (el HostBerry puede tener una nueva IP en tu WiFi).'));
+        }
         showAlert('warning', msg);
       } else {
         showAlert('danger', msg);
@@ -198,8 +233,11 @@
   }
 
   function init() {
+    fetchWifiStatus();
     document.getElementById('wizard-scan-btn').addEventListener('click', scanNetworks);
     document.getElementById('wizard-connect-btn').addEventListener('click', connectWiFi);
+    var continueBtn = document.getElementById('wizard-continue-connected-btn');
+    if (continueBtn) continueBtn.addEventListener('click', function() { setStep(2); });
     document.getElementById('wizard-back-2').addEventListener('click', function() { setStep(1); });
     document.getElementById('wizard-next-2').addEventListener('click', function() { saveHostapd(); });
     document.getElementById('wizard-back-3').addEventListener('click', function() { setStep(2); });
