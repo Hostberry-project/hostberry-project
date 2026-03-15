@@ -114,24 +114,25 @@ body.light-theme .dashboard-header::after {
     font-weight: 600;
 }
 
-/* Status Cards - Efecto Cristal tipo Alas */
+/* Status Cards - Misma superficie que el resto de la app */
 .status-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
+    background: var(--hb-surface);
+    backdrop-filter: blur(18px);
+    border-radius: var(--hb-radius);
     padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--hb-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transition: all 0.25s ease;
     height: 100%;
     position: relative;
     overflow: hidden;
     min-height: 180px;
     display: flex;
     flex-direction: column;
+}
+
+body.light-theme .status-card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .status-card::before {
@@ -141,11 +142,8 @@ body.light-theme .dashboard-header::after {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.3), 
-        transparent);
-    animation: shimmer 3s infinite;
+    background: linear-gradient(90deg, transparent, var(--hb-border-strong), transparent);
+    opacity: 0.7;
 }
 
 .status-card::after {
@@ -155,11 +153,9 @@ body.light-theme .dashboard-header::after {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, 
-        transparent 30%, 
-        rgba(255, 255, 255, 0.05) 50%, 
-        transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.02) 50%, transparent 70%);
     animation: glassShine 8s infinite;
+    pointer-events: none;
 }
 
 @keyframes shimmer {
@@ -211,24 +207,12 @@ body.light-theme .dashboard-header::after {
     width: 100% !important;
 }
 
-.cpu-icon {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.85);
-}
-
-.memory-icon {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.85);
-}
-
-.disk-icon {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.85);
-}
-
+.cpu-icon,
+.memory-icon,
+.disk-icon,
 .temp-icon {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.85);
+    background: var(--hb-surface-2);
+    color: var(--hb-text-light);
 }
 
 .status-info {
@@ -241,7 +225,7 @@ body.light-theme .dashboard-header::after {
 }
 
 .status-info h6 {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--hb-text-muted);
     font-size: 0.75rem;
     margin-bottom: 0.2rem;
     margin-top: 0;
@@ -250,17 +234,17 @@ body.light-theme .dashboard-header::after {
 }
 
 .status-info h3 {
-    color: #fff;
+    color: var(--hb-text-light);
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
     text-align: center !important;
 }
 
-.progress {
+.dashboard-page .progress {
     height: 8px;
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--hb-border);
     overflow: hidden;
     margin-bottom: 1rem;
 }
@@ -293,13 +277,13 @@ body.light-theme .dashboard-header::after {
 }
 
 .status-text {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--hb-text-muted);
     font-size: 0.7rem;
     font-weight: 500;
 }
 
 .status-text.status-healthy {
-    color: #198754;
+    color: var(--hb-success);
 }
 
 .status-text.status-warning {
@@ -307,11 +291,11 @@ body.light-theme .dashboard-header::after {
 }
 
 .status-text.status-critical {
-    color: #dc3545;
+    color: var(--hb-danger);
 }
 
 .status-text.status-normal {
-    color: #0dcaf0;
+    color: var(--hb-info);
 }
 
 /* Info Cards - Efecto Cristal tipo Alas */
