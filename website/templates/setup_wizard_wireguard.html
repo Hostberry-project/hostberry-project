@@ -1,13 +1,13 @@
 <div class="setup-wizard-page">
     <div class="setup-wizard-header">
         <div class="step-indicator d-flex justify-content-center align-items-center gap-2 flex-wrap">
-            <div class="step-dot" data-step="1">1</div>
+            <div class="step-dot" data-step="1" title="{{ call .t "setup_wizard.step_wifi_title" "Conectar a tu WiFi" }}">1</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="2">2</div>
+            <div class="step-dot" data-step="2" title="{{ call .t "setup_wizard.step_hostapd_title" "Configurar red Hostberry" }}">2</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="3">3</div>
+            <div class="step-dot" data-step="3" title="{{ call .t "setup_wizard.step_security_title" "Seguridad" }}">3</div>
             <div class="step-line"></div>
-            <div class="step-dot active" data-step="4">4</div>
+            <div class="step-dot active" data-step="4" title="{{ call .t "setup_wizard.security_wireguard" "WireGuard" }}">4</div>
         </div>
     </div>
     <div class="setup-wizard-pages">
