@@ -298,16 +298,13 @@ body.light-theme .status-card {
     color: var(--hb-info);
 }
 
-/* Info Cards - Efecto Cristal tipo Alas */
+/* Info Cards - Misma superficie que .card / .glass-card */
 .info-card, .services-card, .network-card, .activity-card, .logs-card, .actions-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    border-radius: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+    background: var(--hb-surface);
+    backdrop-filter: blur(18px);
+    border-radius: var(--hb-radius);
+    border: 1px solid var(--hb-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     overflow: hidden;
     position: relative;
     height: 100%;
@@ -315,7 +312,16 @@ body.light-theme .status-card {
     flex-direction: column;
 }
 
-.info-card::before, .services-card::before, .network-card::before, 
+body.light-theme .info-card,
+body.light-theme .services-card,
+body.light-theme .network-card,
+body.light-theme .activity-card,
+body.light-theme .logs-card,
+body.light-theme .actions-card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.info-card::before, .services-card::before, .network-card::before,
 .activity-card::before, .logs-card::before, .actions-card::before {
     content: '';
     position: absolute;
@@ -323,10 +329,7 @@ body.light-theme .status-card {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.3), 
-        transparent);
+    background: linear-gradient(90deg, transparent, var(--hb-border-strong), transparent);
     animation: shimmer 3s infinite;
 }
 
