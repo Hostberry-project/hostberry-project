@@ -84,31 +84,70 @@ body.light-theme .dropdown-item:hover { background: rgba(var(--hb-primary-rgb), 
   color: #fff;
 }
 
-/* Cards (compatibilidad con templates) */
+/* Cards: misma estética en todas las páginas (VPN, WireGuard, Tor, Adblock, etc.) */
 .card {
   background: var(--hb-surface);
   border: 1px solid var(--hb-border);
   border-radius: var(--hb-radius);
   backdrop-filter: blur(18px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   overflow: hidden;
+  position: relative;
+  transition: all 0.25s ease;
 }
 body.light-theme .card {
   background: var(--hb-surface-2);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+.card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+body.light-theme .card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Línea superior sutil (igual que dashboard-header / glass-card) */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hb-border-strong), transparent);
+  opacity: 0.7;
+  z-index: 1;
 }
 
 .card-header {
   padding: 1rem 1.25rem;
-  background: transparent;
+  background: var(--hb-surface-2);
   border-bottom: 1px solid var(--hb-border);
+  position: relative;
+  z-index: 2;
 }
-.card-body { padding: 1.25rem; }
+.card-body {
+  padding: 1.25rem;
+  position: relative;
+  z-index: 2;
+  color: var(--hb-text-light);
+}
 .card-title {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: var(--hb-text-light);
+}
+.card .form-label,
+.card label {
+  color: var(--hb-text-muted);
+}
+.card h4, .card h5, .card h6 {
+  color: var(--hb-text-light);
+}
+.card .text-muted {
+  color: var(--hb-text-muted) !important;
 }
 
 /* Unificar superficies “glass” de páginas */

@@ -1,4 +1,14 @@
-<div class="row">
+<div class="wireguard-page dashboard-page">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-shield-check me-2"></i>
+                {{ call .t "navigation.wireguard" "WireGuard" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "wireguard.subtitle" "Secure VPN with modern cryptography" }}</p>
+        </div>
+    </div>
+    <div class="row">
     <!-- Vista General de WireGuard -->
     <div class="col-12 mb-4">
         <div class="card">
@@ -219,3 +229,4 @@
     </div>
 </div>
 <script defer src="/static/js/wireguard.js?v={{ .last_update }}"></script>
+
