@@ -99,7 +99,7 @@
     if (!banner || !textEl) return;
     currentConnectedSSID = ssid || null;
     var msg;
-    if (connectionType === 'ethernet' || (!ssid && connectionType === 'ethernet')) {
+    if (connectionType === 'ethernet') {
       msg = t('setup_wizard.connected_via_cable', d('Connected via cable (Ethernet)', 'Conectado por cable (Ethernet)'));
       if (iconWrap) { iconWrap.innerHTML = '<i class="bi bi-ethernet me-2"></i>'; }
     } else {
