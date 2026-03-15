@@ -45,25 +45,26 @@
     }
 }
 
-/* Header Section - Efecto Cristal tipo Alas */
+/* Header Section - Misma estética en todas las páginas (variables de tema) */
 .dashboard-header {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--hb-surface);
     backdrop-filter: blur(20px);
-    border-radius: 25px;
+    border-radius: var(--hb-radius);
     padding: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--hb-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
     position: relative;
     overflow: hidden;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+body.light-theme .dashboard-header {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .dashboard-header::before {
@@ -73,11 +74,8 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.3), 
-        transparent);
-    animation: shimmer 3s infinite;
+    background: linear-gradient(90deg, transparent, var(--hb-border-strong), transparent);
+    opacity: 0.8;
 }
 
 .dashboard-header::after {
@@ -87,30 +85,33 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, 
-        transparent 30%, 
-        rgba(255, 255, 255, 0.05) 50%, 
-        transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.03) 50%, transparent 70%);
     animation: glassShine 8s infinite;
+    pointer-events: none;
+}
+
+body.light-theme .dashboard-header::after {
+    background: linear-gradient(45deg, transparent 30%, rgba(0, 0, 0, 0.02) 50%, transparent 70%);
 }
 
 .dashboard-title {
-    color: #fff;
-    font-size: 1.8rem;
-    font-weight: 300;
-    margin-bottom: 0.5rem;
+    color: var(--hb-text-light);
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.02em;
 }
 
 .dashboard-subtitle {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
+    color: var(--hb-text-muted);
+    font-size: 0.95rem;
     margin: 0;
 }
 
 .dashboard-time {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1.1rem;
-    font-weight: 500;
+    color: var(--hb-text-muted);
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 /* Status Cards - Efecto Cristal tipo Alas */
