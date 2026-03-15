@@ -350,14 +350,14 @@ body.light-theme .actions-card {
 
 .info-card-header, .services-card-header, .network-card-header, .activity-card-header, .logs-card-header, .actions-card-header {
     padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--hb-border);
+    background: var(--hb-surface-2);
 }
 
 .info-card-title, .services-card-title, .network-card-title, .activity-card-title, .logs-card-title, .actions-card-title {
-    color: #fff;
-    font-size: 1.2rem;
-    font-weight: 600;
+    color: var(--hb-text-light);
+    font-size: 1.1rem;
+    font-weight: 700;
     margin: 0;
 }
 
@@ -368,19 +368,20 @@ body.light-theme .actions-card {
     flex-direction: column;
 }
 
-/* Glass Card - Mismo estilo que dashboard-header */
+/* Glass Card - Misma superficie que el resto de la app */
 .glass-card {
-    background: rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(20px) !important;
-    border-radius: 25px !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
+    background: var(--hb-surface) !important;
+    backdrop-filter: blur(18px) !important;
+    border-radius: var(--hb-radius) !important;
+    border: 1px solid var(--hb-border) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
     position: relative;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s ease;
+}
+
+body.light-theme .glass-card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
 }
 
 .glass-card::before {
@@ -390,11 +391,8 @@ body.light-theme .actions-card {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.3), 
-        transparent);
-    animation: shimmer 3s infinite;
+    background: linear-gradient(90deg, transparent, var(--hb-border-strong), transparent);
+    opacity: 0.7;
     z-index: 1;
 }
 
@@ -405,20 +403,19 @@ body.light-theme .actions-card {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(45deg, 
-        transparent 30%, 
-        rgba(255, 255, 255, 0.05) 50%, 
-        transparent 70%);
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.02) 50%, transparent 70%);
     animation: glassShine 8s infinite;
     z-index: 0;
+    pointer-events: none;
 }
 
 .glass-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.05) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18) !important;
+}
+
+body.light-theme .glass-card:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1) !important;
 }
 
 .glass-card .card-header,
