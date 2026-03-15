@@ -2290,6 +2290,7 @@
     "open_full_config_wireguard": "Open full WireGuard",
     "open_full_config_tor": "Open full Tor",
     "connected_to_wifi": "Connected to",
+    "connection_type_wifi": "WiFi",
     "connected_via_cable": "Connected via cable (Ethernet)",
     "continue_stay_connected": "Continue (stay connected)",
     "error_network_device_switching_ssid": "The connection may have succeeded to «{ssid}». Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi)."

@@ -104,7 +104,8 @@
       if (iconWrap) { iconWrap.innerHTML = '<i class="bi bi-ethernet me-2"></i>'; }
     } else {
       var wifiLabel = t('setup_wizard.connection_type_wifi', d('WiFi', 'WiFi'));
-      msg = (t('setup_wizard.connected_to_wifi', d('Connected to', 'Conectado a')) + ' ' + (ssid || '') + ' (' + wifiLabel + ')').trim();
+      var part = t('setup_wizard.connected_to_wifi', d('Connected to', 'Conectado a'));
+      msg = (ssid ? part + ' ' + ssid + ' (' + wifiLabel + ')' : part + ' ' + wifiLabel).trim();
       if (iconWrap) { iconWrap.innerHTML = '<i class="bi bi-wifi me-2"></i>'; }
     }
     textEl.textContent = msg;
@@ -250,8 +251,16 @@
     fetchWifiStatus();
     document.getElementById('wizard-scan-btn').addEventListener('click', scanNetworks);
     document.getElementById('wizard-connect-btn').addEventListener('click', connectWiFi);
-    var continueBtn = document.getElementById('wizard-continue-connected-btn');
-    if (continueBtn) continueBtn.addEventListener('click', function() { setStep(2); });
+    // Delegación: el botón "Continuar (mantener conexión)" puede estar en banner oculto al cargar
+    var wizardEl = document.querySelector('.setup-wizard-page') || document.body;
+    wizardEl.addEventListener('click', function(e) {
+      var btn = e.target && (e.target.id === 'wizard-continue-connected-btn' ? e.target : (e.target.closest && e.target.closest('#wizard-continue-connected-btn')));
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        setStep(2);
+      }
+    });
     document.getElementById('wizard-back-2').addEventListener('click', function() { setStep(1); });
     document.getElementById('wizard-next-2').addEventListener('click', function() { saveHostapd(); });
     document.getElementById('wizard-back-3').addEventListener('click', function() { setStep(2); });
