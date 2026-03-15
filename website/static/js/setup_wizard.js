@@ -103,7 +103,8 @@
       msg = t('setup_wizard.connected_via_cable', d('Connected via cable (Ethernet)', 'Conectado por cable (Ethernet)'));
       if (iconWrap) { iconWrap.innerHTML = '<i class="bi bi-ethernet me-2"></i>'; }
     } else {
-      msg = (t('setup_wizard.connected_to_wifi', d('Connected to', 'Conectado a')) + ' ' + (ssid || '')).trim();
+      var wifiLabel = t('setup_wizard.connection_type_wifi', d('WiFi', 'WiFi'));
+      msg = (t('setup_wizard.connected_to_wifi', d('Connected to', 'Conectado a')) + ' ' + (ssid || '') + ' (' + wifiLabel + ')').trim();
       if (iconWrap) { iconWrap.innerHTML = '<i class="bi bi-wifi me-2"></i>'; }
     }
     textEl.textContent = msg;
