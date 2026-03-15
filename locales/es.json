@@ -2294,6 +2294,7 @@
     "next": "Siguiente",
     "error_scan": "Error al buscar redes",
     "error_connect": "Error al conectar",
+    "connect_may_take_time": "La conexión puede tardar 1–2 minutos; espera sin cerrar la página.",
     "error_connect_timeout": "La conexión tarda más de lo esperado. Si la contraseña es correcta, espera 1–2 minutos y abre de nuevo el panel (el dispositivo puede haberse conectado y tener otra IP).",
     "error_network_device_switching": "La conexión puede haberse completado, pero el dispositivo está cambiando de red. Espera unos 30 segundos y abre de nuevo el panel (el HostBerry puede tener una nueva IP en tu WiFi).",
     "error_save_ap": "Error al guardar la configuración del punto de acceso",

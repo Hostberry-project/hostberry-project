@@ -2267,6 +2267,7 @@
     "next": "Next",
     "error_scan": "Error scanning networks",
     "error_connect": "Error connecting",
+    "connect_may_take_time": "The connection may take 1–2 minutes; please wait.",
     "error_connect_timeout": "Connection is taking too long. If the password is correct, wait 1–2 minutes and open the panel again (the device may have connected and have a new IP).",
     "error_network_device_switching": "The connection may have succeeded, but the device is switching networks. Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).",
     "error_save_ap": "Error saving access point configuration",
