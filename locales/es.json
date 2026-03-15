@@ -103,7 +103,8 @@
     "profile": "Perfil",
     "language": "Idioma",
     "theme": "Tema",
-    "account": "Cuenta"
+    "account": "Cuenta",
+    "reload_setup_wizard": "Volver al wizard"
   },
   "help": {
     "hero_kicker": "Centro de soporte",

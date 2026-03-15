@@ -100,7 +100,8 @@
     "profile": "Profile",
     "language": "Language",
     "theme": "Theme",
-    "account": "Account"
+    "account": "Account",
+    "reload_setup_wizard": "Reload setup wizard"
   },
   "help": {
     "hero_kicker": "Support Center",
