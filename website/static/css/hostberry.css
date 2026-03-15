@@ -281,6 +281,15 @@ body.light-theme {
     flex-shrink: 0;
 }
 
+/* Icono de usuario transparente (sin fondo sólido) */
+.user-avatar-transparent {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85);
+}
+.user-avatar-transparent .bi-person-fill {
+    font-size: 1.25rem;
+}
+
 .user-profile-link span {
     flex: 1;
     white-space: nowrap;
