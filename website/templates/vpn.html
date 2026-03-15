@@ -1,4 +1,14 @@
-<div class="row">
+<div class="vpn-page dashboard-page">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-shield-lock me-2"></i>
+                {{ call .t "navigation.vpn" "VPN" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "vpn.subtitle" "Virtual Private Network connections" }}</p>
+        </div>
+    </div>
+    <div class="row">
     <!-- Vista General de VPN -->
     <div class="col-12 mb-4">
         <div class="card">
