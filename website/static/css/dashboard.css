@@ -529,7 +529,7 @@ body.light-theme .info-item-grid .info-value {
     justify-content: center;
     margin-right: 0.75rem;
     font-size: 1rem;
-    color: white;
+    color: var(--hb-text-light);
 }
 
 .hostberry-icon { background: linear-gradient(135deg, #dc3545 0%, #8b0000 100%); }
@@ -546,7 +546,7 @@ body.light-theme .info-item-grid .info-value {
 .default-icon { background: linear-gradient(135deg, #6c757d 0%, #343a40 100%); }
 
 .service-name {
-    color: #fff;
+    color: var(--hb-text-light);
     font-weight: 500;
     font-size: 0.9rem;
 }
