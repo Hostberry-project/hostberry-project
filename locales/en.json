@@ -879,6 +879,8 @@
     "vpn_performance": "VPN Performance",
     "vpn_optimization": "VPN Optimization",
     "config_uploaded": "VPN configuration file uploaded successfully",
+    "upload_file": "Upload .ovpn file",
+    "paste_config": "Or paste configuration",
     "config_required": "Paste or upload a configuration first",
     "connect_vpn": "Connected",
     "connecting": "Connecting to VPN: {server}",
@@ -925,6 +927,8 @@
     "wireguard_statistics": "WireGuard Statistics",
     "wireguard_performance": "WireGuard Performance",
     "wireguard_optimization": "WireGuard Optimization",
+    "upload_file": "Upload .conf file",
+    "paste_config": "Or paste configuration",
     "started": "WireGuard started successfully",
     "stopped": "WireGuard stopped successfully"
   },

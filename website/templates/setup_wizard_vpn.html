@@ -17,7 +17,7 @@
                     <i class="bi bi-shield-lock me-2"></i>
                     {{ call .t "setup_wizard.security_vpn" "VPN" }}
                 </h2>
-                <p class="wizard-page-desc text-muted">{{ call .t "setup_wizard.step_security_desc" "Configura la VPN." }}</p>
+                <p class="wizard-page-desc text-muted">{{ call .t "setup_wizard.step_security_desc_vpn" "Configura la VPN." }}</p>
                 <div class="card glass-card wizard-card">
                     <div class="card-body">
                         <p class="small text-muted">{{ call .t "setup_wizard.vpn_config_help" "Sube tu archivo .ovpn o pega la configuración. Guarda y conecta." }}</p>
@@ -33,7 +33,7 @@
                             <button type="button" class="btn btn-primary" id="wizard-openvpn-save">{{ call .t "common.save" "Guardar" }}</button>
                             <button type="button" class="btn btn-outline-success" id="wizard-openvpn-connect">{{ call .t "vpn.connect_vpn" "Conectar" }}</button>
                         </div>
-                        <a href="/vpn" class="btn btn-outline-secondary btn-sm">{{ call .t "setup_wizard.open_full_config" "Abrir configuración VPN completa" }}</a>
+                        <a href="/vpn" class="btn btn-outline-secondary btn-sm">{{ call .t "setup_wizard.open_full_config_vpn" "Abrir configuración VPN completa" }}</a>
                         <div class="d-flex justify-content-between mt-4 flex-wrap gap-2">
                             <a href="/setup-wizard?step=3" class="btn btn-outline-secondary">{{ call .t "setup_wizard.back" "Atrás" }}</a>
                             <a href="/dashboard" class="btn btn-primary">{{ call .t "setup_wizard.finish" "Ir al panel" }}</a>
