@@ -2193,6 +2193,7 @@
     "logs.tor_disabling": "Disabling Tor by user %s",
     "logs.tor_disabled": "Tor disabled successfully",
     "tor.title": "Tor",
+    "tor.subtitle": "Anonymous communication and onion routing",
     "tor.overview": "Tor Overview",
     "tor.description": "Tor (The Onion Router) is free software for enabling anonymous communication. It directs Internet traffic through a free, worldwide, volunteer overlay network.",
     "tor.status": "Status",
