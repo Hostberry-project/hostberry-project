@@ -8,11 +8,18 @@
   outline-offset: 2px;
 }
 
-/* Contenedor principal consistente */
+/* Contenedor principal consistente (todas las páginas) */
 .container-fluid {
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Páginas que usan solo .dashboard-container (error, etc.) */
+.main-content .dashboard-container {
+  padding-top: 0.5rem;
 }
 
 /* Utilidades de texto usadas en templates */
