@@ -1,4 +1,14 @@
-<div class="row">
+<div class="tor-page dashboard-page">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-shield-lock-fill me-2"></i>
+                {{ call .t "navigation.tor" "Tor" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "tor.subtitle" "Anonymous communication and onion routing" }}</p>
+        </div>
+    </div>
+    <div class="row">
     <!-- Vista General de Tor -->
     <div class="col-12 mb-4">
         <div class="card">
@@ -224,6 +234,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <script defer src="/static/js/tor.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
