@@ -3204,11 +3204,26 @@ func wifiLegacyStatusHandler(c *fiber.Ctx) error {
 		}
 	}
 
+	// connection_type: "wifi" | "ethernet" | "" para el wizard (mostrar red o "por cable")
+	connectionType := ""
+	if reallyConnected && ssid != "" {
+		connectionType = "wifi"
+	} else {
+		defaultIfaceCmd := exec.Command("sh", "-c", "ip route show default 2>/dev/null | awk '{print $5}' | head -1")
+		if defaultOut, err := defaultIfaceCmd.Output(); err == nil {
+			ifaceName := strings.TrimSpace(string(defaultOut))
+			if ifaceName != "" && (strings.HasPrefix(ifaceName, "eth") || strings.HasPrefix(ifaceName, "enp") || strings.HasPrefix(ifaceName, "eno") || strings.HasPrefix(ifaceName, "ens")) {
+				connectionType = "ethernet"
+			}
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"enabled":            enabled,
 		"connected":          reallyConnected,
 		"current_connection": ssid,
 		"ssid":               ssid,
+		"connection_type":    connectionType,
 		"hard_blocked":       hardBlocked,
 		"soft_blocked":       softBlocked,
 		"connection_info":    connectionInfo,
