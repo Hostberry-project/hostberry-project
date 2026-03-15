@@ -2049,6 +2049,8 @@
     "vpn.upload_file": "Upload .ovpn file",
     "vpn.paste_config": "Or paste configuration",
     "vpn.config_required": "Paste or upload a configuration first",
+    "vpn.subtitle": "Virtual Private Network connections",
+    "wireguard.subtitle": "Secure VPN with modern cryptography",
     "wireguard.config_help_full": "Paste your configuration or upload a .conf file, then save.",
     "wireguard.upload_file": "Upload .conf file",
     "wireguard.paste_config": "Or paste configuration",
