@@ -1,9 +1,13 @@
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-            <h1 class="display-1 text-white">{{ .Code }}</h1>
-            <h2 class="text-white mb-4">{{ call .t "errors.error_occurred" "An error occurred" }}</h2>
-            <p class="text-white-50 mb-4">{{ .Message }}</p>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">{{ .Code }}</h1>
+            <p class="dashboard-subtitle">{{ call .t "errors.error_occurred" "An error occurred" }}</p>
+        </div>
+    </div>
+    <div class="card glass-card border-0" style="max-width: 560px; margin: 0 auto;">
+        <div class="card-body text-center py-5 px-4">
+            <p class="text-muted mb-4">{{ .Message }}</p>
             <a href="/dashboard" class="btn btn-primary">
                 <i class="bi bi-house me-2"></i>
                 {{ call .t "common.back" "Back to Dashboard" }}
