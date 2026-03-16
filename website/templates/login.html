@@ -10,7 +10,7 @@
 
 <div class="login-container">
     <div class="login-header">
-        <img src="/static/hostberry.png" alt="hostberry" class="logo-image" />
+        <img src="/static/hostberry.png{{ if .last_update }}?v={{ .last_update }}{{ end }}" alt="{{ call .t "common.app_name" "HostBerry" }}" class="logo-image" />
         <h1>HostBerry</h1>
         <p>{{ call .t "auth.login_info" "Inicia sesión para continuar" }}</p>
     </div>

@@ -56,7 +56,7 @@
     <aside class="sidebar-nav">
         <div class="sidebar-header">
             <a class="sidebar-brand" href="/dashboard">
-                <img src="/static/hostberry.png" alt="{{ call .t "common.app_name" "HostBerry" }}" style="height: 32px;">
+                <img src="/static/hostberry.png{{ if .last_update }}?v={{ .last_update }}{{ end }}" alt="{{ call .t "common.app_name" "HostBerry" }}" style="height: 32px;">
                 <span class="brand-text">{{ call .t "common.app_name" "HostBerry" }}</span>
             </a>
         </div>
