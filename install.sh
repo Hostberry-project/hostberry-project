@@ -696,18 +696,25 @@ try_go_mod_download() {
     local attempt="$2"
     local max="$3"
     local tmp_log
+    local timeout_secs="${HOSTBERRY_GO_MOD_DOWNLOAD_TIMEOUT:-180}"
 
     tmp_log="$(mktemp)"
-    # GOTOOLCHAIN=local evita que Go intente descargar otra toolchain (p. ej. en Raspberry Pi arm64)
     export GOTOOLCHAIN=local
 
-    if [ -n "$env_kv" ]; then
-        if env GOTOOLCHAIN=local $env_kv go mod download >"$tmp_log" 2>&1; then
+    run_download() {
+        if [ -n "$env_kv" ]; then
+            env GOTOOLCHAIN=local $env_kv go mod download
+        else
+            env GOTOOLCHAIN=local go mod download
+        fi
+    }
+    if command -v timeout >/dev/null 2>&1; then
+        if timeout "$timeout_secs" run_download >"$tmp_log" 2>&1; then
             rm -f "$tmp_log"
             return 0
         fi
     else
-        if env GOTOOLCHAIN=local go mod download >"$tmp_log" 2>&1; then
+        if run_download >"$tmp_log" 2>&1; then
             rm -f "$tmp_log"
             return 0
         fi
