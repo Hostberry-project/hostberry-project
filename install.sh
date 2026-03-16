@@ -839,19 +839,24 @@ build_project() {
     env $HOSTBERRY_GO_MOD_ENV go mod tidy > /dev/null 2>&1 || true
     
     # Compilar (GOTOOLCHAIN=local evita "toolchain not available" en Raspberry Pi / arm64)
-    # En Raspberry Pi / ARM la compilación con CGO puede tardar 5-15 min; timeout largo para no cortar
+    # En Raspberry Pi / ARM la compilación con CGO puede tardar 5-15 min; timeout 15 min por defecto
     BUILD_TIMEOUT="${HOSTBERRY_BUILD_TIMEOUT:-900}"
     print_info "Compilando (en Raspberry Pi puede tardar 5-10 min, es normal)..."
-    if ( command -v timeout >/dev/null 2>&1 && timeout "$BUILD_TIMEOUT" env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . ) || env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" .; then
-        if [ -f "${INSTALL_DIR}/hostberry" ]; then
-            chmod +x "${INSTALL_DIR}/hostberry"
-            chown "$USER_NAME:$GROUP_NAME" "${INSTALL_DIR}/hostberry"
-        else
-            print_error "Error: El binario no se creó"
-            exit 1
-        fi
+    build_ret=0
+    if command -v timeout >/dev/null 2>&1; then
+        timeout "$BUILD_TIMEOUT" env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
     else
-        print_error "Error en la compilación"
+        env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
+    fi
+    if [ "$build_ret" -eq 0 ] && [ -f "${INSTALL_DIR}/hostberry" ]; then
+        chmod +x "${INSTALL_DIR}/hostberry"
+        chown "$USER_NAME:$GROUP_NAME" "${INSTALL_DIR}/hostberry"
+        print_success "Compilación completada."
+    elif [ "$build_ret" -eq 124 ]; then
+        print_error "Compilación cancelada: tiempo de espera agotado (${BUILD_TIMEOUT}s). En Raspberry Pi puede tardar más; ejecute de nuevo con HOSTBERRY_BUILD_TIMEOUT=1200"
+        exit 1
+    else
+        print_error "Error en la compilación (código $build_ret). Compruebe que build-essential y gcc están instalados."
         exit 1
     fi
 }
