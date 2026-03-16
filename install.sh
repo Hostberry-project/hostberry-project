@@ -847,15 +847,22 @@ build_project() {
     export GOTOOLCHAIN=local
     env $HOSTBERRY_GO_MOD_ENV go mod tidy > /dev/null 2>&1 || true
     
+    # Acelerar compilación: usar todos los núcleos y, si existe, ccache para CGO (sqlite)
+    BUILD_JOBS=$(nproc 2>/dev/null || echo 4)
+    export GOMAXPROCS="${BUILD_JOBS}"
+    if command -v ccache &>/dev/null; then
+        export CC="ccache gcc"
+        export CGO_ENABLED=1
+    fi
+    
     # Compilar (GOTOOLCHAIN=local evita "toolchain not available" en Raspberry Pi / arm64)
-    # En Raspberry Pi / ARM la compilación con CGO puede tardar 5-15 min; timeout 15 min por defecto
     BUILD_TIMEOUT="${HOSTBERRY_BUILD_TIMEOUT:-900}"
-    print_info "Compilando (en Raspberry Pi puede tardar 5-10 min, es normal)..."
+    print_info "Compilando (usando ${BUILD_JOBS} núcleos)..."
     build_ret=0
     if command -v timeout >/dev/null 2>&1; then
-        timeout "$BUILD_TIMEOUT" env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
+        timeout "$BUILD_TIMEOUT" env CGO_ENABLED=1 $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
     else
-        env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
+        env CGO_ENABLED=1 $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
     fi
     if [ "$build_ret" -eq 0 ] && [ -f "${INSTALL_DIR}/hostberry" ]; then
         chmod +x "${INSTALL_DIR}/hostberry"
@@ -1665,20 +1672,14 @@ EOF
         fi
     fi
     
-    # Habilitar e iniciar hostapd y dnsmasq para que el AP "hostberry" esté disponible
+    # Habilitar e iniciar hostapd y dnsmasq en una sola pasada (más rápido)
     print_info "Habilitando e iniciando hostapd y dnsmasq..."
-    systemctl enable hostapd 2>/dev/null || true
-    if systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
-        systemctl enable dnsmasq 2>/dev/null || true
-    fi
     systemctl daemon-reload 2>/dev/null || true
-    systemctl start hostapd 2>/dev/null || true
-    sleep 2
-    # Asegurar que ap0 tenga la IP del gateway (imprescindible para DHCP)
+    systemctl enable --now hostapd 2>/dev/null || true
+    sleep 1
     ip addr add "${HOSTAPD_GATEWAY}/24" dev ap0 2>/dev/null || true
     if systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
-        systemctl restart dnsmasq 2>/dev/null || true
-        sleep 1
+        systemctl enable --now dnsmasq 2>/dev/null || true
     fi
     if systemctl is-active --quiet hostapd 2>/dev/null; then
         print_success "hostapd iniciado (red hostberry disponible en ap0)"
