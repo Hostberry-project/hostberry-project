@@ -701,31 +701,24 @@ try_go_mod_download() {
     tmp_log="$(mktemp)"
     export GOTOOLCHAIN=local
 
-    do_download() {
+    if command -v timeout >/dev/null 2>&1; then
+        if [ -n "$env_kv" ]; then
+            timeout "$timeout_secs" env GOTOOLCHAIN=local $env_kv go mod download >"$tmp_log" 2>&1
+        else
+            timeout "$timeout_secs" env GOTOOLCHAIN=local go mod download >"$tmp_log" 2>&1
+        fi
+    else
         if [ -n "$env_kv" ]; then
             env GOTOOLCHAIN=local $env_kv go mod download >"$tmp_log" 2>&1
         else
             env GOTOOLCHAIN=local go mod download >"$tmp_log" 2>&1
         fi
-    }
-    if command -v timeout >/dev/null 2>&1; then
-        timeout "$timeout_secs" bash -c 'do_download' 2>>"$tmp_log" || true
-        if [ "${PIPESTATUS[0]:-$?}" -eq 0 ] && ! grep -q . "$tmp_log" 2>/dev/null || ! [ -s "$tmp_log" ]; then
-            rm -f "$tmp_log"
-            return 0
-        fi
-        # timeout (124) o error de go: comprobar si descarga terminó bien
-        if env GOTOOLCHAIN=local go list -m all >/dev/null 2>&1; then
-            rm -f "$tmp_log"
-            return 0
-        fi
-    else
-        if do_download; then
-            rm -f "$tmp_log"
-            return 0
-        fi
     fi
 
+    if [ $? -eq 0 ]; then
+        rm -f "$tmp_log"
+        return 0
+    fi
     cp -f "$tmp_log" "$HOSTBERRY_GO_DEPS_ERROR_LOG" 2>/dev/null || true
     rm -f "$tmp_log"
     return 1
