@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="dark light">
     <title>{{ if .Title }}{{ .Title }} — {{ call .t "common.app_name" "HostBerry" }}{{ else }}{{ call .t "common.app_name" "HostBerry" }}{{ end }}</title>
     <meta name="description" content="{{ call .t "common.app_description" "HostBerry - Network Management System for Raspberry Pi" }}">
+    <!-- Favicon y logos: solo rutas locales /static/ para funcionar sin conexión -->
     <link rel="icon" type="image/png" href="/static/hostberry.png{{ if .last_update }}?v={{ .last_update }}{{ end }}">
     <link rel="shortcut icon" type="image/png" href="/static/hostberry.png{{ if .last_update }}?v={{ .last_update }}{{ end }}">
     <link rel="apple-touch-icon" href="/static/hostberry.png{{ if .last_update }}?v={{ .last_update }}{{ end }}">
