@@ -847,22 +847,21 @@ build_project() {
     export GOTOOLCHAIN=local
     env $HOSTBERRY_GO_MOD_ENV go mod tidy > /dev/null 2>&1 || true
     
-    # Acelerar compilación: usar todos los núcleos y, si existe, ccache para CGO (sqlite)
+    # Acelerar compilación: todos los núcleos, ccache para CGO si está instalado
     BUILD_JOBS=$(nproc 2>/dev/null || echo 4)
     export GOMAXPROCS="${BUILD_JOBS}"
+    export CGO_ENABLED=1
     if command -v ccache &>/dev/null; then
         export CC="ccache gcc"
-        export CGO_ENABLED=1
     fi
     
-    # Compilar (GOTOOLCHAIN=local evita "toolchain not available" en Raspberry Pi / arm64)
     BUILD_TIMEOUT="${HOSTBERRY_BUILD_TIMEOUT:-900}"
     print_info "Compilando (usando ${BUILD_JOBS} núcleos)..."
     build_ret=0
     if command -v timeout >/dev/null 2>&1; then
-        timeout "$BUILD_TIMEOUT" env CGO_ENABLED=1 $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
+        timeout "$BUILD_TIMEOUT" env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
     else
-        env CGO_ENABLED=1 $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
+        env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
     fi
     if [ "$build_ret" -eq 0 ] && [ -f "${INSTALL_DIR}/hostberry" ]; then
         chmod +x "${INSTALL_DIR}/hostberry"
