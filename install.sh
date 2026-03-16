@@ -32,11 +32,12 @@ TEMP_CLONE_DIR="/tmp/hostberry-install"
 # Modo de operación
 MODE="install"  # install, update o uninstall
 
-# Mensajes (concisos)
-print_info()    { echo -e "${BLUE}[i]${NC} $1"; }
-print_success() { echo -e "${GREEN}[+]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[!]${NC} $1"; }
-print_error()   { echo -e "${RED}[x]${NC} $1"; }
+# Mensajes (hora + icono)
+_ts() { date +%H:%M:%S 2>/dev/null || echo "00:00:00"; }
+print_info()    { echo -e "$(_ts) ${BLUE}[i]${NC} $1"; }
+print_success() { echo -e "$(_ts) ${GREEN}[+]${NC} $1"; }
+print_warning() { echo -e "$(_ts) ${YELLOW}[!]${NC} $1"; }
+print_error()   { echo -e "$(_ts) ${RED}[x]${NC} $1"; }
 
 # Logo ASCII (basado en website/static/hostberry.png)
 print_logo() {
