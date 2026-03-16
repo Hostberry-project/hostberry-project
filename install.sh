@@ -729,6 +729,10 @@ try_go_mod_download() {
 download_go_deps() {
     local retries="${HOSTBERRY_GO_MOD_RETRIES:-5}"
     local sleep_secs="${HOSTBERRY_GO_MOD_RETRY_SLEEP:-4}"
+    local dl_timeout="${HOSTBERRY_GO_MOD_DOWNLOAD_TIMEOUT:-180}"
+    if command -v timeout >/dev/null 2>&1; then
+        print_info "Cada intento de descarga tiene un máximo de ${dl_timeout}s (evita quedarse colgado)."
+    fi
 
     # 1) Intentar con el entorno actual
     for ((i=1; i<=retries; i++)); do
