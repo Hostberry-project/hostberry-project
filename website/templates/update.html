@@ -1,18 +1,14 @@
- 
-<div class="dashboard-container">
-    <!-- Header Section -->
+<div class="update-page dashboard-page dashboard-container">
     <div class="dashboard-header mb-4">
-        <div class="row align-items-center">
-            <div class="col-12 text-center">
-                <h1 class="dashboard-title">
-                    <i class="bi bi-arrow-repeat me-2"></i>
-                    {{ call .t "navigation.update" "Updates" }}
-                </h1>
-                <p class="dashboard-subtitle">{{ call .t "update.subtitle" "Update Debian system and HostBerry project" }}</p>
-                <div class="dashboard-time">
-                    <i class="bi bi-clock me-1"></i>
-                    {{ call .t "update.last_check" "Last check" }}: <span id="update-last-check">--</span>
-                </div>
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-arrow-repeat me-2"></i>
+                {{ call .t "navigation.update" "Updates" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "update.subtitle" "Update Debian system and HostBerry project" }}</p>
+            <div class="dashboard-time">
+                <i class="bi bi-clock me-1"></i>
+                {{ call .t "update.last_check" "Last check" }}: <span id="update-last-check">--</span>
             </div>
         </div>
     </div>
