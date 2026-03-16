@@ -199,8 +199,8 @@ install_dependencies() {
     # Actualizar lista de paquetes
     apt-get update -qq
     
-    # Instalar dependencias básicas
-    DEPS="wget curl build-essential iw isc-dhcp-client"
+    # Instalar dependencias básicas (ccache acelera recompilaciones con CGO)
+    DEPS="wget curl build-essential iw isc-dhcp-client ccache"
     
     # Instalar hostapd y herramientas relacionadas
     print_info "Instalando hostapd, wpa_supplicant y herramientas WiFi..."
