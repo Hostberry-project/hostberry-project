@@ -829,7 +829,8 @@ build_project() {
         exit 1
     fi
     
-    # Descargar dependencias
+    # Descargar dependencias (puede tardar; con timeout para no colgarse)
+    print_info "Descargando dependencias Go (puede tardar 1-2 min)..."
     if ! download_go_deps; then
         exit 1
     fi
@@ -838,8 +839,10 @@ build_project() {
     env $HOSTBERRY_GO_MOD_ENV go mod tidy > /dev/null 2>&1 || true
     
     # Compilar (GOTOOLCHAIN=local evita "toolchain not available" en Raspberry Pi / arm64)
-    print_info "Compilando..."
-    if CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" .; then
+    # En Raspberry Pi / ARM la compilación con CGO puede tardar 5-15 min; timeout largo para no cortar
+    BUILD_TIMEOUT="${HOSTBERRY_BUILD_TIMEOUT:-900}"
+    print_info "Compilando (en Raspberry Pi puede tardar 5-10 min, es normal)..."
+    if ( command -v timeout >/dev/null 2>&1 && timeout "$BUILD_TIMEOUT" env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . ) || env CGO_ENABLED=1 go build -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" .; then
         if [ -f "${INSTALL_DIR}/hostberry" ]; then
             chmod +x "${INSTALL_DIR}/hostberry"
             chown "$USER_NAME:$GROUP_NAME" "${INSTALL_DIR}/hostberry"
