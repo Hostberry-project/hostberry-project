@@ -697,6 +697,7 @@ try_go_mod_download() {
     local max="$3"
     local tmp_log
     local timeout_secs="${HOSTBERRY_GO_MOD_DOWNLOAD_TIMEOUT:-180}"
+    local ret=1
 
     tmp_log="$(mktemp)"
     export GOTOOLCHAIN=local
@@ -714,8 +715,9 @@ try_go_mod_download() {
             env GOTOOLCHAIN=local go mod download >"$tmp_log" 2>&1
         fi
     fi
+    ret=$?
 
-    if [ $? -eq 0 ]; then
+    if [ "$ret" -eq 0 ]; then
         rm -f "$tmp_log"
         return 0
     fi
