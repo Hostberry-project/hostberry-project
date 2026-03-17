@@ -1671,29 +1671,11 @@ EOF
         fi
     fi
     
-    # Habilitar e iniciar hostapd y dnsmasq en una sola pasada (más rápido)
-    print_info "Habilitando e iniciando hostapd y dnsmasq..."
+    # Preparar hostapd y dnsmasq pero sin arrancarlos automáticamente
+    # (en Raspberry Pi usada como router, iniciar AP + dnsmasq podría cortar la conexión actual)
+    print_info "HostAPD y dnsmasq configurados. No se arrancan automáticamente para no interrumpir la red actual."
+    print_info "Podrás habilitarlos desde el panel (HostBerry) o con: sudo systemctl enable --now hostapd dnsmasq"
     systemctl daemon-reload 2>/dev/null || true
-    systemctl enable --now hostapd 2>/dev/null || true
-    sleep 1
-    ip addr add "${HOSTAPD_GATEWAY}/24" dev ap0 2>/dev/null || true
-    if systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
-        systemctl enable --now dnsmasq 2>/dev/null || true
-    fi
-    if systemctl is-active --quiet hostapd 2>/dev/null; then
-        print_success "hostapd iniciado (red hostberry disponible en ap0)"
-    else
-        print_warning "hostapd no pudo iniciarse. Comprueba: systemctl status hostapd"
-    fi
-    if systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
-        if systemctl is-active --quiet dnsmasq 2>/dev/null; then
-            print_success "dnsmasq iniciado (DHCP y DNS para la red hostberry)"
-        else
-            print_warning "dnsmasq no pudo iniciarse. Comprueba: systemctl status dnsmasq"
-        fi
-    else
-        print_warning "dnsmasq no instalado: los clientes de la red hostberry no recibirán IP por DHCP. Instala con: sudo apt-get install dnsmasq"
-    fi
     
     # Asegurar permisos correctos del archivo de configuración
     chmod 644 "$HOSTAPD_CONFIG" 2>/dev/null || true
