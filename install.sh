@@ -29,6 +29,10 @@ DATA_DIR="${INSTALL_DIR}/data"
 GITHUB_REPO="https://github.com/Hostberry-project/hostberry-project.git"
 TEMP_CLONE_DIR="/tmp/hostberry-install"
 
+# Si durante la instalación por SSH omitimos iniciar ap0 (para no cortar la conexión),
+# entonces reiniciamos al final para que create-ap0.service se aplique.
+NEED_REBOOT_FOR_AP0=0
+
 # Modo de operación
 MODE="install"  # install, update o uninstall
 
@@ -1325,6 +1329,7 @@ create_hostapd_default_config() {
     RUNNING_OVER_SSH=0
     if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
         RUNNING_OVER_SSH=1
+        NEED_REBOOT_FOR_AP0=1
         print_warning "Detectada ejecución por SSH: no crearé/activaré 'ap0' ahora para no cortar tu conexión. Se aplicará en el próximo arranque."
     fi
     
@@ -2075,6 +2080,16 @@ main() {
     start_service
     cleanup_temp
     show_final_info
+
+    if [ "$NEED_REBOOT_FOR_AP0" -eq 1 ]; then
+        print_warning "Reiniciando para activar 'ap0' y el modo HostBerry (SSH detectado)."
+        sync 2>/dev/null || true
+        if command -v systemctl &> /dev/null; then
+            systemctl reboot 2>/dev/null || reboot
+        else
+            reboot
+        fi
+    fi
 }
 
 # Ejecutar función principal
