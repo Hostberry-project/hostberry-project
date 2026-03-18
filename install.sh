@@ -1681,14 +1681,16 @@ EOF
     # Importante en Raspberry Pi conectada por WiFi+SSH: si desmaskear hace que hostapd arranque,
     # puede cortar la conexión. Por eso, cuando se ejecuta por SSH, lo omitimos y se aplicará tras reinicio.
     print_info "Verificando estado del servicio hostapd..."
-    if systemctl is-enabled hostapd 2>&1 | grep -q "masked"; then
-        if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
+    # En modo install (o cuando evitamos operaciones por SSH), no llamamos a systemctl aquí
+    # porque el sistema queda "sensible" y el SSH se puede cortar.
+    if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
+        if systemctl is-enabled hostapd 2>&1 | grep -q "masked"; then
             print_info "Desbloqueando servicio hostapd..."
             systemctl unmask hostapd 2>/dev/null || true
             print_success "Servicio hostapd desbloqueado"
-        else
-            print_info "SSH activo: no desmasureo hostapd para no cortar la WiFi/SSH."
         fi
+    else
+        print_info "Evitando comprobación/unmask de hostapd durante instalación para no cortar SSH."
     fi
     
     # Recargar systemd para aplicar cambios
