@@ -30,9 +30,8 @@ GITHUB_REPO="https://github.com/Hostberry-project/hostberry-project.git"
 TEMP_CLONE_DIR="/tmp/hostberry-install"
 
 # Reboot al final para activar el modo HostBerry (ap0).
-# Nota: durante la instalación, si se detecta ejecución por SSH, evitamos crear/activar ap0
-# para no cortar la conexión antes del reinicio.
-NEED_REBOOT_FOR_AP0=1
+# Se hará SOLO en modo install (no en update).
+NEED_REBOOT_FOR_AP0=0
 
 # Modo de operación
 MODE="install"  # install, update o uninstall
@@ -1328,9 +1327,11 @@ create_hostapd_default_config() {
     # Si la instalación se ejecuta desde una sesión SSH, evitar tocar la interfaz WiFi ahora
     # (especialmente en Raspberry Pi 3, donde crear ap0/AP+STA puede cortar la conexión).
     RUNNING_OVER_SSH=0
-    if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
-        RUNNING_OVER_SSH=1
-        print_warning "Detectada ejecución por SSH: no crearé/activaré 'ap0' ahora para no cortar tu conexión. Se aplicará en el próximo arranque."
+    if [ "$MODE" = "install" ]; then
+        if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
+            RUNNING_OVER_SSH=1
+            print_warning "Detectada ejecución por SSH: no crearé/activaré 'ap0' ahora para no cortar tu conexión. Se aplicará en el próximo arranque."
+        fi
     fi
     
     # Valores por defecto (red "hostberry" abierta + portal cautivo hacia la web de Hostberry)
@@ -2046,6 +2047,10 @@ main() {
         mode_label="ACTUALIZACIÓN"
     elif [ "$MODE" = "uninstall" ]; then
         mode_label="DESINSTALACIÓN"
+    fi
+
+    if [ "$MODE" = "install" ]; then
+        NEED_REBOOT_FOR_AP0=1
     fi
 
     print_banner "$mode_label"
