@@ -214,6 +214,16 @@
           var startTs = Date.now();
           var maxWaitMs = 120000; // 2 min
           var pollEveryMs = 3000;
+          function normSSID(x) {
+            try {
+              return String(x || '')
+                .replace(/^"+|"+$/g, '')
+                .trim()
+                .toLowerCase();
+            } catch (_) {
+              return '';
+            }
+          }
 
           while (Date.now() - startTs < maxWaitMs) {
             try {
@@ -225,10 +235,14 @@
                   setStep(2);
                   return;
                 }
-                if (selectedSSID && s && s.ssid === selectedSSID && s.connection_type === 'wifi') {
-                  showAlert('success', t('setup_wizard.connected', d('Connected', 'Conectado')));
-                  setStep(2);
-                  return;
+                // WiFi: algunos firmwares/devices devuelven comillas o cambian el formato del SSID.
+                // Validamos por SSID normalizado y confirmamos conexión real si existe.
+                if (selectedSSID && s && normSSID(s.ssid) && normSSID(selectedSSID) === normSSID(s.ssid)) {
+                  if (s.connected === true || s.connection_type === 'wifi') {
+                    showAlert('success', t('setup_wizard.connected', d('Connected', 'Conectado')));
+                    setStep(2);
+                    return;
+                  }
                 }
               }
             } catch (_) {
