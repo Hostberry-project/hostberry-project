@@ -1752,11 +1752,18 @@ EOF
         chmod 644 "$CAPTIVE_SERVICE"
         systemctl daemon-reload 2>/dev/null || true
         systemctl enable hostberry-captive-portal.service 2>/dev/null || true
-        systemctl start hostberry-captive-portal.service 2>/dev/null || true
+        # Arrancar puede reiniciar dnsmasq/iptables en caliente; evitamos hacerlo por SSH.
+        if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
+            systemctl start hostberry-captive-portal.service 2>/dev/null || true
+        else
+            print_info "SSH activo: no arranco el portal cautivo ahora (se aplicará tras reiniciar)."
+        fi
         print_success "Servicio de portal cautivo creado, habilitado e iniciado"
     else
         print_info "Servicio de portal cautivo ya existe"
-        systemctl start hostberry-captive-portal.service 2>/dev/null || true
+        if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
+            systemctl start hostberry-captive-portal.service 2>/dev/null || true
+        fi
     fi
     
     print_success "Configuración por defecto de HostAPD creada"
