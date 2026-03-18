@@ -179,6 +179,9 @@
   // Fetch wrapper with JSON and token
   async function apiRequest(url, options){
     const opts = Object.assign({ method: 'GET', headers: {} }, options || {});
+    // Importante: incluir cookies en peticiones al mismo origen (para auth por cookie HTTPOnly).
+    // Si no, el wizard/otros endpoints pueden devolver 401 y no mostrar el estado.
+    if (!('credentials' in opts)) opts.credentials = 'include';
     const headers = new Headers(opts.headers);
     
     // Auth token
