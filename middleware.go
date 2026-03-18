@@ -27,6 +27,12 @@ func requireAuth(c *fiber.Ctx) error {
 		"/api/v1/auth/login/":    true, // Con slash final
 		"/api/v1/translations":   true,
 		"/api/v1/translations/":  true,
+		// Permitir que el setup wizard pueda consultar estado/escaneo WiFi incluso
+		// cuando el navegador pierde conexión tras cambiar de red.
+		"/api/v1/wifi/status":   true,
+		"/api/v1/wifi/status/": true,
+		"/api/v1/wifi/scan":     true,
+		"/api/v1/wifi/scan/":    true,
 		"/health":                 true,
 		"/health/":                true,
 		"/health/ready":           true,
