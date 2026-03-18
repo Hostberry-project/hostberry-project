@@ -1332,11 +1332,15 @@ EOF
 create_hostapd_default_config() {
     print_info "Creando configuración por defecto de HostAPD..."
     
-    # Si la instalación se ejecuta desde una sesión SSH, evitar tocar la interfaz WiFi ahora
-    # (especialmente en Raspberry Pi 3, donde crear ap0/AP+STA puede cortar la conexión).
+    # En Raspberry Pi con WiFi y sesión SSH, cualquier intento de crear/activar ap0 (modo AP+STA)
+    # en caliente puede cortar la conexión.
+    # Nota: al usar sudo, variables SSH pueden no estar presentes; por eso, en MODE=install
+    # lo omitimos SIEMPRE y se aplicará tras el reinicio final.
     RUNNING_OVER_SSH=0
-    # Si hay SSH (sea install o update), evitamos crear/activar ap0 en caliente para no cortar WiFi/SSH.
-    if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
+    if [ "$MODE" = "install" ]; then
+        RUNNING_OVER_SSH=1
+        print_warning "Modo install: omito creación/activación de 'ap0' en caliente. Se aplicará tras reinicio."
+    elif [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
         RUNNING_OVER_SSH=1
         print_warning "Ejecución por SSH detectada: omito la creación/activación de 'ap0' ahora para no cortar la conexión. Se aplicará tras reinicio."
     fi
