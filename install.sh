@@ -2082,7 +2082,7 @@ main() {
     show_final_info
 
     if [ "$NEED_REBOOT_FOR_AP0" -eq 1 ]; then
-        print_warning "Reiniciando para activar 'ap0' y el modo HostBerry (SSH detectado)."
+        print_warning "Reiniciando para activar 'ap0' y el modo HostBerry."
         sync 2>/dev/null || true
         if command -v systemctl &> /dev/null; then
             systemctl reboot 2>/dev/null || reboot
