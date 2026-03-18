@@ -607,21 +607,10 @@ func wifiInterfacesHandler(c *fiber.Ctx) error {
 }
 
 func wifiScanHandler(c *fiber.Ctx) error {
+	// Para el setup wizard puede que no exista sesión/token.
+	// Escanear redes no requiere usuario; solo la interfaz a usar.
 	userInterface := c.Locals("user")
-	if userInterface == nil {
-		LogT("logs.user_not_found")
-		return c.Status(401).JSON(fiber.Map{
-			"error": "No autenticado. Por favor, inicia sesión nuevamente.",
-		})
-	}
-
-	user, ok := userInterface.(*User)
-	if !ok || user == nil {
-		LogT("logs.user_invalid")
-		return c.Status(401).JSON(fiber.Map{
-			"error": "Usuario no encontrado. Por favor, inicia sesión nuevamente.",
-		})
-	}
+	_ = userInterface
 
 	interfaceName := c.Query("interface", "")
 	if interfaceName == "" {
