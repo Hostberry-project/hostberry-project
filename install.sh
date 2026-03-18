@@ -337,6 +337,14 @@ install_dependencies() {
 
 # Descargar proyecto de GitHub (siempre desde GitHub, nunca local)
 download_project() {
+    # Si el proyecto ya está presente localmente (ejecutas install.sh desde el repo),
+    # usamos el código local y evitamos clonar desde GitHub (para que los cambios en
+    # HTML/JS/etc. se vean en el instalador).
+    if [ -f "${SCRIPT_DIR}/main.go" ] && [ -f "${SCRIPT_DIR}/go.mod" ] && [ -d "${SCRIPT_DIR}/website/static" ]; then
+        print_info "Proyecto local detectado: usando código local (sin clonar GitHub)..."
+        return 0
+    fi
+
     if [ "$MODE" = "update" ]; then
         print_info "Modo actualización: descargando desde GitHub..."
     else
