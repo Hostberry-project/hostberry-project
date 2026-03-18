@@ -254,18 +254,18 @@
 
   function init() {
     fetchWifiStatus();
-    document.getElementById('wizard-scan-btn').addEventListener('click', scanNetworks);
-    document.getElementById('wizard-connect-btn').addEventListener('click', connectWiFi);
-    // Delegación: el botón "Continuar (mantener conexión)" puede estar en banner oculto al cargar
-    var wizardEl = document.querySelector('.setup-wizard-page') || document.body;
-    wizardEl.addEventListener('click', function(e) {
-      var btn = e.target && (e.target.id === 'wizard-continue-connected-btn' ? e.target : (e.target.closest && e.target.closest('#wizard-continue-connected-btn')));
-      if (btn) {
-        e.preventDefault();
-        e.stopPropagation();
+    var scanBtn = document.getElementById('wizard-scan-btn');
+    if (scanBtn) scanBtn.addEventListener('click', scanNetworks);
+    var connectBtn = document.getElementById('wizard-connect-btn');
+    if (connectBtn) connectBtn.addEventListener('click', connectWiFi);
+
+    // Continuar (mantener conexión): avanza directo a paso 2
+    var continueBtn = document.getElementById('wizard-continue-connected-btn');
+    if (continueBtn) {
+      continueBtn.addEventListener('click', function() {
         setStep(2);
-      }
-    });
+      });
+    }
     document.getElementById('wizard-back-2').addEventListener('click', function() { setStep(1); });
     document.getElementById('wizard-next-2').addEventListener('click', function() { saveHostapd(); });
     document.getElementById('wizard-back-3').addEventListener('click', function() { setStep(2); });
