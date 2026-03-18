@@ -437,10 +437,21 @@ clean_previous_installation() {
                         print_warning "Advertencia: No se encontró hostberry.db en el directorio temporal"
                     fi
                 else
-                    print_error "ERROR: No se pudo mover el directorio de datos"
-                    print_error "Abortando actualización para proteger los datos"
-                    rm -rf "$TEMP_BACKUP_DIR"
-                    exit 1
+                    # Fallback: si mv falla (permiso / rename entre FS / etc.), intentar copy-preserve.
+                    print_warning "mv falló al mover $DATA_DIR; intentando cp -a como fallback..."
+                    if cp -a "$DATA_DIR" "$TEMP_DATA_DIR" 2>/dev/null && rm -rf "$DATA_DIR" 2>/dev/null; then
+                        print_success "Directorio de datos copiado/respaldado en $TEMP_DATA_DIR"
+                        if [ -f "$TEMP_DATA_DIR/hostberry.db" ]; then
+                            print_success "Base de datos preservada en directorio temporal"
+                        else
+                            print_warning "Advertencia: No se encontró hostberry.db en el directorio temporal"
+                        fi
+                    else
+                        print_error "ERROR: No se pudo mover/copy el directorio de datos"
+                        print_error "Abortando actualización para proteger los datos"
+                        rm -rf "$TEMP_BACKUP_DIR"
+                        exit 1
+                    fi
                 fi
             else
                 print_warning "Directorio de datos no existe: $DATA_DIR (primera instalación?)"
@@ -451,10 +462,15 @@ clean_previous_installation() {
             # Asegurarse de que no eliminamos el directorio data si aún existe
             if [ -d "$DATA_DIR" ]; then
                 print_warning "Advertencia: El directorio data aún existe, moviéndolo antes de eliminar..."
-                mv "$DATA_DIR" "$TEMP_DATA_DIR" 2>/dev/null || {
-                    print_error "ERROR: No se pudo mover el directorio de datos antes de eliminar"
-                    exit 1
-                }
+                if mv "$DATA_DIR" "$TEMP_DATA_DIR" 2>/dev/null; then
+                    true
+                else
+                    print_warning "mv falló al mover $DATA_DIR (segunda fase); intentando cp -a..."
+                    cp -a "$DATA_DIR" "$TEMP_DATA_DIR" 2>/dev/null && rm -rf "$DATA_DIR" 2>/dev/null || {
+                        print_error "ERROR: No se pudo mover/copy el directorio de datos antes de eliminar"
+                        exit 1
+                    }
+                fi
             fi
             rm -rf "$INSTALL_DIR"
             print_success "Archivos antiguos eliminados"
