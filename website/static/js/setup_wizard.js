@@ -176,7 +176,14 @@
     });
     var timeoutPromise = new Promise(function(_, reject) {
       timeoutId = setTimeout(function() {
-        reject(new Error(t('setup_wizard.error_connect_timeout', d('Connection is taking too long. If the password is correct, wait 1–2 minutes and open the panel again (the device may have connected and have a new IP).', 'La conexión tarda más de lo esperado. Si la contraseña es correcta, espera 1–2 minutos y abre de nuevo el panel (el dispositivo puede haberse conectado y tener otra IP).')));
+        var msg = t(
+          'setup_wizard.error_connect_timeout',
+          d(
+            'Connection is taking too long. If the password is correct, wait 1-2 minutes and open the panel again (the device may have connected and have a new IP).',
+            'La conexión tarda más de lo esperado. Si la contraseña es correcta, espera 1-2 minutos y abre de nuevo el panel (el dispositivo puede haberse conectado y tener otra IP).'
+          )
+        );
+        reject(new Error(msg));
       }, timeoutMs);
     });
     try {
