@@ -33,6 +33,12 @@ func requireAuth(c *fiber.Ctx) error {
 		"/api/v1/wifi/status/": true,
 		"/api/v1/wifi/scan":     true,
 		"/api/v1/wifi/scan/":    true,
+		// Durante el setup el usuario puede no tener sesión/token aún.
+		// Necesitamos permitir ejecutar el "connect" del wizard.
+		"/api/v1/wifi/connect":   true,
+		"/api/v1/wifi/connect/": true,
+		"/api/v1/wifi/disconnect":   true,
+		"/api/v1/wifi/disconnect/": true,
 		"/health":                 true,
 		"/health/":                true,
 		"/health/ready":           true,
