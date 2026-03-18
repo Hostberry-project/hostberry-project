@@ -1327,11 +1327,10 @@ create_hostapd_default_config() {
     # Si la instalación se ejecuta desde una sesión SSH, evitar tocar la interfaz WiFi ahora
     # (especialmente en Raspberry Pi 3, donde crear ap0/AP+STA puede cortar la conexión).
     RUNNING_OVER_SSH=0
+    # En modo install, evitamos crear ap0 en caliente para no cortar WiFi/SSH.
     if [ "$MODE" = "install" ]; then
-        if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
-            RUNNING_OVER_SSH=1
-            print_warning "Detectada ejecución por SSH: no crearé/activaré 'ap0' ahora para no cortar tu conexión. Se aplicará en el próximo arranque."
-        fi
+        RUNNING_OVER_SSH=1
+        print_warning "Modo install: omito la creación/activación de 'ap0' ahora para no cortar la conexión. Se aplicará tras reinicio."
     fi
     
     # Valores por defecto (red "hostberry" abierta + portal cautivo hacia la web de Hostberry)
@@ -1458,13 +1457,20 @@ EOF
             AP_INTERFACE="$HOSTAPD_INTERFACE"
         fi
 
-        # Usar ap0 si existe, sino usar la interfaz física
+        # Usar ap0 para la configuración si hay soporte (se creará al arrancar via create-ap0.service).
+        # Durante install evitamos crearlo en caliente para no cortar la WiFi/SSH.
         AP_INTERFACE="$HOSTAPD_INTERFACE"
-        if ip link show ap0 > /dev/null 2>&1; then
+        if command -v iw &> /dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
             AP_INTERFACE="ap0"
-            print_info "Usando interfaz virtual ap0 (modo AP+STA según TheWalrus - Raspberry Pi 3 B+)"
+            print_info "Configurando hostapd para usar ap0 (ap0 se creará en el arranque)."
         else
-            print_info "Usando interfaz física $AP_INTERFACE (modo no concurrente)"
+            # Fallback: si ap0 existe ya, úsalo; si no, usa la interfaz física
+            if ip link show ap0 > /dev/null 2>&1; then
+                AP_INTERFACE="ap0"
+                print_info "Usando interfaz virtual ap0 (ya existente)"
+            else
+                print_info "Usando interfaz física $AP_INTERFACE (modo no concurrente)"
+            fi
         fi
         
         cat > "$HOSTAPD_CONFIG" <<EOF
