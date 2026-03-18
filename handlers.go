@@ -823,11 +823,15 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	user, ok := GetUser(c)
-	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
+	// Para el setup wizard puede que no haya sesión/token.
+	// En ese caso permitimos conectar igualmente y usamos un usuario "setup_wizard" solo para logs.
+	username := "setup_wizard"
+	var userID *int
+	if u, ok := GetUser(c); ok && u != nil {
+		username = u.Username
+		id := u.ID
+		userID = &id
 	}
-	userID := user.ID
 
 	country := req.Country
 	if country == "" {
@@ -848,7 +852,7 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	result := connectWiFi(req.SSID, req.Password, interfaceName, country, user.Username)
+	result := connectWiFi(req.SSID, req.Password, interfaceName, country, username)
 
 	if _, hasSuccess := result["success"]; !hasSuccess {
 		result["success"] = false
@@ -862,7 +866,9 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 	}
 
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", fmt.Sprintf("WiFi conectado a %s por usuario %s", req.SSID, user.Username), "wifi", &userID)
+		if userID != nil {
+			InsertLog("INFO", fmt.Sprintf("WiFi conectado a %s por usuario %s", req.SSID, username), "wifi", userID)
+		}
 		return c.JSON(result)
 	}
 
@@ -870,7 +876,9 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 	if errorMsgVal, ok := result["error"].(string); ok && errorMsgVal != "" {
 		errorMsg = errorMsgVal
 	}
-		InsertLog("ERROR", fmt.Sprintf("Error conectando WiFi %s: %s (usuario: %s)", req.SSID, errorMsg, user.Username), "wifi", &userID)
+	if userID != nil {
+		InsertLog("ERROR", fmt.Sprintf("Error conectando WiFi %s: %s (usuario: %s)", req.SSID, errorMsg, username), "wifi", userID)
+	}
 	return c.Status(500).JSON(fiber.Map{
 		"success": false,
 		"error":   errorMsg,
