@@ -1674,14 +1674,21 @@ EOF
     fi
     
     # Recargar systemd para aplicar cambios
-    systemctl daemon-reload 2>/dev/null || true
+    # En Raspberry Pi por WiFi+SSH, daemon-reload justo aquí puede provocar que hostapd se relance.
+    if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
+        systemctl daemon-reload 2>/dev/null || true
+    else
+        print_info "SSH activo: omito systemctl daemon-reload para no cortar la conexión."
+    fi
     
     # Asegurar que dnsmasq esté instalado y el servicio systemd exista (DHCP/DNS para la red hostberry)
     if ! systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
         print_info "Servicio dnsmasq no encontrado; instalando paquete dnsmasq..."
         if command -v apt-get &> /dev/null; then
             apt-get update -qq && apt-get install -y dnsmasq 2>/dev/null || true
-            systemctl daemon-reload 2>/dev/null || true
+            if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
+                systemctl daemon-reload 2>/dev/null || true
+            fi
         fi
     fi
     if ! systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
@@ -1708,7 +1715,11 @@ EOF
     # (en Raspberry Pi usada como router, iniciar AP + dnsmasq podría cortar la conexión actual)
     print_info "HostAPD y dnsmasq configurados. No se arrancan automáticamente para no interrumpir la red actual."
     print_info "Podrás habilitarlos desde el panel (HostBerry) o con: sudo systemctl enable --now hostapd dnsmasq"
-    systemctl daemon-reload 2>/dev/null || true
+    if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
+        systemctl daemon-reload 2>/dev/null || true
+    else
+        print_info "SSH activo: omito systemctl daemon-reload final."
+    fi
     
     # Asegurar permisos correctos del archivo de configuración
     chmod 644 "$HOSTAPD_CONFIG" 2>/dev/null || true
