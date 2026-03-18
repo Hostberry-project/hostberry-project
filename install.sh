@@ -46,6 +46,24 @@ print_error()   { echo -e "$(_ts) ${RED}[x]${NC} $1"; }
 # Logo ASCII (basado en website/static/hostberry.png)
 print_logo() {
     printf "%b" "$RED"
+    # Logo en ASCII (basado en website/static/hostberry.png). Se imprime y se retorna
+    # para no ejecutar el ASCII anterior.
+    cat <<'HBEOF'
+                   .-~~~~~-.
+                  /  .---.  \
+                 /  /  _  \  \
+                |  |  (o)  |  |
+                |  |   ))) |  |
+                |  |   ))) |  |
+                |  |   ))) |  |
+                 \  \ '---' /  /
+                  \  '-.__.-' /
+                   '---.___.-'
+                       _|_ _
+                      /____\
+HBEOF
+    printf "%b\n" "$NC"
+    return 0
     cat <<'EOF'
                        $x                    
                       $$$                    
