@@ -207,6 +207,38 @@
           msg = t('setup_wizard.error_network_device_switching', d('The connection may have succeeded, but the device is switching networks. Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).', 'La conexión puede haberse completado, pero el dispositivo está cambiando de red. Espera unos 30 segundos y abre de nuevo el panel (el HostBerry puede tener una nueva IP en tu WiFi).'));
         }
         showAlert('warning', msg);
+
+        // Verificación automática: aunque el fetch falle, la conexión puede haberse completado.
+        // Intentamos consultar el estado durante un rato y avanzar si ya está conectado al SSID esperado.
+        (async function verifyConnectionAfterSwitch() {
+          var startTs = Date.now();
+          var maxWaitMs = 120000; // 2 min
+          var pollEveryMs = 3000;
+
+          while (Date.now() - startTs < maxWaitMs) {
+            try {
+              var r = await apiRequest('/api/v1/wifi/status', { method: 'GET' });
+              if (r && r.ok) {
+                var s = await r.json().catch(function() { return {}; });
+                if (s && s.connection_type === 'ethernet') {
+                  showAlert('success', t('setup_wizard.connected', d('Connected', 'Conectado')));
+                  setStep(2);
+                  return;
+                }
+                if (selectedSSID && s && s.ssid === selectedSSID && s.connection_type === 'wifi') {
+                  showAlert('success', t('setup_wizard.connected', d('Connected', 'Conectado')));
+                  setStep(2);
+                  return;
+                }
+              }
+            } catch (_) {
+              // Ignorar: en algunos momentos el hostberry ya cambió IP/red.
+            }
+            await new Promise(function(res) { setTimeout(res, pollEveryMs); });
+          }
+
+          // Si no se confirma conexión, dejamos el aviso original.
+        })();
       } else {
         showAlert('danger', msg);
       }
