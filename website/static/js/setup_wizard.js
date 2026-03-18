@@ -237,6 +237,13 @@
                 }
                 // WiFi: algunos firmwares/devices devuelven comillas o cambian el formato del SSID.
                 // Validamos por SSID normalizado y confirmamos conexión real si existe.
+                // Fallback: si ya estamos conectados por WiFi pero el backend no devuelve SSID,
+                // igualmente avanzamos para que el wizard no se quede atascado.
+                if (s && s.connection_type === 'wifi' && (s.connected === true || s.connected === undefined)) {
+                  showAlert('success', t('setup_wizard.connected', d('Connected', 'Conectado')));
+                  setStep(2);
+                  return;
+                }
                 if (selectedSSID && s && normSSID(s.ssid) && normSSID(selectedSSID) === normSSID(s.ssid)) {
                   if (s.connected === true || s.connection_type === 'wifi') {
                     showAlert('success', t('setup_wizard.connected', d('Connected', 'Conectado')));
