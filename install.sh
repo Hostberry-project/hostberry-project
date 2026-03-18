@@ -1389,9 +1389,14 @@ RUN+="/bin/ip link set ap0 address $MAC_ADDRESS"
 EOF
                 chmod 644 "$UDEV_RULE"
                 print_success "Regla udev creada para ap0"
-                # Recargar reglas udev
-                udevadm control --reload-rules 2>/dev/null || true
-                udevadm trigger 2>/dev/null || true
+                # Recargar/disparar udev puede crear ap0 inmediatamente y cortar WiFi+SSH.
+                # Solo lo hacemos si NO estamos ejecutando por SSH.
+                if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
+                    udevadm control --reload-rules 2>/dev/null || true
+                    udevadm trigger 2>/dev/null || true
+                else
+                    print_info "SSH activo: no ejecuto udevadm trigger para evitar cortes. ap0 se creará al reiniciar."
+                fi
             else
                 print_info "Regla udev para ap0 ya existe"
             fi
