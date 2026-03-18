@@ -127,8 +127,13 @@
       var connectionType = data.connection_type || '';
       if (connectionType === 'ethernet') {
         showCurrentWifiBanner(null, 'ethernet');
-      } else if (data.connected && ssid) {
+      } else if (ssid) {
+        // Si tenemos SSID, mostramos la conexión por WiFi aunque el backend marque connected=false
+        // (evita que no se muestre la red actual cuando el escaneo falla).
         showCurrentWifiBanner(ssid, 'wifi');
+      } else if (data.connected) {
+        // Conectado pero sin SSID detectado: mostramos WiFi genérico para que el usuario pueda continuar.
+        showCurrentWifiBanner(null, 'wifi');
       }
     } catch (e) {}
   }
