@@ -1320,6 +1320,14 @@ EOF
 create_hostapd_default_config() {
     print_info "Creando configuración por defecto de HostAPD..."
     
+    # Si la instalación se ejecuta desde una sesión SSH, evitar tocar la interfaz WiFi ahora
+    # (especialmente en Raspberry Pi 3, donde crear ap0/AP+STA puede cortar la conexión).
+    RUNNING_OVER_SSH=0
+    if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
+        RUNNING_OVER_SSH=1
+        print_warning "Detectada ejecución por SSH: no crearé/activaré 'ap0' ahora para no cortar tu conexión. Se aplicará en el próximo arranque."
+    fi
+    
     # Valores por defecto (red "hostberry" abierta + portal cautivo hacia la web de Hostberry)
     HOSTAPD_INTERFACE="wlan0"
     HOSTAPD_SSID="hostberry"
@@ -1384,7 +1392,8 @@ EOF
         fi
         
         # Intentar crear interfaz virtual ap0 si no existe (solo si iw está disponible)
-        if command -v iw &> /dev/null; then
+        # Si estamos por SSH, lo omitimos para no cortar la WiFi/SSH actual.
+        if command -v iw &> /dev/null && [ "$RUNNING_OVER_SSH" -eq 0 ]; then
             if ! ip link show ap0 > /dev/null 2>&1; then
                 print_info "Creando interfaz virtual ap0 para modo AP+STA..."
                 
@@ -1431,6 +1440,9 @@ EOF
                 ip link set ap0 up 2>/dev/null || true
             fi
         else
+            if [ "$RUNNING_OVER_SSH" -eq 1 ]; then
+                print_info "SSH activo: omitiendo creación manual de ap0 ahora."
+            fi
             print_warning "iw no está disponible, no se puede crear ap0"
             AP_INTERFACE="$HOSTAPD_INTERFACE"
         fi
@@ -1596,15 +1608,19 @@ EOF
             chmod 644 "$AP0_SERVICE"
             systemctl daemon-reload 2>/dev/null || true
             systemctl enable create-ap0.service 2>/dev/null || true
-            systemctl start create-ap0.service 2>/dev/null || true
-            print_success "Servicio systemd para ap0 creado, habilitado e iniciado"
-            
-            # Esperar un momento y verificar que ap0 se creó
-            sleep 2
-            if ip link show ap0 > /dev/null 2>&1; then
-                print_success "Interfaz ap0 creada y verificada por el servicio systemd"
+            if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
+                systemctl start create-ap0.service 2>/dev/null || true
+                print_success "Servicio systemd para ap0 creado, habilitado e iniciado"
+                
+                # Esperar un momento y verificar que ap0 se creó
+                sleep 2
+                if ip link show ap0 > /dev/null 2>&1; then
+                    print_success "Interfaz ap0 creada y verificada por el servicio systemd"
+                else
+                    print_warning "El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)"
+                fi
             else
-                print_warning "El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)"
+                print_info "SSH activo: no inicio create-ap0.service ahora (para no cortar la conexión)."
             fi
         else
             print_info "Servicio systemd para ap0 ya existe"
