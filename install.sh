@@ -1335,10 +1335,10 @@ create_hostapd_default_config() {
     # Si la instalación se ejecuta desde una sesión SSH, evitar tocar la interfaz WiFi ahora
     # (especialmente en Raspberry Pi 3, donde crear ap0/AP+STA puede cortar la conexión).
     RUNNING_OVER_SSH=0
-    # En modo install, evitamos crear ap0 en caliente para no cortar WiFi/SSH.
-    if [ "$MODE" = "install" ]; then
+    # Si hay SSH (sea install o update), evitamos crear/activar ap0 en caliente para no cortar WiFi/SSH.
+    if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
         RUNNING_OVER_SSH=1
-        print_warning "Modo install: omito la creación/activación de 'ap0' ahora para no cortar la conexión. Se aplicará tras reinicio."
+        print_warning "Ejecución por SSH detectada: omito la creación/activación de 'ap0' ahora para no cortar la conexión. Se aplicará tras reinicio."
     fi
     
     # Valores por defecto (red "hostberry" abierta + portal cautivo hacia la web de Hostberry)
