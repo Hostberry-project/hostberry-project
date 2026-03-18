@@ -588,22 +588,52 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 	wpaConfigPath := fmt.Sprintf("%s/wpa_supplicant-%s.conf", WpaSupplicantConfigDir, safeSSID)
 
 	var networkBlock string
+	// Intentamos detectar el tipo de seguridad (WPA3 vs WPA2) para construir
+	// el bloque de configuración de wpa_supplicant correctamente.
+	// En redes WPA3-only, usar solo WPA2/PSK (psk=) puede fallar pese a contraseña correcta.
+	securityType := ""
+	if password != "" {
+		if scanRes := scanWiFiNetworks(interfaceName); scanRes != nil {
+			if nets, ok := scanRes["networks"].([]map[string]interface{}); ok {
+				for _, net := range nets {
+					if v, ok := net["ssid"].(string); ok && v == ssid {
+						if sec, ok := net["security"].(string); ok {
+							securityType = sec
+						}
+						break
+					}
+				}
+			}
+		}
+	}
 	if password != "" {
 		checkCmd := exec.Command("sh", "-c", "which wpa_passphrase 2>/dev/null")
 		checkOut, _ := checkCmd.Output()
-		if strings.TrimSpace(string(checkOut)) == "" {
-			result["error"] = "wpa_passphrase no está disponible. Instala el paquete wpa_supplicant"
-			return result
+		escape := func(v string) string {
+			v = strings.ReplaceAll(v, "\\", "\\\\")
+			v = strings.ReplaceAll(v, "\"", "\\\"")
+			return v
 		}
 
-		cmd := exec.Command("wpa_passphrase", ssid, password)
-		passphraseOut, err := cmd.Output()
-		if err != nil || !strings.Contains(string(passphraseOut), "network=") {
-			LogTf("logs.wifi_wpa_passphrase_error", err)
-			result["error"] = "Error al generar la clave PSK. Verifica el SSID y la contraseña."
-			return result
+		if strings.EqualFold(securityType, "WPA3") {
+			// WPA3 Personal: usar SAE (sae_password) en vez de solo PSK/WPA2.
+			networkBlock = fmt.Sprintf("network={\n\tssid=\"%s\"\n\tkey_mgmt=SAE\n\tsae_password=\"%s\"\n}", escape(ssid), escape(password))
+		} else {
+			// WPA2 (o desconocido): usar wpa_passphrase para generar PSK.
+			if strings.TrimSpace(string(checkOut)) == "" {
+				result["error"] = "wpa_passphrase no está disponible. Instala el paquete wpa_supplicant"
+				return result
+			}
+
+			cmd := exec.Command("wpa_passphrase", ssid, password)
+			passphraseOut, err := cmd.Output()
+			if err != nil || !strings.Contains(string(passphraseOut), "network=") {
+				LogTf("logs.wifi_wpa_passphrase_error", err)
+				result["error"] = "Error al generar la clave PSK. Verifica el SSID y la contraseña."
+				return result
+			}
+			networkBlock = strings.TrimSpace(string(passphraseOut))
 		}
-		networkBlock = strings.TrimSpace(string(passphraseOut))
 	} else {
 		networkBlock = fmt.Sprintf("network={\n\tssid=\"%s\"\n\tkey_mgmt=NONE\n}", ssid)
 	}
