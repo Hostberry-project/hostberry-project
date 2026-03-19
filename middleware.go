@@ -365,7 +365,7 @@ func enforceHTTPSMiddleware(c *fiber.Ctx) error {
 	u := url.URL{
 		Scheme:   "https",
 		Host:     host,
-		Path:     c.OriginalURL(),
+		Path:     c.Path(),
 		RawQuery: c.Context().URI().QueryArgs().String(),
 	}
 	return c.Redirect(u.String(), fiber.StatusPermanentRedirect)
