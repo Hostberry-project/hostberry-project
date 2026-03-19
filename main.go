@@ -27,7 +27,7 @@ import (
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	webtemplates "hostberry/internal/templates"
-	"hostberry/internal/wifi"
+	wifiHandlers "hostberry/internal/wifi"
 	sys "hostberry/internal/system"
 	hostapdHandlers "hostberry/internal/hostapd"
 	netHandlers "hostberry/internal/network"
