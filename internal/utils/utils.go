@@ -235,30 +235,6 @@ func validateShellCommandAllowList(cmd string, allowedCommands []string) error {
 	return nil
 }
 
-func firstAllowedBaseCommand(cmd string) string {
-	tokens := strings.Fields(cmd)
-	for i := 0; i < len(tokens); i++ {
-		tok := tokens[i]
-		if tok == "sudo" {
-			continue
-		}
-		switch tok {
-		case "|", "||", "&&":
-			if i+1 < len(tokens) {
-				next := tokens[i+1]
-				if next == "sudo" && i+2 < len(tokens) {
-					return strings.Trim(tokens[i+2], `"'`)
-				}
-				return strings.Trim(next, `"'`)
-			}
-		default:
-			// Primer token no operador ni sudo.
-			return strings.Trim(tok, `"'`)
-		}
-	}
-	return ""
-}
-
 // FilterSudoErrors filtra líneas típicas de errores de `sudo`.
 func FilterSudoErrors(output []byte) string {
 	return FilterSudoErrorString(string(output))
