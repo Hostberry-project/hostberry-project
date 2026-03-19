@@ -1473,7 +1473,8 @@ func autoConnectToLastNetwork(interfaceName string) {
 		if success, ok := result["success"].(bool); ok && success {
 			LogTf("logs.wifi_auto_success", ssid)
 		} else {
-			LogTf("logs.wifi_auto_error", result["error"])
+			errStr, _ := result["error"].(string)
+			LogTf("logs.wifi_auto_error", errStr)
 		}
 		return
 	}
