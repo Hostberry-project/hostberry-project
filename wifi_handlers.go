@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"hostberry/internal/constants"
 )
 
 // scanWiFiNetworks escanea redes WiFi con iw y devuelve un mapa con "success", "networks" y "error".

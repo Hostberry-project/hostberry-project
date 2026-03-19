@@ -100,7 +100,7 @@ func hostapdAccessPointsHandler(c *fiber.Ctx) error {
 
 		interfaceName := config["interface"]
 		if interfaceName == "" {
-			interfaceName = DefaultWiFiInterface
+			interfaceName = constants.DefaultWiFiInterface
 		}
 
 		channel := config["channel"]
@@ -906,7 +906,7 @@ func hostapdConfigHandler(c *fiber.Ctx) error {
 		req.LeaseTime = "12h"
 	}
 	if req.Country == "" {
-		req.Country = DefaultCountryCode
+		req.Country = constants.DefaultCountryCode
 	}
 
 	if len(req.Country) != 2 {
