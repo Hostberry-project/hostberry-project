@@ -24,6 +24,7 @@ import (
 	"hostberry/internal/database"
 	"hostberry/internal/health"
 	"hostberry/internal/i18n"
+	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	webtemplates "hostberry/internal/templates"
 )
