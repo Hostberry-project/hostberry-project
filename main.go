@@ -252,7 +252,7 @@ func setupRoutes(app *fiber.App) {
 		web.Get("/first-login", firstLoginPageHandler)
 		web.Get("/", indexHandler)
 
-		protected := web.Group("/", requireAuth)
+		protected := web.Group("/", middleware.RequireAuth)
 		protected.Get("/dashboard", dashboardHandler)
 		protected.Get("/settings", settingsHandler)
 		protected.Get("/network", networkPageHandler)
@@ -278,15 +278,15 @@ func setupRoutes(app *fiber.App) {
 		auth := api.Group("/auth")
 		{
 			auth.Post("/login", loginAPIHandler)
-			auth.Post("/logout", requireAuth, logoutAPIHandler)
-			auth.Get("/me", requireAuth, meHandler)
-			auth.Post("/change-password", requireAuth, changePasswordAPIHandler)
+			auth.Post("/logout", middleware.RequireAuth, logoutAPIHandler)
+			auth.Get("/me", middleware.RequireAuth, meHandler)
+			auth.Post("/change-password", middleware.RequireAuth, changePasswordAPIHandler)
 			auth.Post("/first-login/change", firstLoginChangeAPIHandler)
-			auth.Post("/profile", requireAuth, updateProfileAPIHandler)
-			auth.Post("/preferences", requireAuth, updatePreferencesAPIHandler)
+			auth.Post("/profile", middleware.RequireAuth, updateProfileAPIHandler)
+			auth.Post("/preferences", middleware.RequireAuth, updatePreferencesAPIHandler)
 		}
 
-		system := api.Group("/system", requireAuth)
+		system := api.Group("/system", middleware.RequireAuth)
 		{
 			system.Get("/stats", systemStatsHandler)
 			system.Get("/info", systemInfoHandler)
@@ -297,27 +297,27 @@ func setupRoutes(app *fiber.App) {
 			system.Get("/updates", systemUpdatesHandler)
 			system.Get("/services", systemServicesHandler)
 			system.Get("/metrics", health.MetricsSummaryHandler)
-			system.Post("/backup", requireAdmin, systemBackupHandler)
-			system.Post("/config", requireAdmin, systemConfigHandler)
-			system.Post("/updates/execute", requireAdmin, systemUpdatesExecuteHandler)
-			system.Post("/updates/project", requireAdmin, systemUpdatesProjectHandler)
-			system.Post("/notifications/test-email", requireAdmin, systemNotificationsTestEmailHandler)
-			system.Post("/restart", requireAdmin, systemRestartHandler)
-			system.Post("/shutdown", requireAdmin, systemShutdownHandler)
+			system.Post("/backup", middleware.RequireAdmin, systemBackupHandler)
+			system.Post("/config", middleware.RequireAdmin, systemConfigHandler)
+			system.Post("/updates/execute", middleware.RequireAdmin, systemUpdatesExecuteHandler)
+			system.Post("/updates/project", middleware.RequireAdmin, systemUpdatesProjectHandler)
+			system.Post("/notifications/test-email", middleware.RequireAdmin, systemNotificationsTestEmailHandler)
+			system.Post("/restart", middleware.RequireAdmin, systemRestartHandler)
+			system.Post("/shutdown", middleware.RequireAdmin, systemShutdownHandler)
 		}
 
-		network := api.Group("/network", requireAuth)
+		network := api.Group("/network", middleware.RequireAuth)
 		{
 			network.Get("/status", networkStatusHandler)
 			network.Get("/interfaces", networkInterfacesHandler)
 			network.Get("/routing", networkRoutingHandler)
-			network.Post("/firewall/toggle", requireAdmin, networkFirewallToggleHandler)
-			network.Post("/speedtest", requireAdmin, networkSpeedtestHandler)
+			network.Post("/firewall/toggle", middleware.RequireAdmin, networkFirewallToggleHandler)
+			network.Post("/speedtest", middleware.RequireAdmin, networkSpeedtestHandler)
 			network.Get("/config", networkConfigHandler)
 			network.Post("/config", networkConfigHandler)
 		}
 
-		wifi := api.Group("/wifi", requireAuth)
+		wifi := api.Group("/wifi", middleware.RequireAuth)
 		{
 			wifi.Get("/status", wifiStatusHandler)
 			wifi.Get("/scan", wifiScanHandler)
@@ -327,13 +327,13 @@ func setupRoutes(app *fiber.App) {
 			wifi.Post("/disconnect", wifiLegacyDisconnectHandler)
 			wifi.Get("/networks", wifiNetworksHandler)
 			wifi.Get("/clients", wifiClientsHandler)
-			wifi.Post("/toggle", requireAdmin, wifiToggleHandler)
-			wifi.Post("/unblock", requireAdmin, wifiUnblockHandler)
-			wifi.Post("/software-switch", requireAdmin, wifiSoftwareSwitchHandler)
-			wifi.Post("/config", requireAdmin, wifiConfigHandler)
+			wifi.Post("/toggle", middleware.RequireAdmin, wifiToggleHandler)
+			wifi.Post("/unblock", middleware.RequireAdmin, wifiUnblockHandler)
+			wifi.Post("/software-switch", middleware.RequireAdmin, wifiSoftwareSwitchHandler)
+			wifi.Post("/config", middleware.RequireAdmin, wifiConfigHandler)
 		}
 
-		vpn := api.Group("/vpn", requireAuth)
+		vpn := api.Group("/vpn", middleware.RequireAuth)
 		{
 			vpn.Get("/status", vpnStatusHandler)
 			vpn.Get("/config", vpnGetConfigHandler)
