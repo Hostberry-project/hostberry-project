@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"hostberry/internal/config"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
+	adblock "hostberry/internal/adblock"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	"hostberry/internal/tor"
@@ -22,6 +24,7 @@ import (
 	"hostberry/internal/wifi"
 	"hostberry/internal/vpn"
 	network "hostberry/internal/network"
+	sys "hostberry/internal/system"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
@@ -355,6 +358,32 @@ func updatePreferencesAPIHandler(c *fiber.Ctx) error {
 	userID := user.ID
 		database.InsertLog("INFO", database.LogMsg("Preferencias actualizadas", user.Username), "auth", &userID)
 	return c.JSON(fiber.Map{"message": "Preferencias actualizadas"})
+}
+
+func systemInfoHandler(c *fiber.Ctx) error {
+	result := sys.GetSystemInfo()
+	return c.JSON(result)
+}
+
+func systemShutdownHandler(c *fiber.Ctx) error {
+	user, ok := middleware.GetUser(c)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
+	}
+	userID := user.ID
+
+	result := sys.SystemShutdown(user.Username)
+	if success, ok := result["success"].(bool); ok && success {
+		database.InsertLog("INFO", database.LogMsg("Sistema apagado correctamente", user.Username), "system", &userID)
+		return c.JSON(result)
+	}
+
+	if err, ok := result["error"].(string); ok {
+		database.InsertLog("ERROR", database.LogMsgErr("apagar sistema", err, user.Username), "system", &userID)
+		return c.Status(500).JSON(fiber.Map{"error": err})
+	}
+
+	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
 }
 
 func networkStatusHandler(c *fiber.Ctx) error {
@@ -807,6 +836,388 @@ func vpnConnectHandler(c *fiber.Ctx) error {
 	return vpn.VpnConnectHandler(c)
 }
 
+func wireguardStatusHandler(c *fiber.Ctx) error {
+	result := vpn.GetWireGuardStatus()
+	return c.JSON(result)
+}
+
+func wireguardInterfacesHandler(c *fiber.Ctx) error {
+	out, err := exec.Command("wg", "show", "interfaces").CombinedOutput()
+	if err != nil {
+		result := vpn.GetWireGuardStatus()
+		if interfaces, ok := result["interfaces"].([]map[string]interface{}); ok && len(interfaces) > 0 {
+			var resp []fiber.Map
+			for _, iface := range interfaces {
+				if name, ok := iface["name"].(string); ok {
+					resp = append(resp, fiber.Map{
+						"name":        name,
+						"status":      "up",
+						"address":     "",
+						"peers_count": 0,
+					})
+				}
+			}
+			return c.JSON(resp)
+		}
+		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
+	}
+
+	ifaces := strings.Fields(strings.TrimSpace(string(out)))
+	var resp []fiber.Map
+	for _, iface := range ifaces {
+		detailsOut, _ := exec.Command("wg", "show", iface).CombinedOutput()
+		details := string(detailsOut)
+		peersCount := 0
+		for _, line := range strings.Split(details, "\n") {
+			if strings.HasPrefix(strings.TrimSpace(line), "peer:") {
+				peersCount++
+			}
+		}
+		resp = append(resp, fiber.Map{
+			"name":        iface,
+			"status":      "up",
+			"address":     "", // opcional (depende de ip)
+			"peers_count": peersCount,
+		})
+	}
+	return c.JSON(resp)
+}
+
+func wireguardPeersHandler(c *fiber.Ctx) error {
+	out, err := exec.Command("wg", "show").CombinedOutput()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
+	}
+	text := string(out)
+	var peers []fiber.Map
+
+	var curPeer string
+	var handshake string
+	var transfer string
+
+	flush := func() {
+		if curPeer == "" {
+			return
+		}
+		connected := true
+		if strings.Contains(handshake, "never") || handshake == "" {
+			connected = false
+		}
+		name := curPeer
+		if len(name) > 12 {
+			name = name[:12] + "…"
+		}
+		peers = append(peers, fiber.Map{
+			"name":      name,
+			"connected": connected,
+			"bandwidth": transfer,
+			"uptime":    handshake,
+		})
+		curPeer, handshake, transfer = "", "", ""
+	}
+
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "peer:") {
+			flush()
+			curPeer = strings.TrimSpace(strings.TrimPrefix(line, "peer:"))
+			continue
+		}
+		if strings.HasPrefix(line, "latest handshake:") {
+			handshake = strings.TrimSpace(strings.TrimPrefix(line, "latest handshake:"))
+			continue
+		}
+		if strings.HasPrefix(line, "transfer:") {
+			transfer = strings.TrimSpace(strings.TrimPrefix(line, "transfer:"))
+			continue
+		}
+	}
+	flush()
+	return c.JSON(peers)
+}
+
+func wireguardGetConfigHandler(c *fiber.Ctx) error {
+	out, err := exec.Command("sh", "-c", "cat /etc/wireguard/wg0.conf 2>/dev/null").CombinedOutput()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
+	}
+	return c.JSON(fiber.Map{"config": string(out)})
+}
+
+func wireguardToggleHandler(c *fiber.Ctx) error {
+	statusOut, _ := exec.Command("wg", "show").CombinedOutput()
+	active := strings.TrimSpace(string(statusOut)) != ""
+
+	var cmd *exec.Cmd
+	if active {
+		cmd = exec.Command("sudo", "wg-quick", "down", "wg0")
+	} else {
+		cmd = exec.Command("sudo", "wg-quick", "up", "wg0")
+	}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
+	}
+	return c.JSON(fiber.Map{"success": true, "output": strings.TrimSpace(string(out))})
+}
+
+func wireguardRestartHandler(c *fiber.Ctx) error {
+	out1, err1 := exec.Command("sudo", "wg-quick", "down", "wg0").CombinedOutput()
+	out2, err2 := exec.Command("sudo", "wg-quick", "up", "wg0").CombinedOutput()
+	if err1 != nil || err2 != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error":  "Error reiniciando WireGuard (requiere sudo NOPASSWD)",
+			"down":   strings.TrimSpace(string(out1)),
+			"up":     strings.TrimSpace(string(out2)),
+			"downOk": err1 == nil,
+			"upOk":   err2 == nil,
+		})
+	}
+	return c.JSON(fiber.Map{"success": true})
+}
+
+func wireguardConfigHandler(c *fiber.Ctx) error {
+	var req struct {
+		Config string `json:"config"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
+	}
+	if err := validators.ValidateWireGuardConfig(req.Config); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+	config := req.Config
+	return middleware.RunActionWithUser(c, "wireguard", "WireGuard configurado correctamente", "configurar WireGuard", func(user *models.User) map[string]interface{} {
+		return vpn.ConfigureWireGuard(config, user.Username)
+	})
+}
+
+func adblockStatusHandler(c *fiber.Ctx) error {
+	result := adblock.GetAdBlockStatus()
+	return c.JSON(result)
+}
+
+func adblockEnableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "AdBlock habilitado correctamente", "habilitar AdBlock", func(user *models.User) map[string]interface{} {
+		return adblock.EnableAdBlock(user.Username)
+	})
+}
+
+func adblockDisableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "AdBlock deshabilitado correctamente", "deshabilitar AdBlock", func(user *models.User) map[string]interface{} {
+		return adblock.DisableAdBlock(user.Username)
+	})
+}
+
+// Handlers para DNSCrypt
+func dnscryptStatusHandler(c *fiber.Ctx) error {
+	result := adblock.GetDNSCryptStatus()
+	return c.JSON(result)
+}
+
+func dnscryptInstallHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt instalado correctamente", "instalar DNSCrypt", func(user *models.User) map[string]interface{} {
+		return adblock.InstallDNSCrypt(user.Username)
+	})
+}
+
+func dnscryptConfigureHandler(c *fiber.Ctx) error {
+	var req struct {
+		ServerName string `json:"server_name"`
+		BlockAds   bool   `json:"block_ads"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
+	}
+	if req.ServerName == "" {
+		req.ServerName = "adguard-dns"
+	}
+	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt configurado correctamente", "configurar DNSCrypt", func(user *models.User) map[string]interface{} {
+		return adblock.ConfigureDNSCrypt(req.ServerName, req.BlockAds, user.Username)
+	})
+}
+
+func dnscryptEnableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt habilitado correctamente", "habilitar DNSCrypt", func(user *models.User) map[string]interface{} {
+		return adblock.EnableDNSCrypt(user.Username)
+	})
+}
+
+func dnscryptDisableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt deshabilitado correctamente", "deshabilitar DNSCrypt", func(user *models.User) map[string]interface{} {
+		return adblock.DisableDNSCrypt(user.Username)
+	})
+}
+
+// Handlers para Blocky
+func blockyStatusHandler(c *fiber.Ctx) error {
+	result := adblock.GetBlockyStatus()
+	return c.JSON(result)
+}
+
+func blockyConfigHandler(c *fiber.Ctx) error {
+	cfg := adblock.GetBlockyConfig()
+	return c.JSON(cfg)
+}
+
+func blockyInstallHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "Blocky instalado correctamente", "instalar Blocky", func(user *models.User) map[string]interface{} {
+		return adblock.InstallBlocky(user.Username)
+	})
+}
+
+func blockyConfigureHandler(c *fiber.Ctx) error {
+	var req struct {
+		Upstreams  []string `json:"upstreams"`
+		BlockLists []string `json:"block_lists"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
+	}
+	return middleware.RunActionWithUser(c, "adblock", "Blocky configurado correctamente", "configurar Blocky", func(user *models.User) map[string]interface{} {
+		return adblock.ConfigureBlocky(req.Upstreams, req.BlockLists, user.Username)
+	})
+}
+
+func blockyEnableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "Blocky habilitado correctamente", "habilitar Blocky", func(user *models.User) map[string]interface{} {
+		return adblock.EnableBlocky(user.Username)
+	})
+}
+
+func blockyDisableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "adblock", "Blocky deshabilitado correctamente", "deshabilitar Blocky", func(user *models.User) map[string]interface{} {
+		return adblock.DisableBlocky(user.Username)
+	})
+}
+
+func blockyAPIProxyHandler(c *fiber.Ctx) error {
+	path := c.Params("*")
+	if path == "" {
+		path = c.Path()
+	}
+	// path puede ser "blocking/status", "lists/refresh", etc.
+	method := c.Method()
+	var body []byte
+	if method == "POST" && c.Body() != nil {
+		body = c.Body()
+	}
+	code, data := adblock.BlockyAPIProxy(method, path, body)
+	if code == 0 {
+		return c.Status(502).JSON(fiber.Map{"error": "Blocky no responde. ¿Está el servicio activo?"})
+	}
+	c.Set("Content-Type", "application/json")
+	return c.Status(code).Send(data)
+}
+
+// Handlers para Tor
+func torStatusHandler(c *fiber.Ctx) error {
+	result := tor.GetTorStatus()
+	return c.JSON(result)
+}
+
+func torInstallHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "tor", "Tor instalado correctamente", "instalar Tor", func(user *models.User) map[string]interface{} {
+		return tor.InstallTor(user.Username)
+	})
+}
+
+func torConfigureHandler(c *fiber.Ctx) error {
+	var req struct {
+		EnableSocks           bool `json:"enable_socks"`
+		SocksPort             int  `json:"socks_port"`
+		EnableControlPort     bool `json:"enable_control_port"`
+		ControlPort           int  `json:"control_port"`
+		EnableHiddenService   bool `json:"enable_hidden_service"`
+		EnableTransPort       bool `json:"enable_trans_port"`
+		TransPort             int  `json:"trans_port"`
+		EnableDNSPort         bool `json:"enable_dns_port"`
+		DNSPort               int  `json:"dns_port"`
+		ClientOnly            bool `json:"client_only"`
+		AutomapHostsOnResolve bool `json:"automap_hosts_on_resolve"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
+	}
+
+	user, ok := middleware.GetUser(c)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
+	}
+	userID := user.ID
+
+	if req.SocksPort == 0 {
+		req.SocksPort = 9050
+	}
+	if req.ControlPort == 0 {
+		req.ControlPort = 9051
+	}
+	if req.TransPort == 0 {
+		req.TransPort = 9040
+	}
+	if req.DNSPort == 0 {
+		req.DNSPort = 53
+	}
+
+	opts := tor.TorConfigOptions{
+		User:                  user.Username,
+		EnableSocks:           req.EnableSocks,
+		SocksPort:             req.SocksPort,
+		EnableControlPort:     req.EnableControlPort,
+		ControlPort:           req.ControlPort,
+		EnableHiddenService:   req.EnableHiddenService,
+		EnableTransPort:       req.EnableTransPort,
+		TransPort:             req.TransPort,
+		EnableDNSPort:         req.EnableDNSPort,
+		DNSPort:               req.DNSPort,
+		ClientOnly:            req.ClientOnly,
+		AutomapHostsOnResolve: req.AutomapHostsOnResolve,
+	}
+	result := tor.ConfigureTor(opts)
+	if success, ok := result["success"].(bool); ok && success {
+		database.InsertLog("INFO", database.LogMsg("Tor configurado correctamente", user.Username), "tor", &userID)
+		return c.JSON(result)
+	}
+
+	if errorMsg, ok := result["error"].(string); ok {
+		database.InsertLog("ERROR", database.LogMsgErr("configurar Tor", errorMsg, user.Username), "tor", &userID)
+		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
+	}
+
+	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
+}
+
+func torEnableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "tor", "Tor habilitado correctamente", "habilitar Tor", func(user *models.User) map[string]interface{} {
+		return tor.EnableTor(user.Username)
+	})
+}
+
+func torIptablesEnableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "tor", "Red torificada correctamente", "torificar red", func(user *models.User) map[string]interface{} {
+		return tor.EnableTorIptables(user.Username)
+	})
+}
+
+func torIptablesDisableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "tor", "Torificación de red desactivada correctamente", "desactivar torificación de red", func(user *models.User) map[string]interface{} {
+		return tor.DisableTorIptables(user.Username)
+	})
+}
+
+func torDisableHandler(c *fiber.Ctx) error {
+	return middleware.RunActionWithUser(c, "tor", "Tor deshabilitado correctamente", "deshabilitar Tor", func(user *models.User) map[string]interface{} {
+		return tor.DisableTor(user.Username)
+	})
+}
+
+func torCircuitHandler(c *fiber.Ctx) error {
+	result := tor.GetTorCircuitInfo()
+	return c.JSON(result)
+}
+
 func networkPageHandler(c *fiber.Ctx) error {
 	return webtemplates.RenderTemplate(c, "network", fiber.Map{
 		"Title": i18n.T(c, "network.title", "Network Management"),
@@ -957,5 +1368,105 @@ func setupWizardTorPageHandler(c *fiber.Ctx) error {
 	return webtemplates.RenderTemplate(c, "setup_wizard_tor", fiber.Map{
 		"Title":      i18n.T(c, "setup_wizard.security_tor", "Tor"),
 		"last_update": time.Now().Unix(),
+	})
+}
+
+func systemLogsHandler(c *fiber.Ctx) error {
+	level := c.Query("level", "all")
+	limitStr := c.Query("limit", "20")
+	offsetStr := c.Query("offset", "0")
+
+	switch level {
+	case "all", "INFO", "WARNING", "ERROR", "DEBUG":
+	default:
+		level = "all"
+	}
+
+	limit, _ := strconv.Atoi(limitStr)
+	offset, _ := strconv.Atoi(offsetStr)
+
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+	if offset < 0 || offset > 10000 {
+		offset = 0
+	}
+
+	logs, total, err := database.GetLogs(level, limit, offset)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"logs":  logs,
+		"total": total,
+		"limit": limit,
+		"offset": offset,
+	})
+}
+
+func systemServicesHandler(c *fiber.Ctx) error {
+	services := make(map[string]interface{})
+	
+	wgOut, _ := exec.Command("wg", "show").CombinedOutput()
+	wgActive := strings.TrimSpace(string(wgOut)) != ""
+	services["wireguard"] = map[string]interface{}{
+		"status": wgActive,
+		"active": wgActive,
+	}
+	
+	openvpnOut, _ := exec.Command("sh", "-c", "systemctl is-active openvpn 2>/dev/null || pgrep openvpn > /dev/null && echo active || echo inactive").CombinedOutput()
+	openvpnStatus := strings.TrimSpace(string(openvpnOut))
+	openvpnActive := openvpnStatus == "active"
+	services["openvpn"] = map[string]interface{}{
+		"status": openvpnStatus,
+		"active": openvpnActive,
+	}
+	
+	pgrepOut, _ := exec.Command("sh", "-c", "pgrep hostapd > /dev/null 2>&1 && echo active || echo inactive").CombinedOutput()
+	pgrepStatus := strings.TrimSpace(string(pgrepOut))
+	
+	hostapdOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null || echo inactive").CombinedOutput()
+	hostapdStatus := strings.TrimSpace(string(hostapdOut))
+	
+	hostapdEnabledOut, _ := exec.Command("sh", "-c", "systemctl is-enabled hostapd 2>/dev/null || echo disabled").CombinedOutput()
+	hostapdEnabledStatus := strings.TrimSpace(string(hostapdEnabledOut))
+	hostapdEnabled := hostapdEnabledStatus == "enabled"
+	
+	hostapdActive := hostapdStatus == "active" || pgrepStatus == "active"
+	
+	if hostapdStatus == "inactive" && pgrepStatus == "active" {
+		hostapdStatus = "active"
+	}
+	
+	services["hostapd"] = map[string]interface{}{
+		"status":  hostapdStatus,
+		"active":  hostapdActive,
+		"enabled": hostapdEnabled,
+	}
+	
+	dnsmasqOut, _ := exec.Command("sh", "-c", "systemctl is-active dnsmasq 2>/dev/null || echo inactive").CombinedOutput()
+	dnsmasqStatus := strings.TrimSpace(string(dnsmasqOut))
+	piholeOut, _ := exec.Command("sh", "-c", "systemctl is-active pihole-FTL 2>/dev/null || echo inactive").CombinedOutput()
+	piholeStatus := strings.TrimSpace(string(piholeOut))
+	adblockActive := dnsmasqStatus == "active" || piholeStatus == "active"
+	services["adblock"] = map[string]interface{}{
+		"status": adblockActive,
+		"active": adblockActive,
+		"type": func() string {
+			if dnsmasqStatus == "active" {
+				return "dnsmasq"
+			}
+			if piholeStatus == "active" {
+				return "pihole"
+			}
+			return "none"
+		}(),
+	}
+	
+	return c.JSON(fiber.Map{
+		"services": services,
 	})
 }

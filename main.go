@@ -32,8 +32,6 @@ import (
 	hostapdHandlers "hostberry/internal/hostapd"
 	netHandlers "hostberry/internal/network"
 	vpnHandlers "hostberry/internal/vpn"
-	torHandlers "hostberry/internal/tor"
-	adblockHandlers "hostberry/internal/adblock"
 )
 
 var templatesFS embed.FS
@@ -295,22 +293,22 @@ func setupRoutes(app *fiber.App) {
 
 		system := api.Group("/system", middleware.RequireAuth)
 		{
-			system.Get("/stats", sys.SystemStatsHandler)
-			system.Get("/info", sys.SystemInfoHandler)
+			system.Get("/stats", systemStatsHandler)
+			system.Get("/info", systemInfoHandler)
 			system.Get("/https-info", sys.SystemHttpsInfoHandler)
-			system.Get("/logs", sys.SystemLogsHandler)
+			system.Get("/logs", systemLogsHandler)
 			system.Get("/activity", sys.SystemActivityHandler)
 			system.Get("/network", sys.SystemNetworkHandler)
 			system.Get("/updates", sys.SystemUpdatesHandler)
-			system.Get("/services", sys.SystemServicesHandler)
+			system.Get("/services", systemServicesHandler)
 			system.Get("/metrics", health.MetricsSummaryHandler)
 			system.Post("/backup", middleware.RequireAdmin, sys.SystemBackupHandler)
 			system.Post("/config", middleware.RequireAdmin, sys.SystemConfigHandler)
 			system.Post("/updates/execute", middleware.RequireAdmin, sys.SystemUpdatesExecuteHandler)
 			system.Post("/updates/project", middleware.RequireAdmin, sys.SystemUpdatesProjectHandler)
 			system.Post("/notifications/test-email", middleware.RequireAdmin, sys.SystemNotificationsTestEmailHandler)
-			system.Post("/restart", middleware.RequireAdmin, sys.SystemRestartHandler)
-			system.Post("/shutdown", middleware.RequireAdmin, sys.SystemShutdownHandler)
+			system.Post("/restart", middleware.RequireAdmin, systemRestartHandler)
+			system.Post("/shutdown", middleware.RequireAdmin, systemShutdownHandler)
 		}
 
 		network := api.Group("/network", middleware.RequireAuth)
@@ -375,22 +373,22 @@ func setupRoutes(app *fiber.App) {
 
 		wireguard := api.Group("/wireguard", middleware.RequireAuth)
 		{
-			wireguard.Get("/status", vpnHandlers.WireGuardStatusHandler)
-			wireguard.Get("/interfaces", vpnHandlers.WireGuardInterfacesHandler)
-			wireguard.Get("/peers", vpnHandlers.WireGuardPeersHandler)
-			wireguard.Get("/config", vpnHandlers.WireGuardGetConfigHandler)
-			wireguard.Post("/config", middleware.RequireAdmin, vpnHandlers.WireGuardConfigHandler)
-			wireguard.Post("/toggle", middleware.RequireAdmin, vpnHandlers.WireGuardToggleHandler)
-			wireguard.Post("/restart", middleware.RequireAdmin, vpnHandlers.WireGuardRestartHandler)
+			wireguard.Get("/status", wireguardStatusHandler)
+			wireguard.Get("/interfaces", wireguardInterfacesHandler)
+			wireguard.Get("/peers", wireguardPeersHandler)
+			wireguard.Get("/config", wireguardGetConfigHandler)
+			wireguard.Post("/config", middleware.RequireAdmin, wireguardConfigHandler)
+			wireguard.Post("/toggle", middleware.RequireAdmin, wireguardToggleHandler)
+			wireguard.Post("/restart", middleware.RequireAdmin, wireguardRestartHandler)
 		}
 
 		adblock := api.Group("/adblock", middleware.RequireAuth)
 		{
-			adblock.Get("/status", adblockHandlers.AdblockStatusHandler)
+			adblock.Get("/status", adblockStatusHandler)
 			adblock.Get("/lists", sys.AdblockListsHandler)
 			adblock.Get("/domains", sys.AdblockDomainsHandler)
-			adblock.Post("/enable", middleware.RequireAdmin, adblockHandlers.AdblockEnableHandler)
-			adblock.Post("/disable", middleware.RequireAdmin, adblockHandlers.AdblockDisableHandler)
+			adblock.Post("/enable", middleware.RequireAdmin, adblockEnableHandler)
+			adblock.Post("/disable", middleware.RequireAdmin, adblockDisableHandler)
 			adblock.Post("/update", middleware.RequireAdmin, sys.AdblockUpdateHandler)
 			adblock.Post("/lists/:name/toggle", middleware.RequireAdmin, sys.AdblockToggleListHandler)
 			adblock.Post("/domains/:name/toggle", middleware.RequireAdmin, sys.AdblockToggleDomainHandler)
@@ -399,34 +397,34 @@ func setupRoutes(app *fiber.App) {
 			// DNSCrypt (sub-sección de AdBlock)
 			dnscrypt := adblock.Group("/dnscrypt")
 			{
-				dnscrypt.Get("/status", adblockHandlers.DnscryptStatusHandler)
-				dnscrypt.Post("/install", middleware.RequireAdmin, adblockHandlers.DnscryptInstallHandler)
-				dnscrypt.Post("/configure", middleware.RequireAdmin, adblockHandlers.DnscryptConfigureHandler)
-				dnscrypt.Post("/enable", middleware.RequireAdmin, adblockHandlers.DnscryptEnableHandler)
-				dnscrypt.Post("/disable", middleware.RequireAdmin, adblockHandlers.DnscryptDisableHandler)
+				dnscrypt.Get("/status", dnscryptStatusHandler)
+				dnscrypt.Post("/install", middleware.RequireAdmin, dnscryptInstallHandler)
+				dnscrypt.Post("/configure", middleware.RequireAdmin, dnscryptConfigureHandler)
+				dnscrypt.Post("/enable", middleware.RequireAdmin, dnscryptEnableHandler)
+				dnscrypt.Post("/disable", middleware.RequireAdmin, dnscryptDisableHandler)
 			}
 
 			// Blocky (proxy DNS y ad-blocker, configuración desde la web)
-			adblock.Get("/blocky/status", adblockHandlers.BlockyStatusHandler)
-			adblock.Get("/blocky/config", adblockHandlers.BlockyConfigHandler)
-			adblock.Post("/blocky/install", middleware.RequireAdmin, adblockHandlers.BlockyInstallHandler)
-			adblock.Post("/blocky/configure", middleware.RequireAdmin, adblockHandlers.BlockyConfigureHandler)
-			adblock.Post("/blocky/enable", middleware.RequireAdmin, adblockHandlers.BlockyEnableHandler)
-			adblock.Post("/blocky/disable", middleware.RequireAdmin, adblockHandlers.BlockyDisableHandler)
-			adblock.Get("/blocky/api/*", adblockHandlers.BlockyAPIProxyHandler)
-			adblock.Post("/blocky/api/*", adblockHandlers.BlockyAPIProxyHandler)
+			adblock.Get("/blocky/status", blockyStatusHandler)
+			adblock.Get("/blocky/config", blockyConfigHandler)
+			adblock.Post("/blocky/install", middleware.RequireAdmin, blockyInstallHandler)
+			adblock.Post("/blocky/configure", middleware.RequireAdmin, blockyConfigureHandler)
+			adblock.Post("/blocky/enable", middleware.RequireAdmin, blockyEnableHandler)
+			adblock.Post("/blocky/disable", middleware.RequireAdmin, blockyDisableHandler)
+			adblock.Get("/blocky/api/*", blockyAPIProxyHandler)
+			adblock.Post("/blocky/api/*", blockyAPIProxyHandler)
 		}
 
 		tor := api.Group("/tor", middleware.RequireAuth)
 		{
-			tor.Get("/status", torHandlers.TorStatusHandler)
-			tor.Post("/install", middleware.RequireAdmin, torHandlers.TorInstallHandler)
-			tor.Post("/configure", middleware.RequireAdmin, torHandlers.TorConfigureHandler)
-			tor.Post("/enable", middleware.RequireAdmin, torHandlers.TorEnableHandler)
-			tor.Post("/disable", middleware.RequireAdmin, torHandlers.TorDisableHandler)
-			tor.Get("/circuit", torHandlers.TorCircuitHandler)
-			tor.Post("/iptables-enable", middleware.RequireAdmin, torHandlers.TorIptablesEnableHandler)
-			tor.Post("/iptables-disable", middleware.RequireAdmin, torHandlers.TorIptablesDisableHandler)
+			tor.Get("/status", torStatusHandler)
+			tor.Post("/install", middleware.RequireAdmin, torInstallHandler)
+			tor.Post("/configure", middleware.RequireAdmin, torConfigureHandler)
+			tor.Post("/enable", middleware.RequireAdmin, torEnableHandler)
+			tor.Post("/disable", middleware.RequireAdmin, torDisableHandler)
+			tor.Get("/circuit", torCircuitHandler)
+			tor.Post("/iptables-enable", middleware.RequireAdmin, torIptablesEnableHandler)
+			tor.Post("/iptables-disable", middleware.RequireAdmin, torIptablesDisableHandler)
 		}
 	}
 
@@ -490,6 +488,32 @@ func settingsHandler(c *fiber.Ctx) error {
 		"settings":      configs,
 		"settings_json": string(configsJSON),
 	})
+}
+
+func systemStatsHandler(c *fiber.Ctx) error {
+	stats := sys.GetSystemStats()
+	return c.JSON(stats)
+}
+
+func systemRestartHandler(c *fiber.Ctx) error {
+	user, ok := middleware.GetUser(c)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
+	}
+	userID := user.ID
+
+	result := sys.SystemRestart(user.Username)
+	if success, ok := result["success"].(bool); ok && success {
+		database.InsertLog("INFO", database.LogMsg("Sistema reiniciado correctamente", user.Username), "system", &userID)
+		return c.JSON(result)
+	}
+
+	if errMsg, ok := result["error"].(string); ok {
+		database.InsertLog("ERROR", database.LogMsgErr("reiniciar sistema", errMsg, user.Username), "system", &userID)
+		return c.Status(500).JSON(fiber.Map{"error": errMsg})
+	}
+
+	return c.JSON(result)
 }
 
 func detectWiFiInterface() string {
