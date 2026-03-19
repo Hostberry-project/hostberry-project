@@ -26,6 +26,7 @@ import (
 	"hostberry/internal/wifi"
 	"hostberry/internal/vpn"
 	network "hostberry/internal/network"
+	sys "hostberry/internal/system"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
@@ -362,7 +363,7 @@ func updatePreferencesAPIHandler(c *fiber.Ctx) error {
 }
 
 func systemInfoHandler(c *fiber.Ctx) error {
-	result := getSystemInfo()
+	result := sys.GetSystemInfo()
 	return c.JSON(result)
 }
 
@@ -373,7 +374,7 @@ func systemShutdownHandler(c *fiber.Ctx) error {
 	}
 	userID := user.ID
 
-	result := systemShutdown(user.Username)
+	result := sys.SystemShutdown(user.Username)
 	if success, ok := result["success"].(bool); ok && success {
 		database.InsertLog("INFO", database.LogMsg("Sistema apagado correctamente", user.Username), "system", &userID)
 		return c.JSON(result)
