@@ -25,6 +25,7 @@ import (
 	webtemplates "hostberry/internal/templates"
 	"hostberry/internal/wifi"
 	"hostberry/internal/vpn"
+	network "hostberry/internal/network"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
