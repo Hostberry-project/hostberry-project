@@ -92,9 +92,9 @@
         console.error(t('wifi.status_error', 'Error getting WiFi status') + ':', resp.status);
         return;
       }
-      const data = await resp.json();
+      const data = await resp.json().catch(function () { return {}; });
       // Guardar SSID conectado actualmente
-      currentConnectedSSID = (data.connected && data.ssid) ? data.ssid : null;
+      currentConnectedSSID = (data && data.connected && data.ssid) ? data.ssid : null;
       updateStatusCards(data);
       updateConnectionInfo(data);
       updateButtonTexts(data);
