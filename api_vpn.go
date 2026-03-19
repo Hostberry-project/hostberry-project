@@ -5,10 +5,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	middleware "hostberry/internal/middleware"
+	"hostberry/internal/vpn"
 )
 
 func vpnConnectionsHandler(c *fiber.Ctx) error {
-	result := getVPNStatus()
+	result := vpn.GetVPNStatus()
 
 	var conns []fiber.Map
 	if ov, ok := result["openvpn"].(map[string]interface{}); ok {
@@ -28,7 +29,7 @@ func vpnToggleHandler(c *fiber.Ctx) error {
 	return c.Status(501).JSON(fiber.Map{"error": "VPN toggle no implementado"})
 }
 func vpnGetConfigHandler(c *fiber.Ctx) error {
-	result := getOpenVPNConfig()
+	result := vpn.GetOpenVPNConfig()
 	return c.JSON(result)
 }
 
@@ -43,7 +44,7 @@ func vpnConfigHandler(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
-	result := saveOpenVPNConfig(req.Config, user.Username)
+	result := vpn.SaveOpenVPNConfig(req.Config, user.Username)
 	if success, ok := result["success"].(bool); ok && success {
 		return c.JSON(result)
 	}
