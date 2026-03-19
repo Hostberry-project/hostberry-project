@@ -206,6 +206,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 				return fmt.Errorf("wpa_supplicant no se encontró en %s. Instala el paquete wpa_supplicant (apt install wpasupplicant)", wpaSupplicantPath)
 			}
 			if strings.Contains(outStr, "ctrl_iface exists") || strings.Contains(outStr, "cannot override it") {
+				LogT("logs.wpa_socket_in_use")
 				executeCommand(fmt.Sprintf("sudo rm -f %s/%s 2>/dev/null || true", runDir, interfaceName))
 				startOut, startErr = tryStart(driver)
 				if startErr != nil {
@@ -214,6 +215,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 					continue
 				}
 				outStr = string(startOut)
+				startErr = nil // éxito del retry, continuar con comprobación de pid
 			} else {
 				// Error de driver u otro: probar siguiente driver antes de devolver error
 				driverHint := ""
