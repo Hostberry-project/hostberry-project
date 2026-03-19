@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"embed"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -20,78 +18,18 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"gopkg.in/yaml.v3"
+	"hostberry/internal/config"
 )
 
 var templatesFS embed.FS
 
 var staticFS embed.FS
 
-type Config struct {
-	Server   ServerConfig   `yaml:"server"`
-	Database DatabaseConfig `yaml:"database"`
-	Security SecurityConfig `yaml:"security"`
-}
-
-type ServerConfig struct {
-	Host         string `yaml:"host"`
-	Port         int    `yaml:"port"`
-	Debug        bool   `yaml:"debug"`
-	ReadTimeout  int    `yaml:"read_timeout"`
-	WriteTimeout int    `yaml:"write_timeout"`
-	// TLS opcional integrado (para quien no use proxy inverso)
-	TLSCertFile  string `yaml:"tls_cert_file"`
-	TLSKeyFile   string `yaml:"tls_key_file"`
-}
-
-type DatabaseConfig struct {
-	Type     string `yaml:"type"` // sqlite, postgres, mysql
-	Path     string `yaml:"path"` // Para SQLite
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Database string `yaml:"database"`
-}
-
-type SecurityConfig struct {
-	JWTSecret      string `yaml:"jwt_secret"`
-	TokenExpiry    int    `yaml:"token_expiry"`    // minutos
-	BcryptCost     int    `yaml:"bcrypt_cost"`
-	RateLimitRPS   int    `yaml:"rate_limit_rps"`
-	LockoutMinutes int    `yaml:"lockout_minutes"` // duración del bloqueo por intentos fallidos (0 = indefinido)
-	// Si es true y la app detecta HTTPS (TLS propio o proxy con X-Forwarded-Proto),
-	// puede redirigir automáticamente peticiones HTTP a HTTPS.
-	EnforceHTTPS bool `yaml:"enforce_https"`
-}
-
-var appConfig Config
-
-func generateRandomSecret() string {
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
-	}
-	return hex.EncodeToString(bytes)
-}
-
 func main() {
-	if err := loadConfig(); err != nil {
+	if err := config.Load(); err != nil {
 		LogTfatal("logs.config_load_error", err)
 	}
-
-	// Endurecer configuración de seguridad en tiempo de arranque:
-	// - Asegurar que siempre hay un JWT secret no vacío.
-	// - Normalizar bcrypt_cost a un rango seguro (4–15).
-	if strings.TrimSpace(appConfig.Security.JWTSecret) == "" {
-		appConfig.Security.JWTSecret = generateRandomSecret()
-		LogTf("logs.config_jwt_regenerated", "JWT secret vacío en config.yaml: generado uno nuevo en memoria")
-	}
-	if appConfig.Security.BcryptCost < 4 || appConfig.Security.BcryptCost > 15 {
-		// Valor por defecto seguro y razonable para Raspberry/entornos modestos.
-		LogTf("logs.config_bcrypt_cost_normalized", appConfig.Security.BcryptCost)
-		appConfig.Security.BcryptCost = 10
-	}
+	config.Normalize(LogTf)
 
 	if err := InitI18n("locales"); err != nil {
 		LogTf("logs.i18n_init_warning", err)
