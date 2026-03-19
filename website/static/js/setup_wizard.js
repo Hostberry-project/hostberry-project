@@ -305,11 +305,11 @@
         setStep(3);
       } else {
         showAlert('danger', data.error || t('setup_wizard.error_save_ap', d('Error saving access point configuration', 'Error al guardar la configuración del punto de acceso')));
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.querySelector('.btn-text').textContent = t('setup_wizard.next', d('Next', 'Siguiente')); }
+        if (saveBtn) { saveBtn.disabled = false; var bt = saveBtn.querySelector('.btn-text'); if (bt) bt.textContent = t('setup_wizard.next', d('Next', 'Siguiente')); }
       }
     } catch (e) {
       showAlert('danger', t('setup_wizard.error_save_ap', d('Error saving access point configuration', 'Error al guardar la configuración del punto de acceso')));
-      if (saveBtn) { saveBtn.disabled = false; saveBtn.querySelector('.btn-text').textContent = t('setup_wizard.next', d('Next', 'Siguiente')); }
+      if (saveBtn) { saveBtn.disabled = false; var bt = saveBtn.querySelector('.btn-text'); if (bt) bt.textContent = t('setup_wizard.next', d('Next', 'Siguiente')); }
     }
   }
 
