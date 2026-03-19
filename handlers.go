@@ -962,42 +962,6 @@ func setupWizardTorPageHandler(c *fiber.Ctx) error {
 	})
 }
 
-func systemLogsHandler(c *fiber.Ctx) error {
-	level := c.Query("level", "all")
-	limitStr := c.Query("limit", "20")
-	offsetStr := c.Query("offset", "0")
-
-	switch level {
-	case "all", "INFO", "WARNING", "ERROR", "DEBUG":
-	default:
-		level = "all"
-	}
-
-	limit, _ := strconv.Atoi(limitStr)
-	offset, _ := strconv.Atoi(offsetStr)
-
-	if limit <= 0 || limit > 100 {
-		limit = 20
-	}
-	if offset < 0 || offset > 10000 {
-		offset = 0
-	}
-
-	logs, total, err := database.GetLogs(level, limit, offset)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"logs":  logs,
-		"total": total,
-		"limit": limit,
-		"offset": offset,
-	})
-}
-
 func systemServicesHandler(c *fiber.Ctx) error {
 	services := make(map[string]interface{})
 	
