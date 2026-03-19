@@ -118,7 +118,7 @@ func systemConfigHandler(c *fiber.Ctx) error {
 		response["message"] = "Configuración actualizada exitosamente"
 	}
 	
-	InsertLog("INFO", LogMsg("Configuración actualizada ("+fmt.Sprint(updatedKeys)+")", user.Username), "system", &userID)
+	InsertLog("INFO", LogMsg("Configuración del sistema actualizada", user.Username), "system", &userID)
 
 	return c.JSON(response)
 }
