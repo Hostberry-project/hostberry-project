@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"hostberry/internal/auth"
 	"hostberry/internal/config"
 	"hostberry/internal/models"
 )
