@@ -341,6 +341,7 @@
     "invalid_credentials": "Credenciales inválidas",
     "account_locked": "Cuenta bloqueada",
     "session_expired": "Sesión expirada",
+    "readonly_mode": "Estás viendo el panel en modo solo lectura. Solo los administradores pueden realizar cambios.",
     "access_denied": "Acceso denegado",
     "unauthorized": "No autorizado",
     "admin_required": "Se requiere permisos de administrador",
