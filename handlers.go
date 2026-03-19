@@ -17,6 +17,7 @@ import (
 	adblock "hostberry/internal/adblock"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
+	hostapd "hostberry/internal/hostapd"
 	"hostberry/internal/tor"
 	"hostberry/internal/validators"
 	webtemplates "hostberry/internal/templates"
