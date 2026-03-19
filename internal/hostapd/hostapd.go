@@ -45,15 +45,28 @@ func HostapdAccessPointsHandler(c *fiber.Ctx) error {
 		}
 	}
 
+	interfaceName := sanitizeIfaceOrDefault(config["interface"], "ap0")
+	hostapdActive := hostapdProcessOrUnitActive()
+	hostapdTransmitting := false
+
+	if hostapdActive {
+		if info, err := iwDevInfo(interfaceName); err == nil && iwDevInfoShowsAP(info) {
+			hostapdTransmitting = true
+		}
+		if !hostapdTransmitting && hostapdCliStatusEnabled(interfaceName) {
+			hostapdTransmitting = true
+		}
+	}
+
 	if hostapdActive || len(config) > 0 {
 		ssid := config["ssid"]
 		if ssid == "" {
 			ssid = "hostberry" // Valor por defecto (red + portal cautivo)
 		}
 
-		interfaceName := config["interface"]
-		if interfaceName == "" {
-			interfaceName = constants.DefaultWiFiInterface
+		displayIface := sanitizeIfaceOrDefault(config["interface"], constants.DefaultWiFiInterface)
+		if config["interface"] == "" {
+			displayIface = constants.DefaultWiFiInterface
 		}
 
 		channel := config["channel"]
