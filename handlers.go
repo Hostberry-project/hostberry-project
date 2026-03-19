@@ -63,7 +63,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 	}
 
 	userID := user.ID
-	InsertLog("INFO", LogMsg("Inicio de sesión correcto", user.Username), "auth", &userID)
+	database.InsertLog("INFO", database.LogMsg("Inicio de sesión correcto", user.Username), "auth", &userID)
 
 	// Primer login o credenciales por defecto (admin/admin): forzar cambio de contraseña en first-login
 	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && CheckPassword("admin", user.Password))
@@ -102,7 +102,7 @@ func logoutAPIHandler(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.unauthorized", "Unauthorized")})
 	}
 	userID := user.ID
-	InsertLog("INFO", LogMsg("Cierre de sesión", user.Username), "auth", &userID)
+	database.InsertLog("INFO", database.LogMsg("Cierre de sesión", user.Username), "auth", &userID)
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
@@ -158,12 +158,12 @@ func changePasswordAPIHandler(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
 	}
 	user.Password = hashed
-	if err := db.Save(user).Error; err != nil {
+	if err := database.DB.Save(user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
 	}
 
 	userID := user.ID
-	InsertLog("INFO", LogMsg("Contraseña cambiada", user.Username), "auth", &userID)
+	database.InsertLog("INFO", database.LogMsg("Contraseña cambiada", user.Username), "auth", &userID)
 	return c.JSON(fiber.Map{"message": i18n.T(c, "auth.password_changed", "Password changed successfully")})
 }
 
@@ -189,7 +189,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	}
 
  var user models.User
-	if err := db.Where("id = ? AND is_active = ?", claims.UserID, true).First(&user).Error; err != nil {
+	if err := database.DB.Where("id = ? AND is_active = ?", claims.UserID, true).First(&user).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{
 			"error": i18n.T(c, "auth.user_not_found", "User not found"),
 		})
@@ -217,7 +217,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		}
 		if req.NewUsername != user.Username {
 			var existingUser models.User
-			if err := db.Where("username = ?", req.NewUsername).First(&existingUser).Error; err == nil {
+			if err := database.DB.Where("username = ?", req.NewUsername).First(&existingUser).Error; err == nil {
 				return c.Status(400).JSON(fiber.Map{
 					"error": "El nombre de usuario ya está en uso",
 				})
@@ -245,14 +245,14 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 
 	user.LoginCount++
 
-	if err := db.Save(&user).Error; err != nil {
+	if err := database.DB.Save(&user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Error guardando credenciales",
 		})
 	}
 
 	userID := user.ID
-	InsertLog("INFO", LogMsg("Credenciales actualizadas en primer acceso", user.Username), "auth", &userID)
+	database.InsertLog("INFO", database.LogMsg("Credenciales actualizadas en primer acceso", user.Username), "auth", &userID)
 
 	// Generar nuevo token con las credenciales actualizadas y dejar al usuario logueado
 	newToken, err := GenerateToken(&user)
@@ -310,12 +310,12 @@ func updateProfileAPIHandler(c *fiber.Ctx) error {
 		user.Timezone = req.Timezone
 	}
 
-	if err := db.Save(user).Error; err != nil {
+	if err := database.DB.Save(user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Error guardando perfil"})
 	}
 
 	userID := user.ID
-		InsertLog("INFO", LogMsg("Perfil actualizado", user.Username), "auth", &userID)
+		database.InsertLog("INFO", database.LogMsg("Perfil actualizado", user.Username), "auth", &userID)
 	return c.JSON(fiber.Map{"message": "Perfil actualizado"})
 }
 
@@ -344,12 +344,12 @@ func updatePreferencesAPIHandler(c *fiber.Ctx) error {
 	user.DataCollection = req.DataCollection
 	user.Analytics = req.Analytics
 
-	if err := db.Save(user).Error; err != nil {
+	if err := database.DB.Save(user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Error guardando preferencias"})
 	}
 
 	userID := user.ID
-		InsertLog("INFO", LogMsg("Preferencias actualizadas", user.Username), "auth", &userID)
+		database.InsertLog("INFO", database.LogMsg("Preferencias actualizadas", user.Username), "auth", &userID)
 	return c.JSON(fiber.Map{"message": "Preferencias actualizadas"})
 }
 
@@ -367,7 +367,7 @@ func systemShutdownHandler(c *fiber.Ctx) error {
 
 	result := systemShutdown(user.Username)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", LogMsg("Sistema apagado correctamente", user.Username), "system", &userID)
+		database.InsertLog("INFO", database.LogMsg("Sistema apagado correctamente", user.Username), "system", &userID)
 		return c.JSON(result)
 	}
 
@@ -885,7 +885,7 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 
 	if success, ok := result["success"].(bool); ok && success {
 		if userID != nil {
-			InsertLog("INFO", LogMsg("Conexión WiFi a "+req.SSID+" correcta", username), "wifi", userID)
+			database.InsertLog("INFO", database.LogMsg("Conexión WiFi a "+req.SSID+" correcta", username), "wifi", userID)
 		}
 		return c.JSON(result)
 	}
@@ -924,7 +924,7 @@ func vpnConnectHandler(c *fiber.Ctx) error {
 	userID := user.ID
 	result := connectVPN(req.Config, req.Type, user.Username)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", LogMsg("Conexión VPN ("+req.Type+") correcta", user.Username), "vpn", &userID)
+		database.InsertLog("INFO", database.LogMsg("Conexión VPN ("+req.Type+") correcta", user.Username), "vpn", &userID)
 		return c.JSON(result)
 	}
 	if errorMsg, ok := result["error"].(string); ok {
@@ -1275,7 +1275,7 @@ func torConfigureHandler(c *fiber.Ctx) error {
 	}
 	result := configureTor(opts)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", LogMsg("Tor configurado correctamente", user.Username), "tor", &userID)
+		database.InsertLog("INFO", database.LogMsg("Tor configurado correctamente", user.Username), "tor", &userID)
 		return c.JSON(result)
 	}
 
