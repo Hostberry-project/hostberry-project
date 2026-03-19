@@ -171,7 +171,7 @@
     try {
       const resp = await HostBerry.apiRequest('/api/v1/hostapd/access-points');
       if (resp && resp.ok) {
-        const aps = await resp.json();
+        const aps = await resp.json().catch(function () { return []; });
         const countEl = document.getElementById('access-points-count');
         if (countEl) countEl.textContent = Array.isArray(aps) ? aps.length : 0;
         
