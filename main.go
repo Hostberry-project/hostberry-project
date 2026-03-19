@@ -20,6 +20,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"hostberry/internal/config"
 	"hostberry/internal/constants"
+	"hostberry/internal/models"
 )
 
 var templatesFS embed.FS
