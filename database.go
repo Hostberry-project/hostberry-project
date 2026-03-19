@@ -71,84 +71,25 @@ func initDatabase() error {
 	}
 
 	LogTln("logs.db_initialized")
-	LogTf("logs.db_location", appConfig.Database.Path)
+	LogTf("logs.db_location", cfg.Database.Path)
 	return nil
 }
 
 func autoMigrate() error {
 	return db.AutoMigrate(
-		&User{},
-		&SystemLog{},
-		&SystemStatistic{},
-		&NetworkConfig{},
-		&VPNConfig{},
-		&WireGuardConfig{},
-		&AdBlockConfig{},
-		&SystemConfig{},
+		&models.User{},
+		&models.SystemLog{},
+		&models.SystemStatistic{},
+		&models.NetworkConfig{},
+		&models.VPNConfig{},
+		&models.WireGuardConfig{},
+		&models.AdBlockConfig{},
+		&models.SystemConfig{},
 	)
 }
 
-type SystemLog struct {
-	ID        uint      `gorm:"primaryKey"`
-	Level     string    `gorm:"not null;index"`
-	Message   string    `gorm:"type:text"`
-	Source    string
-	UserID    *int
-	CreatedAt time.Time `gorm:"index"`
-}
-
-type SystemConfig struct {
-	Key   string `gorm:"primaryKey"`
-	Value string `gorm:"type:text"`
-}
-
-type SystemStatistic struct {
-	ID        uint      `gorm:"primaryKey"`
-	Type      string    `gorm:"not null;index"` // cpu_usage, memory_usage, disk_usage
-	Value     float64   `gorm:"not null"`
-	Timestamp time.Time `gorm:"index"`
-}
-
-type NetworkConfig struct {
-	ID            uint   `gorm:"primaryKey"`
-	Interface     string `gorm:"not null"`
-	DHCPEnabled   bool   `gorm:"default:false"`
-	DHCPRangeStart string
-	DHCPRangeEnd   string
-	Gateway        string
-	DNSPrimary     string
-	DNSSecondary   string
-	UpdatedAt      time.Time
-}
-
-type VPNConfig struct {
-	ID        uint   `gorm:"primaryKey"`
-	Type      string `gorm:"not null"` // openvpn, wireguard
-	Config    string `gorm:"type:text"`
-	IsActive  bool   `gorm:"default:false"`
-	UpdatedAt time.Time
-}
-
-type WireGuardConfig struct {
-	ID          uint   `gorm:"primaryKey"`
-	Interface   string `gorm:"not null"`
-	PrivateKey  string
-	PublicKey   string
-	Address     string
-	DNS         string
-	IsActive    bool   `gorm:"default:false"`
-	UpdatedAt   time.Time
-}
-
-type AdBlockConfig struct {
-	ID        uint   `gorm:"primaryKey"`
-	Enabled   bool   `gorm:"default:false"`
-	Lists     string `gorm:"type:text"` // JSON array de URLs
-	UpdatedAt time.Time
-}
-
 func InsertLog(level, message, source string, userID *int) error {
-	log := SystemLog{
+	log := models.SystemLog{
 		Level:   level,
 		Message: message,
 		Source:  source,
@@ -203,11 +144,11 @@ func LogMsgWarn(desc, user string) string {
 	return "Advertencia: " + desc + ". Usuario: " + user + "."
 }
 
-func GetLogs(level string, limit, offset int) ([]SystemLog, int64, error) {
-	var logs []SystemLog
+func GetLogs(level string, limit, offset int) ([]models.SystemLog, int64, error) {
+	var logs []models.SystemLog
 	var total int64
 
-	query := db.Model(&SystemLog{})
+	query := db.Model(&models.SystemLog{})
 	if level != "" && level != "all" {
 		query = query.Where("level = ?", level)
 	}
