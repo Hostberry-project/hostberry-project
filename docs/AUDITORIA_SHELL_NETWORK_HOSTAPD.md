@@ -2,6 +2,15 @@
 
 Ámbito: `internal/network/*.go`, `internal/hostapd/hostapd.go`, y el helper `internal/utils.ExecuteCommand` usado por ambos.
 
+## Remediación aplicada (parcial)
+
+- **`validators.ValidateIfaceName`:** nombres de interfaz Linux (≤15 caracteres, charset seguro) antes de interpolar en `sh -c` en `network.go` y `api_network_interfaces_handler.go`.
+- **`hostname -I` + `grep`:** solo se construye el comando si la IP pasa `validators.ValidateIP` (IPv4).
+- **`nmcli` en `api_network.go`:** DNS y gateway vía `runSudoNmcli` (`internal/network/nmcli_exec.go`) con argumentos separados, **sin** shell ni comillas alrededor del nombre de conexión.
+- **Rutas `ip`/`route` con `dev`:** el interfaz devuelto por el sistema se valida con `ValidateIfaceName` antes de `executeCommand`.
+
+Pendiente (volumen alto): refactor similar en **`internal/hostapd/hostapd.go`**.
+
 ## Resumen ejecutivo
 
 | Área | Patrón | Riesgo principal |

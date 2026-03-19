@@ -9,7 +9,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/config** | Tipos `Config`, `ServerConfig`, `DatabaseConfig`, `SecurityConfig`. `Load()` lee `config.yaml` y asigna `AppConfig`. `Normalize()` endurece JWT y bcrypt. `GenerateRandomSecret()` para secretos. |
 | **internal/constants** | Constantes globales: `DefaultWiFiInterface`, `DefaultCountryCode`, `DefaultServerHost`, `DefaultServerPort`, `DefaultUnknownValue`. |
 | **internal/models** | Modelos de dominio y BD: `User`, `Claims`, `LoginError`, `SystemLog`, `SystemConfig`, `SystemStatistic`, `NetworkConfig`, `VPNConfig`, `WireGuardConfig`, `AdBlockConfig`. |
-| **internal/validators** | Funciones de validación: `ValidateUsername`, `ValidatePassword`, `ValidateEmail`, `ValidateIP`, `ValidateSSID`, `ValidateWireGuardConfig`, `ValidateVPNConfig`. |
+| **internal/validators** | Funciones de validación: `ValidateUsername`, `ValidatePassword`, `ValidateEmail`, `ValidateIP`, `ValidateSSID`, `ValidateIfaceName`, `ValidateWireGuardConfig`, `ValidateVPNConfig`. |
 | **internal/metrics** | Contadores HTTP por clase de estado (2xx, 4xx, 5xx) para métricas y health. `Add2xx()`, `Add4xx()`, `Add5xx()`, `Load2xx()`, etc. |
 | **internal/i18n** | Internacionalización: `Init()`, `T()`, `GetCurrentLanguage()`, `TemplateFuncs()`, `LanguageMiddleware`, `LogT`, `LogTf`, `LogTln`, `LogTfatal`, `SetLogLanguage`, `GetLogLanguage`, `Ready()`. |
 | **internal/database** | Conexión y operaciones de BD: `Init()`, `DB`, `InsertLog`, `GetLogs`, `SetConfig`, `GetConfig`, `GetAllConfigs`, `InsertStatistic`, `LogMsg`, `LogMsgErr`, `LogMsgWarn`. |
