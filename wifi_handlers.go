@@ -11,48 +11,6 @@ import (
 	"time"
 )
 
-// Constantes y helpers de wpa_supplicant/socket están en wifi_helpers.go
-
-func _placeholderWifiHandlersImportHelpers() {
-	// Referencias a getRunDir, ensureWpaSupplicantDirs, stopWpaSupplicant,
-	// startWpaSupplicant, waitForWpaCliConnection, getLastConnectedNetwork
-	// resueltas desde wifi_helpers.go (mismo package main)
-	_, _ = getRunDir, ensureWpaSupplicantDirs
-}
-
-func _removedGetRunDir() string {
-	if activeRunDir != "" {
-		return activeRunDir
-	}
-	candidates := WpaSocketDirs
-	for _, dir := range candidates {
-		if _, err := os.Stat(dir); err == nil {
-			testFile := fmt.Sprintf("%s/.test_write", dir)
-			if err := os.WriteFile(testFile, []byte("test"), 0644); err == nil {
-				os.Remove(testFile)
-				activeRunDir = dir
-				LogTf("logs.socket_dir_selected", activeRunDir)
-				return activeRunDir
-			} else {
-				LogTf("logs.socket_dir_not_writable", dir, err)
-			}
-		} else {
-			if err := os.MkdirAll(dir, 0755); err == nil {
-				testFile := fmt.Sprintf("%s/.test_write", dir)
-				if err := os.WriteFile(testFile, []byte("test"), 0644); err == nil {
-					os.Remove(testFile)
-					activeRunDir = dir
-					LogTf("logs.socket_dir_created", activeRunDir)
-					return activeRunDir
-				}
-			}
-		}
-	}
-	activeRunDir = "/tmp/wpa_supplicant"
-	os.MkdirAll(activeRunDir, 0755)
-	LogTf("logs.socket_dir_default", activeRunDir)
-	return activeRunDir
-}
 
 func ensureWpaSupplicantDirs() error {
 	if _, err := os.Stat(WpaSupplicantConfigDir); os.IsNotExist(err) {
