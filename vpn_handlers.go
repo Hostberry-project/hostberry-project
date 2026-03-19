@@ -111,7 +111,7 @@ func connectVPN(config, vpnType, user string) map[string]interface{} {
 			return result
 		}
 	} else {
-		if err := ValidateVPNConfig(config); err != nil {
+		if err := validators.ValidateVPNConfig(config); err != nil {
 			result["success"] = false
 			result["error"] = err.Error()
 			return result
@@ -220,7 +220,7 @@ func getWireGuardStatus() map[string]interface{} {
 func configureWireGuard(config, user string) map[string]interface{} {
 	result := make(map[string]interface{})
 
-	if err := ValidateWireGuardConfig(config); err != nil {
+	if err := validators.ValidateWireGuardConfig(config); err != nil {
 		result["success"] = false
 		result["error"] = err.Error()
 		return result
