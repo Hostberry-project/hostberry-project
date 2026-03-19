@@ -586,9 +586,9 @@ func systemRestartHandler(c *fiber.Ctx) error {
 		return c.JSON(result)
 	}
 
-	if err, ok := result["error"].(string); ok {
-		InsertLog("ERROR", LogMsgErr("reiniciar sistema", err, user.Username), "system", &userID)
-		return c.Status(500).JSON(fiber.Map{"error": err})
+	if errMsg, ok := result["error"].(string); ok {
+		InsertLog("ERROR", LogMsgErr("reiniciar sistema", errMsg, user.Username), "system", &userID)
+		return c.Status(500).JSON(fiber.Map{"error": errMsg})
 	}
 
 	return c.JSON(result)
