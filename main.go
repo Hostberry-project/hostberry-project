@@ -60,6 +60,9 @@ type SecurityConfig struct {
 	BcryptCost     int    `yaml:"bcrypt_cost"`
 	RateLimitRPS   int    `yaml:"rate_limit_rps"`
 	LockoutMinutes int    `yaml:"lockout_minutes"` // duración del bloqueo por intentos fallidos (0 = indefinido)
+	// Si es true y la app detecta HTTPS (TLS propio o proxy con X-Forwarded-Proto),
+	// puede redirigir automáticamente peticiones HTTP a HTTPS.
+	EnforceHTTPS bool `yaml:"enforce_https"`
 }
 
 var appConfig Config
