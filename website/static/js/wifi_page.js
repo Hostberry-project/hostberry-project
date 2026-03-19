@@ -359,14 +359,13 @@
       
       try {
         const resp = await apiRequest('/api/v1/wifi/toggle', { method: 'POST' });
-      const data = await resp.json();
-      
-      if (resp.ok && data.success) {
-        showAlert('success', t('wifi.wifi_toggled', 'WiFi state changed successfully'));
-        // Actualizar texto del botón según el nuevo estado
-        const statusResp = await apiRequest('/api/v1/wifi/status');
-        if (statusResp.ok) {
-          const statusData = await statusResp.json();
+        const data = await resp.json().catch(function () { return {}; });
+        if (resp.ok && data.success) {
+          showAlert('success', t('wifi.wifi_toggled', 'WiFi state changed successfully'));
+          // Actualizar texto del botón según el nuevo estado
+          const statusResp = await apiRequest('/api/v1/wifi/status');
+          if (statusResp && statusResp.ok) {
+            const statusData = await statusResp.json().catch(function () { return {}; });
           if (text) {
             text.textContent = statusData.enabled 
               ? t('wifi.disable_wifi', 'Disable WiFi')
@@ -393,28 +392,27 @@
   async function unblockWiFi() {
     const btn = document.getElementById('unblock-wifi-btn');
     if (!btn || btn.disabled) return;
-    
-      btn.disabled = true;
-    const originalText = btn.querySelector('span').textContent;
-    btn.querySelector('span').textContent = t('wifi.unblocking', 'Unblocking...');
-      
-      try {
-        const resp = await apiRequest('/api/v1/wifi/unblock', { method: 'POST' });
-      const data = await resp.json();
-      
+    const spanEl = btn.querySelector('span');
+    if (!spanEl) return;
+    btn.disabled = true;
+    const originalText = spanEl.textContent;
+    spanEl.textContent = t('wifi.unblocking', 'Unblocking...');
+    try {
+      const resp = await apiRequest('/api/v1/wifi/unblock', { method: 'POST' });
+      const data = await resp.json().catch(function () { return {}; });
       if (resp.ok && data.success) {
-          showAlert('success', t('wifi.wifi_unblocked', 'WiFi unblocked successfully'));
+        showAlert('success', t('wifi.wifi_unblocked', 'WiFi unblocked successfully'));
         btn.style.display = 'none';
-            await loadConnectionStatus();
-        } else {
+        await loadConnectionStatus();
+      } else {
         showAlert('danger', translateError(data.error) || t('wifi.unblock_error', 'Error unblocking WiFi'));
       }
     } catch (error) {
       console.error(t('wifi.unblock_error', 'Error unblocking WiFi') + ':', error);
       showAlert('danger', t('wifi.unblock_error', 'Error unblocking WiFi'));
-      } finally {
-          btn.disabled = false;
-      btn.querySelector('span').textContent = originalText;
+    } finally {
+      btn.disabled = false;
+      spanEl.textContent = originalText;
     }
   }
 
