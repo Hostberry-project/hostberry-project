@@ -15,6 +15,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
+	"hostberry/internal/config"
 )
 
 func registerTemplateFuncs(engine *html.Engine) {
@@ -240,7 +241,7 @@ func createTemplateEngine() *html.Engine {
 					log.Printf("❌ Error cargando templates forzados desde %s: %v", forcePath, err)
 					engine = nil
 				} else {
-					engine.Reload(!appConfig.Server.Debug)
+					engine.Reload(!config.AppConfig.Server.Debug)
 					log.Printf("✅ Engine forzado desde %s", forcePath)
 				}
 			} else {
