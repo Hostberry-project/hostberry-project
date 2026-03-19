@@ -495,7 +495,7 @@ func systemRestartHandler(c *fiber.Ctx) error {
 
 	result := systemRestart(user.Username)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", LogMsg("Sistema reiniciado correctamente", user.Username), "system", &userID)
+		database.InsertLog("INFO", database.LogMsg("Sistema reiniciado correctamente", user.Username), "system", &userID)
 		return c.JSON(result)
 	}
 
