@@ -83,7 +83,7 @@ func LoginAPIHandler(c *fiber.Ctx) error {
 		Value:    token,
 		Path:     "/",
 		HTTPOnly: true,
-		SameSite: "Lax",
+		SameSite: "Strict",
 		MaxAge:   int(cookieExpiry.Seconds()), // Expira al mismo tiempo que el token
 		Secure:   secure,
 	})
@@ -107,11 +107,17 @@ func LogoutAPIHandler(c *fiber.Ctx) error {
 	userID := user.ID
 	database.InsertLog("INFO", database.LogMsg("Cierre de sesión", user.Username), "auth", &userID)
 
+	secure := false
+	if c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https") {
+		secure = true
+	}
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    "",
 		Path:     "/",
 		HTTPOnly: true,
+		SameSite: "Strict",
+		Secure:   secure,
 		MaxAge:   -1,
 	})
 
@@ -274,7 +280,7 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		Value:    newToken,
 		Path:     "/",
 		HTTPOnly: true,
-		SameSite: "Lax",
+		SameSite: "Strict",
 		MaxAge:   int(cookieExpiry.Seconds()),
 		Secure:   secure,
 	})
