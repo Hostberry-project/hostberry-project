@@ -222,6 +222,14 @@ Revisión detallada de cada archivo `.go` del proyecto. Se aplicaron correccione
 - `go build`: compila correctamente.
 - `go test ./...`: tests pasan.
 
+## Bugs corregidos (revisión de bugs)
+
+| Archivo | Bug | Corrección |
+|---------|-----|------------|
+| **api_wifi.go** | `strings.Fields(parts[1])[0]` podía hacer panic si `parts[1]` era solo espacios (slice vacío). | Comprobar `len(fields) > 0` / `len(channelFields) > 0` antes de acceder a `[0]`. |
+| **adblock_handlers.go** | `tarballFile` no se cerraba con `defer`; en caso de panic o salida temprana podía quedar abierto. | Añadir `defer tarballFile.Close()` tras crear el archivo. |
+| **handlers_config.go** | Timezone: path traversal si el cliente enviaba ruta absoluta (ej. `/etc/passwd`) o `filepath.Join` + `..` daba salida fuera de zoneinfo. | Rechazar `tz` que empiece por `/`; usar `filepath.Clean` y comprobar que `zonePath` tenga prefijo `/usr/share/zoneinfo`. |
+
 ## Recomendaciones opcionales
 
 - Añadir tests unitarios para `ValidateIP` (casos 256, 0, ceros a la izquierda).
