@@ -18,8 +18,11 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/health** | Endpoints de salud y métricas: `HealthCheckHandler`, `ReadinessCheckHandler`, `LivenessCheckHandler`, `MetricsHandler`, `MetricsSummaryHandler`. |
 | **internal/templates** | Motor de templates y render: `CreateTemplateEngine`, `RenderTemplate`. |
 | **internal/utils** | Utilidades compartidas: ejecución de comandos permitidos (caché/filtrado), parseos seguros y helpers de estado. |
+| **internal/adblock** | Lógica DNS (dnsmasq/pihole/dnscrypt) y AdBlock (blocky): estados/instalación/configuración/proxy. |
+| **internal/network** | Lógica de red: interfaces y estado (gateways/DNS) para endpoints. |
 | **internal/wifi** | Lógica WiFi: `ScanWiFiNetworks`, `ToggleWiFi`, `ConnectWiFi`, `AutoConnectToLastNetwork` y helpers wpa_supplicant. |
 | **internal/vpn** | Lógica VPN: OpenVPN y WireGuard (`GetVPNStatus`, `GetOpenVPNConfig`, `ConnectVPN`, `ConfigureWireGuard`, etc.). |
+| **internal/system** | Lógica del sistema: info/estadísticas y acciones como `SystemRestart`/`SystemShutdown`. |
 | **internal/tor** | Lógica Tor: instalación/configuración/iptables (`GetTorStatus`, `InstallTor`, `ConfigureTor`, `EnableTorIptables`, etc.). |
 
 ## Uso desde `package main`
@@ -35,7 +38,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 
 ## Raíz del módulo
 
-En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers) y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`, la lógica WiFi en `internal/wifi`, VPN en `internal/vpn` y Tor en `internal/tor`.)
+En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers) y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`; la lógica WiFi en `internal/wifi`, VPN en `internal/vpn`, Tor en `internal/tor`, AdBlock en `internal/adblock`, red en `internal/network` y sistema en `internal/system`.)
 
 Se eliminó `api_compat.go` (estaba vacío; la compatibilidad se cubre en otros módulos).
 
