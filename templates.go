@@ -138,7 +138,7 @@ func createTemplateEngine() *html.Engine {
 						LogTf("logs.templates_html_count", htmlFiles)
 						LogTf("logs.templates_registered", foundTemplates)
 
-						engine.Reload(!appConfig.Server.Debug)
+						engine.Reload(!config.AppConfig.Server.Debug)
 						break // Salir del loop, engine encontrado y cargado con éxito
 					} else {
 						LogTf("logs.templates_no_html", path)

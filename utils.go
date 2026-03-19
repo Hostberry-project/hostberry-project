@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"hostberry/internal/config"
+	"hostberry/internal/models"
 	"hostberry/internal/validators"
 )
 
