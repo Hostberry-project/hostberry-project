@@ -279,7 +279,7 @@ func errorHandler(c *fiber.Ctx, err error) error {
 	}
 
 	if code >= 500 {
-		if appConfig.Server.Debug {
+		if config.AppConfig.Server.Debug {
 			LogTf("logs.middleware_error", method, path, err)
 		}
 		go func() {

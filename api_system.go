@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/config"
 )
 
 func systemActivityHandler(c *fiber.Ctx) error {
