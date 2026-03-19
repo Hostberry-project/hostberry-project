@@ -1,39 +1,39 @@
-package main
+package vpn
 
 import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	middleware "hostberry/internal/middleware"
-	"hostberry/internal/vpn"
+	"hostberry/internal/utils"
 )
 
-func vpnConnectionsHandler(c *fiber.Ctx) error {
-	result := vpn.GetVPNStatus()
+func VpnConnectionsHandler(c *fiber.Ctx) error {
+	result := GetVPNStatus()
 
 	var conns []fiber.Map
 	if ov, ok := result["openvpn"].(map[string]interface{}); ok {
 		status := fmt.Sprintf("%v", ov["status"])
-		conns = append(conns, fiber.Map{"name": "openvpn", "type": "openvpn", "status": mapActiveStatus(status), "bandwidth": "-"})
+		conns = append(conns, fiber.Map{"name": "openvpn", "type": "openvpn", "status": utils.MapActiveStatus(status), "bandwidth": "-"})
 	}
 	if wg, ok := result["wireguard"].(map[string]interface{}); ok {
 		active := fmt.Sprintf("%v", wg["active"])
-		conns = append(conns, fiber.Map{"name": "wireguard", "type": "wireguard", "status": mapBoolStatus(active), "bandwidth": "-"})
+		conns = append(conns, fiber.Map{"name": "wireguard", "type": "wireguard", "status": utils.MapBoolStatus(active), "bandwidth": "-"})
 	}
 	return c.JSON(conns)
 }
 
-func vpnServersHandler(c *fiber.Ctx) error { return c.JSON([]fiber.Map{}) }
-func vpnClientsHandler(c *fiber.Ctx) error { return c.JSON([]fiber.Map{}) }
-func vpnToggleHandler(c *fiber.Ctx) error {
+func VpnServersHandler(c *fiber.Ctx) error { return c.JSON([]fiber.Map{}) }
+func VpnClientsHandler(c *fiber.Ctx) error { return c.JSON([]fiber.Map{}) }
+func VpnToggleHandler(c *fiber.Ctx) error {
 	return c.Status(501).JSON(fiber.Map{"error": "VPN toggle no implementado"})
 }
-func vpnGetConfigHandler(c *fiber.Ctx) error {
-	result := vpn.GetOpenVPNConfig()
+func VpnGetConfigHandler(c *fiber.Ctx) error {
+	result := GetOpenVPNConfig()
 	return c.JSON(result)
 }
 
-func vpnConfigHandler(c *fiber.Ctx) error {
+func VpnConfigHandler(c *fiber.Ctx) error {
 	var req struct {
 		Config string `json:"config"`
 	}
@@ -44,7 +44,7 @@ func vpnConfigHandler(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
-	result := vpn.SaveOpenVPNConfig(req.Config, user.Username)
+	result := SaveOpenVPNConfig(req.Config, user.Username)
 	if success, ok := result["success"].(bool); ok && success {
 		return c.JSON(result)
 	}
@@ -53,9 +53,9 @@ func vpnConfigHandler(c *fiber.Ctx) error {
 	}
 	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
 }
-func vpnConnectionToggleHandler(c *fiber.Ctx) error {
+func VpnConnectionToggleHandler(c *fiber.Ctx) error {
 	return c.Status(501).JSON(fiber.Map{"error": "VPN connection toggle no implementado"})
 }
-func vpnCertificatesGenerateHandler(c *fiber.Ctx) error {
+func VpnCertificatesGenerateHandler(c *fiber.Ctx) error {
 	return c.Status(501).JSON(fiber.Map{"error": "VPN certificates no implementado"})
 }
