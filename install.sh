@@ -34,8 +34,27 @@ GENERATED_JWT_SECRET=""
 GENERATED_ADMIN_PASSWORD=""
 
 # Reboot al final para activar el modo HostBerry (ap0).
-# Se hará SOLO en modo install (no en update).
+# Se hará SOLO en modo install (no en update) y sólo si no cortamos
+# la conexión principal (evitar reiniciar si estamos entrando por WiFi).
 NEED_REBOOT_FOR_AP0=0
+
+# Detectar si la ruta por defecto sale por una interfaz WiFi (wlan* / wl*)
+is_default_route_over_wifi() {
+    local dev
+    dev="$(ip route 2>/dev/null | awk '/^default/ {print $5; exit}')"
+    if [ -z "$dev" ]; then
+        echo 0
+        return
+    fi
+    case "$dev" in
+        wl*|wlan*)
+            echo 1
+            ;;
+        *)
+            echo 0
+            ;;
+    esac
+}
 
 # Modo de operación
 MODE="install"  # install, update o uninstall
@@ -2165,7 +2184,14 @@ main() {
     fi
 
     if [ "$MODE" = "install" ]; then
-        NEED_REBOOT_FOR_AP0=1
+        # Si la ruta por defecto va por WiFi, evitamos reiniciar automáticamente
+        # para no dejar al usuario sin conexión inesperadamente.
+        if [ "$(is_default_route_over_wifi)" = "1" ]; then
+            print_warning "Ruta por defecto detectada sobre interfaz WiFi: no se realizará reinicio automático al final para no cortar la conexión."
+            NEED_REBOOT_FOR_AP0=0
+        else
+            NEED_REBOOT_FOR_AP0=1
+        fi
     fi
 
     print_banner "$mode_label"
