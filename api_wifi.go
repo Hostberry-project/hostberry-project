@@ -11,10 +11,12 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/constants"
+	"hostberry/internal/models"
 )
 
 func wifiNetworksHandler(c *fiber.Ctx) error {
-	interfaceName := c.Query("interface", DefaultWiFiInterface)
+	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
 	result := scanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(networks)
@@ -33,7 +35,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 	}
 	userID := user.ID
 
-	interfaceName := c.Query("interface", DefaultWiFiInterface)
+	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
 	rfkillCheck := exec.Command("sh", "-c", "sudo rfkill list wifi 2>/dev/null | grep -i 'soft blocked'")
 	rfkillOut, _ := rfkillCheck.Output()
 	isBlocked := strings.Contains(strings.ToLower(string(rfkillOut)), "yes")
@@ -918,7 +920,7 @@ func wifiLegacyScanHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	interfaceName := c.Query("interface", DefaultWiFiInterface)
+	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
 	result := scanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(fiber.Map{"success": true, "networks": networks})

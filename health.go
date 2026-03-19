@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/constants"
 )
 
 type HealthCheckResponse struct {
@@ -142,7 +143,7 @@ func metricsHandler(c *fiber.Ctx) error {
 		"hostberry_service_up{service=\"dnsmasq\"} " + fmt.Sprintf("%d", dnsmasqUp) + "\n\n" +
 		"# HELP hostberry_wifi_interface_up Indica si la interfaz WiFi principal está activa (1=UP,0=no).\n" +
 		"# TYPE hostberry_wifi_interface_up gauge\n" +
-		"hostberry_wifi_interface_up{interface=\"" + DefaultWiFiInterface + "\"} " + fmt.Sprintf("%d", wifiIfaceUp) + "\n"
+		"hostberry_wifi_interface_up{interface=\"" + constants.DefaultWiFiInterface + "\"} " + fmt.Sprintf("%d", wifiIfaceUp) + "\n"
 
 	c.Set(fiber.HeaderContentType, "text/plain; charset=utf-8")
 	return c.SendString(body)
@@ -164,10 +165,10 @@ func serviceIsActive(name string) int {
 
 // wifiInterfaceUp devuelve 1 si la interfaz WiFi principal está UP, 0 en caso contrario.
 func wifiInterfaceUp() int {
-	if DefaultWiFiInterface == "" {
+	if constants.DefaultWiFiInterface == "" {
 		return 0
 	}
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null | grep -q 'state UP'", DefaultWiFiInterface))
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null | grep -q 'state UP'", constants.DefaultWiFiInterface))
 	if err := cmd.Run(); err == nil {
 		return 1
 	}
@@ -200,7 +201,7 @@ func metricsSummaryHandler(c *fiber.Ctx) error {
 		"http_5xx":     req5xx,
 		"hostapd_up":   hostapdUp == 1,
 		"dnsmasq_up":   dnsmasqUp == 1,
-		"wifi_iface":   DefaultWiFiInterface,
+		"wifi_iface":   constants.DefaultWiFiInterface,
 		"wifi_up":      wifiIfaceUp == 1,
 	})
 }
