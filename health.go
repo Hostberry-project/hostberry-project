@@ -71,7 +71,7 @@ func readinessCheckHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	sqlDB, err := db.DB()
+	sqlDB, err := database.DB.DB()
 	if err != nil {
 		return c.Status(503).JSON(fiber.Map{
 			"status":  "not_ready",

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"hostberry/internal/config"
+	"hostberry/internal/database"
 	"hostberry/internal/i18n"
 	"hostberry/internal/models"
 	"hostberry/internal/validators"
@@ -46,7 +47,7 @@ func generateSecureAdminPassword() (string, error) {
 
 func createDefaultAdmin() {
 	var count int64
-	if err := db.Model(&models.User{}).Count(&count).Error; err != nil {
+	if err := database.DB.Model(&models.User{}).Count(&count).Error; err != nil {
 		if config.AppConfig.Server.Debug {
 			i18n.LogTf("logs.utils_count_error", err)
 		}
