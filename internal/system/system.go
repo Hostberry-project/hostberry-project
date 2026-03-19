@@ -331,3 +331,14 @@ func systemShutdown(user string) map[string]interface{} {
 	i18n.LogT("logs.system_shutdown_success")
 	return result
 }
+
+// ---- Exportados para el paquete principal ----
+
+func GetSystemInfo() map[string]interface{} { return getSystemInfo() }
+func GetSystemStats() map[string]interface{} { return getSystemStats() }
+func SystemRestart(user string) map[string]interface{} {
+	return systemRestart(user)
+}
+func SystemShutdown(user string) map[string]interface{} {
+	return systemShutdown(user)
+}
