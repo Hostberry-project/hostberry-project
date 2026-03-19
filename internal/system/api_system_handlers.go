@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/database"
 	middleware "hostberry/internal/middleware"
-	"hostberry/internal/i18n"
 )
 
 func SystemStatsHandler(c *fiber.Ctx) error {
@@ -114,9 +113,6 @@ func SystemServicesHandler(c *fiber.Ctx) error {
 			return "none"
 		}(),
 	}
-
-	// Solo para debug local/telemetría de logs.
-	_ = i18n.GetCurrentLanguage()
 
 	return c.JSON(fiber.Map{
 		"services": services,
