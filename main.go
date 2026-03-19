@@ -447,13 +447,13 @@ func indexHandler(c *fiber.Ctx) error {
 }
 
 func dashboardHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "dashboard", fiber.Map{
+	return webtemplates.RenderTemplate(c, "dashboard", fiber.Map{
 		"Title": i18n.T(c, "dashboard.title", "Dashboard"),
 	})
 }
 
 func loginHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "login", fiber.Map{
+	return webtemplates.RenderTemplate(c, "login", fiber.Map{
 		"Title":                        i18n.T(c, "auth.login", "Login"),
 		"ShowDefaultCredentialsNotice": auth.IsDefaultAdminCredentialsInUse(),
 	})
@@ -477,7 +477,7 @@ func settingsHandler(c *fiber.Ctx) error {
 
 	configsJSON, _ := json.Marshal(configs)
 
-	return renderTemplate(c, "settings", fiber.Map{
+	return webtemplates.RenderTemplate(c, "settings", fiber.Map{
 		"Title":         i18n.T(c, "navigation.settings", "Settings"),
 		"settings":      configs,
 		"settings_json": string(configsJSON),
