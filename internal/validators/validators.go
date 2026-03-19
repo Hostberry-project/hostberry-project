@@ -102,6 +102,44 @@ func ValidateSSID(ssid string) error {
 	return nil
 }
 
+// ValidateWPAPSK valida contraseña WPA2-PSK / WPA3-SAE (longitud estándar 8–63 ASCII imprimible).
+func ValidateWPAPSK(password string) error {
+	if len(password) < 8 || len(password) > 63 {
+		return fiber.NewError(400, "La contraseña WPA debe tener entre 8 y 63 caracteres")
+	}
+	for _, r := range password {
+		if r < 32 || r == 127 {
+			return fiber.NewError(400, "La contraseña WPA contiene caracteres no permitidos")
+		}
+	}
+	return nil
+}
+
+var countryCodeRegex = regexp.MustCompile(`^[A-Za-z]{2}$`)
+
+// ValidateCountryCode código país ISO 3166-1 alpha-2 (dos letras).
+func ValidateCountryCode(cc string) error {
+	cc = strings.TrimSpace(cc)
+	if !countryCodeRegex.MatchString(cc) {
+		return fiber.NewError(400, "Código de país inválido (use dos letras, ej. ES, US)")
+	}
+	return nil
+}
+
+var dhcpLeaseTimeRegex = regexp.MustCompile(`(?i)^[0-9]+[smhd]?$`)
+
+// ValidateDhcpLeaseTime formato tipo dnsmasq/hostapd: número + opcional s|m|h|d (ej. 12h, 30m).
+func ValidateDhcpLeaseTime(s string) error {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return fiber.NewError(400, "Tiempo de concesión DHCP vacío")
+	}
+	if !dhcpLeaseTimeRegex.MatchString(s) {
+		return fiber.NewError(400, "Tiempo de concesión inválido (ej. 12h, 30m, 3600s)")
+	}
+	return nil
+}
+
 // ifaceNameRegex: nombres de interfaz Linux habituales (IFNAMSIZ ≤ 16, sin espacios ni metacaracteres de shell).
 var ifaceNameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._@-]{0,14}$`)
 
