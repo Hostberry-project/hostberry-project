@@ -911,7 +911,7 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 }
 
 func vpnStatusHandler(c *fiber.Ctx) error {
-	result := getVPNStatus()
+	result := vpn.GetVPNStatus()
 	return c.JSON(result)
 }
 
@@ -928,7 +928,7 @@ func vpnConnectHandler(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
 	userID := user.ID
-	result := connectVPN(req.Config, req.Type, user.Username)
+	result := vpn.ConnectVPN(req.Config, req.Type, user.Username)
 	if success, ok := result["success"].(bool); ok && success {
 		database.InsertLog("INFO", database.LogMsg("Conexión VPN ("+req.Type+") correcta", user.Username), "vpn", &userID)
 		return c.JSON(result)
@@ -941,14 +941,14 @@ func vpnConnectHandler(c *fiber.Ctx) error {
 }
 
 func wireguardStatusHandler(c *fiber.Ctx) error {
-	result := getWireGuardStatus()
+	result := vpn.GetWireGuardStatus()
 	return c.JSON(result)
 }
 
 func wireguardInterfacesHandler(c *fiber.Ctx) error {
 	out, err := exec.Command("wg", "show", "interfaces").CombinedOutput()
 	if err != nil {
-		result := getWireGuardStatus()
+		result := vpn.GetWireGuardStatus()
 		if interfaces, ok := result["interfaces"].([]map[string]interface{}); ok && len(interfaces) > 0 {
 			var resp []fiber.Map
 			for _, iface := range interfaces {
