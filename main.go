@@ -22,8 +22,10 @@ import (
 	"hostberry/internal/config"
 	"hostberry/internal/constants"
 	"hostberry/internal/database"
+	"hostberry/internal/health"
 	"hostberry/internal/i18n"
 	"hostberry/internal/models"
+	webtemplates "hostberry/internal/templates"
 )
 
 var templatesFS embed.FS
