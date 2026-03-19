@@ -1,0 +1,307 @@
+package hostapd
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"time"
+
+	"hostberry/internal/validators"
+)
+
+const hostapdCmdTimeout = 45 * time.Second
+
+var phyNameRe = regexp.MustCompile(`^phy[0-9]+$`)
+
+// validatePhyName comprueba identificadores wiphy típicos (phy0, phy1, …).
+func validatePhyName(s string) bool {
+	return phyNameRe.MatchString(strings.TrimSpace(s))
+}
+
+func runSudo(bin string, args ...string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), hostapdCmdTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "sudo", append([]string{bin}, args...)...)
+	cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+	out, err := cmd.CombinedOutput()
+	return strings.TrimSpace(string(out)), err
+}
+
+// runIP ejecuta ip con argumentos (sin shell).
+func runIP(args ...string) (string, error) {
+	return runSudo("ip", args...)
+}
+
+// runIw ejecuta iw con argumentos (sin shell).
+func runIw(args ...string) (string, error) {
+	return runSudo("iw", args...)
+}
+
+func systemctlIsActive(unit string) bool {
+	out, err := exec.Command("systemctl", "is-active", unit).Output()
+	return err == nil && strings.TrimSpace(string(out)) == "active"
+}
+
+func pgrepExists(pattern string) bool {
+	err := exec.Command("pgrep", pattern).Run()
+	return err == nil
+}
+
+func hostapdProcessOrUnitActive() bool {
+	if systemctlIsActive("hostapd") {
+		return true
+	}
+	return pgrepExists("hostapd")
+}
+
+func readIfaceSysFile(iface, rel string) ([]byte, error) {
+	iface = strings.TrimSpace(iface)
+	if validators.ValidateIfaceName(iface) != nil {
+		return nil, errors.New("invalid interface name")
+	}
+	base := filepath.Join("/sys/class/net", iface)
+	target := filepath.Join(base, rel)
+	cleanBase, _ := filepath.Abs(base)
+	cleanTarget, _ := filepath.Abs(target)
+	if !strings.HasPrefix(cleanTarget, cleanBase+string(os.PathSeparator)) && cleanTarget != cleanBase {
+		return nil, errors.New("path traversal")
+	}
+	return os.ReadFile(target)
+}
+
+func readIfaceAddress(iface string) (string, error) {
+	b, err := readIfaceSysFile(iface, "address")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(b)), nil
+}
+
+func readPhyNameFromSys(iface string) (string, error) {
+	b, err := readIfaceSysFile(iface, filepath.Join("phy80211", "name"))
+	if err != nil {
+		return "", err
+	}
+	s := strings.TrimSpace(string(b))
+	if s == "" || !validatePhyName(s) {
+		return "", errors.New("invalid phy name from sysfs")
+	}
+	return s, nil
+}
+
+func iwDevInfo(iface string) (string, error) {
+	return runIw("dev", iface, "info")
+}
+
+func iwDevInfoShowsAP(info string) bool {
+	return strings.Contains(strings.ToLower(info), "type ap")
+}
+
+func wiphyFromIwDevInfo(info string) string {
+	re := regexp.MustCompile(`(?m)wiphy\s+(\S+)`)
+	m := re.FindStringSubmatch(info)
+	if len(m) < 2 {
+		return ""
+	}
+	w := strings.TrimSpace(m[1])
+	if validatePhyName(w) {
+		return w
+	}
+	return ""
+}
+
+func firstWiphyFromIwPhy() string {
+	out, err := runIw("phy")
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "Wiphy ") {
+			parts := strings.Fields(line)
+			if len(parts) >= 2 && validatePhyName(parts[1]) {
+				return parts[1]
+			}
+		}
+	}
+	return ""
+}
+
+func hostapdCli(iface string, args ...string) (string, error) {
+	iface = strings.TrimSpace(iface)
+	if validators.ValidateIfaceName(iface) != nil {
+		return "", errors.New("invalid interface for hostapd_cli")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), hostapdCmdTimeout)
+	defer cancel()
+	full := append([]string{"-i", iface}, args...)
+	cmd := exec.CommandContext(ctx, "hostapd_cli", full...)
+	out, err := cmd.CombinedOutput()
+	return string(out), err
+}
+
+func hostapdCliStatusEnabled(iface string) bool {
+	out, err := hostapdCli(iface, "status")
+	if err != nil {
+		return false
+	}
+	return strings.Contains(strings.ToLower(out), "state=enabled")
+}
+
+func hostapdCliCountStations(iface string) int {
+	out, err := hostapdCli(iface, "all_sta")
+	if err != nil {
+		return 0
+	}
+	n := 0
+	for _, line := range strings.Split(out, "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "sta=") {
+			n++
+		}
+	}
+	return n
+}
+
+func journalctlHostapd(n int) string {
+	ctx, cancel := context.WithTimeout(context.Background(), hostapdCmdTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "sudo", "journalctl", "-u", "hostapd", "-n", fmt.Sprintf("%d", n), "--no-pager")
+	cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+	out, _ := cmd.CombinedOutput()
+	return string(out)
+}
+
+func systemctlStatusHostapd(head int) string {
+	ctx, cancel := context.WithTimeout(context.Background(), hostapdCmdTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "sudo", "systemctl", "status", "hostapd", "--no-pager")
+	cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+	out, _ := cmd.CombinedOutput()
+	lines := strings.Split(string(out), "\n")
+	if len(lines) > head {
+		lines = lines[:head]
+	}
+	return strings.Join(lines, "\n")
+}
+
+func systemctlIsEnabled(unit string) string {
+	out, err := exec.Command("systemctl", "is-enabled", unit).CombinedOutput()
+	return strings.TrimSpace(string(out))
+}
+
+func ipLinkShow(iface string) (string, error) {
+	if validators.ValidateIfaceName(iface) != nil {
+		return "", errors.New("invalid interface")
+	}
+	return runIP("link", "show", iface)
+}
+
+func ipLinkSetUp(iface string) {
+	if validators.ValidateIfaceName(iface) != nil {
+		return
+	}
+	_, _ = runIP("link", "set", iface, "up")
+}
+
+func iwPhyAddAP(phy, apIface string) (string, error) {
+	if !validatePhyName(phy) || validators.ValidateIfaceName(apIface) != nil {
+		return "", errors.New("invalid phy or ap interface")
+	}
+	return runIw("phy", phy, "interface", "add", apIface, "type", "__ap")
+}
+
+func iwDevAddAP(dev, apIface string) (string, error) {
+	if validators.ValidateIfaceName(dev) != nil || validators.ValidateIfaceName(apIface) != nil {
+		return "", errors.New("invalid interface")
+	}
+	return runIw("dev", dev, "interface", "add", apIface, "type", "__ap")
+}
+
+func iwDevDel(iface string) {
+	if validators.ValidateIfaceName(iface) != nil {
+		return
+	}
+	_, _ = runIw("dev", iface, "del")
+}
+
+func iwDevSetTypeManaged(iface string) {
+	if validators.ValidateIfaceName(iface) != nil {
+		return
+	}
+	_, _ = runIw("dev", iface, "set", "type", "managed")
+}
+
+func ipAddrIPv4OnIface(iface string) string {
+	if validators.ValidateIfaceName(iface) != nil {
+		return ""
+	}
+	out, err := runIP("addr", "show", iface)
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "inet ") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				addr := strings.Split(fields[1], "/")[0]
+				if addr != "" {
+					return addr
+				}
+			}
+		}
+	}
+	return ""
+}
+
+func ipAddrAddOrReplace24(ip, iface string) (string, error) {
+	if validators.ValidateIP(ip) != nil || validators.ValidateIfaceName(iface) != nil {
+		return "", errors.New("invalid ip or interface")
+	}
+	cidr := ip + "/24"
+	out, err := runIP("addr", "add", cidr, "dev", iface)
+	if err == nil {
+		return out, nil
+	}
+	return runIP("addr", "replace", cidr, "dev", iface)
+}
+
+// ifaceFromHostapdConf lee interface= de hostapd.conf con validación.
+func ifaceFromHostapdConf(path string, def string) string {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return def
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "interface=") {
+			v := strings.TrimSpace(strings.TrimPrefix(line, "interface="))
+			if validators.ValidateIfaceName(v) == nil {
+				return v
+			}
+			return def
+		}
+	}
+	return def
+}
+
+func sanitizeIfaceOrDefault(name, def string) string {
+	name = strings.TrimSpace(name)
+	if name == "" || validators.ValidateIfaceName(name) != nil {
+		return def
+	}
+	return name
+}
+
+func netIfaceExists(iface string) bool {
+	if validators.ValidateIfaceName(iface) != nil {
+		return false
+	}
+	_, err := os.Stat(filepath.Join("/sys/class/net", iface))
+	return err == nil
+}
