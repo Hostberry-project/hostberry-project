@@ -43,7 +43,7 @@ func currentUserInfo(c *fiber.Ctx) (string, *int) {
 
 func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
 	username, userID := currentUserInfo(c)
-	_ = InsertLog("INFO", database.LogMsg("Actualización del sistema iniciada", username), "system", userID)
+	_ = database.InsertLog("INFO", database.LogMsg("Actualización del sistema iniciada", username), "system", userID)
 
 	go func(user string, uid *int) {
 		ctx, cancel := context.WithTimeout(context.Background(), 45*time.Minute)
@@ -54,7 +54,7 @@ func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
 		output := strings.TrimSpace(filterSudoErrors(out))
 
 		if ctx.Err() == context.DeadlineExceeded {
-			_ = InsertLog("ERROR", database.LogMsgErr("actualizar sistema", "operación cancelada por tiempo de espera agotado", ""), "system", uid)
+			_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar sistema", "operación cancelada por tiempo de espera agotado", ""), "system", uid)
 			return
 		}
 		if err != nil {
@@ -62,12 +62,12 @@ func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
 			if output != "" {
 				msg = msg + " | " + output
 			}
-			_ = InsertLog("ERROR", database.LogMsgErr("actualizar sistema", msg, ""), "system", uid)
+			_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar sistema", msg, ""), "system", uid)
 			return
 		}
 
 		_ = database.SetConfig("system_last_update", time.Now().Format(time.RFC3339))
-		_ = InsertLog("INFO", database.LogMsg("Actualización del sistema completada correctamente", user), "system", uid)
+		_ = database.InsertLog("INFO", database.LogMsg("Actualización del sistema completada correctamente", user), "system", uid)
 	}(username, userID)
 
 	return c.JSON(fiber.Map{
@@ -86,7 +86,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Este despliegue no está en un repositorio git"})
 	}
 
-	_ = InsertLog("INFO", database.LogMsg("Actualización del proyecto iniciada", username), "system", userID)
+	_ = database.InsertLog("INFO", database.LogMsg("Actualización del proyecto iniciada", username), "system", userID)
 
 	go func(user string, uid *int, path string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -97,7 +97,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 		output := strings.TrimSpace(string(out))
 
 		if ctx.Err() == context.DeadlineExceeded {
-			_ = InsertLog("ERROR", database.LogMsgErr("actualizar proyecto", "operación cancelada por tiempo de espera agotado", ""), "system", uid)
+			_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar proyecto", "operación cancelada por tiempo de espera agotado", ""), "system", uid)
 			return
 		}
 		if err != nil {
@@ -105,12 +105,12 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 			if output != "" {
 				msg = msg + " | " + output
 			}
-			_ = InsertLog("ERROR", database.LogMsgErr("actualizar proyecto", msg, ""), "system", uid)
+			_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar proyecto", msg, ""), "system", uid)
 			return
 		}
 
 		_ = database.SetConfig("project_last_update", time.Now().Format(time.RFC3339))
-		_ = InsertLog("INFO", database.LogMsg("Proyecto actualizado correctamente", user), "system", uid)
+		_ = database.InsertLog("INFO", database.LogMsg("Proyecto actualizado correctamente", user), "system", uid)
 	}(username, userID, repoPath)
 
 	return c.JSON(fiber.Map{
@@ -120,7 +120,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 }
 
 func getConfigValue(key string) string {
-	value, err := GetConfig(key)
+	value, err := database.GetConfig(key)
 	if err != nil {
 		return ""
 	}
@@ -189,7 +189,7 @@ func systemNotificationsTestEmailHandler(c *fiber.Ctx) error {
 
 	if err := smtp.SendMail(address, auth, smtpFrom, []string{req.To}, []byte(message)); err != nil {
 		username, userID := currentUserInfo(c)
-		_ = InsertLog("ERROR", database.LogMsgErr("enviar email de prueba", fmt.Sprint(err), username), "system", userID)
+		_ = database.InsertLog("ERROR", database.LogMsgErr("enviar email de prueba", fmt.Sprint(err), username), "system", userID)
 		return c.Status(500).JSON(fiber.Map{
 			"error":   "No se pudo enviar el email de prueba",
 			"detail":  "Revisa la configuración SMTP y vuelve a intentarlo",
@@ -198,7 +198,7 @@ func systemNotificationsTestEmailHandler(c *fiber.Ctx) error {
 	}
 
 	username, userID := currentUserInfo(c)
-	_ = InsertLog("INFO", database.LogMsg("Email de prueba enviado a "+req.To, username), "system", userID)
+	_ = database.InsertLog("INFO", database.LogMsg("Email de prueba enviado a "+req.To, username), "system", userID)
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Email de prueba enviado.",
@@ -258,14 +258,14 @@ func adblockUpdateHandler(c *fiber.Ctx) error {
 	username, userID := currentUserInfo(c)
 
 	if _, err := executeCommand("sudo systemctl reload dnsmasq 2>/dev/null || sudo systemctl restart dnsmasq 2>/dev/null || true"); err != nil {
-		_ = InsertLog("ERROR", database.LogMsgErr("actualizar listas AdBlock", fmt.Sprint(err), username), "adblock", userID)
+		_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar listas AdBlock", fmt.Sprint(err), username), "adblock", userID)
 		return c.Status(500).JSON(fiber.Map{
 			"error": "No se pudieron actualizar las listas de AdBlock",
 		})
 	}
 
 	_ = database.SetConfig("adblock_last_update", time.Now().Format(time.RFC3339))
-	_ = InsertLog("INFO", database.LogMsg("Listas AdBlock actualizadas correctamente", username), "adblock", userID)
+	_ = database.InsertLog("INFO", database.LogMsg("Listas AdBlock actualizadas correctamente", username), "adblock", userID)
 
 	return c.JSON(fiber.Map{
 		"success": true,
