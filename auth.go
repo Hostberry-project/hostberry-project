@@ -180,25 +180,25 @@ func Login(username, password string) (*models.User, string, error) {
 	return &user, token, nil
 }
 
-func Register(username, password, email string) (*User, error) {
+func Register(username, password, email string) (*models.User, error) {
 	if username == "" {
 		return nil, errors.New("el nombre de usuario no puede estar vacío")
 	}
-	if err := ValidateUsername(username); err != nil {
+	if err := validators.ValidateUsername(username); err != nil {
 		return nil, err
 	}
 
 	if password == "" {
 		return nil, errors.New("la contraseña no puede estar vacía")
 	}
-	if err := ValidatePassword(password); err != nil {
+	if err := validators.ValidatePassword(password); err != nil {
 		return nil, err
 	}
-	if err := ValidateEmail(email); err != nil {
+	if err := validators.ValidateEmail(email); err != nil {
 		return nil, err
 	}
 
-	var existingUser User
+	var existingUser models.User
 	if err := db.Where("username = ?", username).First(&existingUser).Error; err == nil {
 		return nil, errors.New("el usuario ya existe")
 	}
@@ -208,7 +208,7 @@ func Register(username, password, email string) (*User, error) {
 		return nil, fmt.Errorf("error hasheando contraseña: %v", err)
 	}
 
-	user := User{
+	user := models.User{
 		Username: username,
 		Password: hashedPassword,
 		Email:    email,
