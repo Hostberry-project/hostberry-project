@@ -20,7 +20,7 @@ func TestValidateIfaceName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateIfaceName(tt iface)
+			err := ValidateIfaceName(tt.iface)
 			if tt.valid && err != nil {
 				t.Fatalf("expected valid, got %v", err)
 			}
