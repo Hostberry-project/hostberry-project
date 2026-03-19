@@ -20,7 +20,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/templates** | Motor de templates y render: `CreateTemplateEngine`, `RenderTemplate`. |
 | **internal/utils** | Utilidades compartidas: ejecución de comandos permitidos (caché/filtrado), parseos seguros y helpers de estado. |
 | **internal/adblock** | Lógica DNS (dnsmasq/pihole/dnscrypt) y AdBlock (blocky): estados/instalación/configuración/proxy. |
-| **internal/network** | Lógica de red: interfaces y estado (gateways/DNS) para endpoints. |
+| **internal/network** | Lógica de red: interfaces y estado (gateways/DNS), `runSudoNmcli` (nmcli sin shell), handlers API. |
 | **internal/wifi** | Lógica WiFi: `ScanWiFiNetworks`, `ToggleWiFi`, `ConnectWiFi`, `AutoConnectToLastNetwork` y helpers wpa_supplicant. |
 | **internal/vpn** | Lógica VPN: OpenVPN y WireGuard (`GetVPNStatus`, `GetOpenVPNConfig`, `ConnectVPN`, `ConfigureWireGuard`, etc.). |
 | **internal/system** | Lógica del sistema: info/estadísticas y acciones como `SystemRestart`/`SystemShutdown`. |
