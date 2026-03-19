@@ -14,7 +14,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/i18n** | Internacionalización: `Init()`, `T()`, `GetCurrentLanguage()`, `TemplateFuncs()`, `LanguageMiddleware`, `LogT`, `LogTf`, `LogTln`, `LogTfatal`, `SetLogLanguage`, `GetLogLanguage`, `Ready()`. |
 | **internal/database** | Conexión y operaciones de BD: `Init()`, `DB`, `InsertLog`, `GetLogs`, `SetConfig`, `GetConfig`, `GetAllConfigs`, `InsertStatistic`, `LogMsg`, `LogMsgErr`, `LogMsgWarn`. |
 | **internal/auth** | Autenticación y JWT: `GenerateToken`, `ValidateToken`, `HashPassword`, `CheckPassword`, `Login`, `Register`, `RegisterBootstrap`, `IsDefaultAdminCredentialsInUse`. |
-| **internal/middleware** | Middlewares auxiliares: `RequestIDMiddleware`, `RateLimitMiddleware`. |
+| **internal/middleware** | Middlewares/auth: `RequireAuth`, `RequireAdmin`, `GetUser`, `RunActionWithUser`, `LoggingMiddleware`, `ErrorHandler`, `SecurityHeadersMiddleware`, `EnforceHTTPSMiddleware`, `RequestIDMiddleware`, `RateLimitMiddleware`. |
 | **internal/health** | Endpoints de salud y métricas: `HealthCheckHandler`, `ReadinessCheckHandler`, `LivenessCheckHandler`, `MetricsHandler`, `MetricsSummaryHandler`. |
 | **internal/templates** | Motor de templates y render: `CreateTemplateEngine`, `RenderTemplate`. |
 
@@ -31,7 +31,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 
 ## Raíz del módulo
 
-En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), middleware (`middleware.go`), `utils.go`, `wifi_helpers.go` y el resto de archivos que orquestan la app y usan los paquetes internos.
+En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go`, `wifi_helpers.go` y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`.)
 
 Se eliminó `api_compat.go` (estaba vacío; la compatibilidad se cubre en otros módulos).
 
