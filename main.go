@@ -73,7 +73,7 @@ func main() {
 		// Intentar detectar interfaz (menos intentos, más rápido)
 		var interfaceName string
 		for attempt := 0; attempt < 3; attempt++ {
-			interfaceName = detectWiFiInterface()
+			interfaceName = wifiHandlers.DetectWiFiInterface()
 			if interfaceName != "" {
 				// Verificar que la interfaz realmente existe
 				cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", interfaceName))
