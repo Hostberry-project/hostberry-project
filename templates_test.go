@@ -1,10 +1,14 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"hostberry/internal/config"
+)
 
 func TestTemplatesLoad(t *testing.T) {
-	appConfig = Config{
-		Server: ServerConfig{Debug: false},
+	config.AppConfig = &config.Config{
+		Server: config.ServerConfig{Debug: false},
 	}
 
 	engine := createTemplateEngine()

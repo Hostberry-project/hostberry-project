@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/config"
 )
 
 // helper para crear una app mínima con las rutas de health/metrics.
 func newTestApp() *fiber.App {
-	appConfig = Config{
-		Security: SecurityConfig{
+	config.AppConfig = &config.Config{
+		Security: config.SecurityConfig{
 			JWTSecret:    "test-secret",
 			TokenExpiry:  5,
 			BcryptCost:   4,
