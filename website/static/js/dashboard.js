@@ -181,7 +181,7 @@
             try {
                 const wifiResp = await apiRequestFn('/api/v1/wifi/status');
                 if (wifiResp && wifiResp.ok) {
-                    const wifiData = await wifiResp.json();
+                    const wifiData = await wifiResp.json().catch(function () { return {}; });
                     const wifiEnabled = wifiData.enabled === true || wifiData.wifi_enabled === true;
                     updateServiceStatCard('wifi', wifiEnabled);
                 } else {
@@ -196,7 +196,7 @@
             try {
                 const networkResp = await apiRequestFn('/api/v1/network/interfaces');
                 if (networkResp && networkResp.ok) {
-                    const networkData = await networkResp.json();
+                    const networkData = await networkResp.json().catch(function () { return {}; });
                     const interfaces = Array.isArray(networkData) ? networkData : (networkData.interfaces || []);
                     const hasActiveInterface = interfaces.some(iface => {
                         const status = (iface.status || iface.state || '').toLowerCase();
