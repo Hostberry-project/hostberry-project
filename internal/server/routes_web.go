@@ -5,7 +5,6 @@ import (
 	adblockHandlers "hostberry/internal/adblock"
 	authHandlers "hostberry/internal/auth"
 	hostapdHandlers "hostberry/internal/hostapd"
-	"hostberry/internal/i18n"
 	middleware "hostberry/internal/middleware"
 	networkHandlers "hostberry/internal/network"
 	sys "hostberry/internal/system"
