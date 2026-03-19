@@ -109,6 +109,14 @@ func RequireAuth(c *fiber.Ctx) error {
 		return c.Next()
 	}
 
+	// API WiFi de asistente: ya no es pública; aceptar JWT/cookie o token de setup (cabecera/query).
+	if strings.HasPrefix(path, "/api/") && isWifiSetupAPIPath(path) {
+		candidate := wifisetup.ExtractFromRequest(c.Get, c.Query)
+		if wifisetup.Valid(candidate) {
+			return c.Next()
+		}
+	}
+
 	var token string
 	if strings.HasPrefix(path, "/api/") {
 		authHeader := c.Get("Authorization")
