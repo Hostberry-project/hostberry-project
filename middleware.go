@@ -169,8 +169,8 @@ func requireAdmin(c *fiber.Ctx) error {
 }
 
 // RunActionWithUser exige usuario autenticado, ejecuta action(user) y devuelve JSON según result["success"]/result["error"].
-// successLog y errorLogFormat se pasan a fmt.Sprintf (successLog: 1 arg = username; errorLogFormat: 2 args = errorMsg, username).
-func RunActionWithUser(c *fiber.Ctx, source, successLog, errorLogFormat string, action func(*User) map[string]interface{}) error {
+// successAction y errorActionPrefix se usan con LogMsg/LogMsgErr para mensajes unificados y legibles.
+func RunActionWithUser(c *fiber.Ctx, source, successAction, errorActionPrefix string, action func(*User) map[string]interface{}) error {
 	user, ok := GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
@@ -178,11 +178,11 @@ func RunActionWithUser(c *fiber.Ctx, source, successLog, errorLogFormat string, 
 	userID := user.ID
 	result := action(user)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", fmt.Sprintf(successLog, user.Username), source, &userID)
+		InsertLog("INFO", LogMsg(successAction, user.Username), source, &userID)
 		return c.JSON(result)
 	}
 	if errorMsg, ok := result["error"].(string); ok {
-		InsertLog("ERROR", fmt.Sprintf(errorLogFormat, errorMsg, user.Username), source, &userID)
+		InsertLog("ERROR", LogMsgErr(errorActionPrefix, errorMsg, user.Username), source, &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
 	}
 	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
