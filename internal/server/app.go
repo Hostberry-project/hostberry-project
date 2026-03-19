@@ -72,7 +72,7 @@ func CreateApp(templatesFS embed.FS, staticFS embed.FS) *fiber.App {
 		AllowOrigins:     corsOrigins,
 		AllowCredentials: true,
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders:     "Content-Type,Authorization",
+		AllowHeaders:     "Content-Type,Authorization,X-HostBerry-WiFi-Setup-Token",
 		MaxAge:           3600,
 	}))
 

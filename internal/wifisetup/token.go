@@ -60,14 +60,14 @@ func Valid(provided string) bool {
 }
 
 // ExtractFromRequest obtiene el candidato a token de cabecera o query.
-func ExtractFromRequest(getHeader func(string) string, getQuery func(string, string) string) string {
+func ExtractFromRequest(getHeader func(string) string, getQuery func(string) string) string {
 	if getHeader != nil {
 		if v := strings.TrimSpace(getHeader(HeaderName)); v != "" {
 			return v
 		}
 	}
 	if getQuery != nil {
-		if v := strings.TrimSpace(getQuery(QueryParam, "")); v != "" {
+		if v := strings.TrimSpace(getQuery(QueryParam)); v != "" {
 			return v
 		}
 	}

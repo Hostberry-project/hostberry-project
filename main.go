@@ -6,8 +6,9 @@ import (
 	"hostberry/internal/config"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
-	"hostberry/internal/wifi"
 	"hostberry/internal/utils"
+	"hostberry/internal/wifisetup"
+	"hostberry/internal/wifi"
 	server "hostberry/internal/server"
 )
 
