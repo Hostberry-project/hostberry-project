@@ -22,11 +22,6 @@ import (
 	"hostberry/internal/validators"
 )
 
-// Wrappers para minimizar cambios mecánicos desde `package main`.
-func executeCommand(cmd string) (string, error) {
-	return utils.ExecuteCommand(cmd)
-}
-
 func filterSudoErrors(output []byte) string {
 	return utils.FilterSudoErrors(output)
 }
