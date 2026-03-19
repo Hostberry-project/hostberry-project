@@ -59,19 +59,16 @@ func hostapdProcessOrUnitActive() bool {
 	return pgrepExists("hostapd")
 }
 
-func readIfaceSysFile(iface, rel string) ([]byte, error) {
+func readIfaceSysFile(iface string, parts ...string) ([]byte, error) {
 	iface = strings.TrimSpace(iface)
 	if validators.ValidateIfaceName(iface) != nil {
 		return nil, errors.New("invalid interface name")
 	}
-	base := filepath.Join("/sys/class/net", iface)
-	target := filepath.Join(base, rel)
-	cleanBase, _ := filepath.Abs(base)
-	cleanTarget, _ := filepath.Abs(target)
-	if !strings.HasPrefix(cleanTarget, cleanBase+string(os.PathSeparator)) && cleanTarget != cleanBase {
-		return nil, errors.New("path traversal")
+	p := filepath.Join(append([]string{"/sys/class/net", iface}, parts...)...)
+	if !strings.HasPrefix(filepath.Clean(p), filepath.Join("/sys/class/net", iface)) {
+		return nil, errors.New("invalid sysfs path")
 	}
-	return os.ReadFile(target)
+	return os.ReadFile(p)
 }
 
 func readIfaceAddress(iface string) (string, error) {
@@ -83,7 +80,7 @@ func readIfaceAddress(iface string) (string, error) {
 }
 
 func readPhyNameFromSys(iface string) (string, error) {
-	b, err := readIfaceSysFile(iface, filepath.Join("phy80211", "name"))
+	b, err := readIfaceSysFile(iface, "phy80211", "name")
 	if err != nil {
 		return "", err
 	}
