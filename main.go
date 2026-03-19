@@ -20,6 +20,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"hostberry/internal/config"
 	"hostberry/internal/constants"
+	"hostberry/internal/database"
 	"hostberry/internal/i18n"
 	"hostberry/internal/models"
 )
@@ -38,12 +39,12 @@ func main() {
 		i18n.LogTf("logs.i18n_init_warning", err)
 	}
 
-	if err := initDatabase(); err != nil {
+	if err := database.Init(); err != nil {
 		i18n.LogTfatal("logs.db_init_error", err)
 	}
 
 	// Establecer idioma de logs desde configuración del sistema (después de inicializar BD)
-	if configs, err := GetAllConfigs(); err == nil {
+	if configs, err := database.GetAllConfigs(); err == nil {
 		if lang, ok := configs["log_language"]; ok && lang != "" {
 			i18n.SetLogLanguage(lang)
 		}
