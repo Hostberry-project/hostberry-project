@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
