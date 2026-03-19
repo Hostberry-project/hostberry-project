@@ -1096,7 +1096,7 @@ func adblockEnableHandler(c *fiber.Ctx) error {
 }
 
 func adblockDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "AdBlock deshabilitado por usuario %s", "Error deshabilitando AdBlock: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "AdBlock deshabilitado correctamente", "deshabilitar AdBlock", func(user *User) map[string]interface{} {
 		return disableAdBlock(user.Username)
 	})
 }
@@ -1108,7 +1108,7 @@ func dnscryptStatusHandler(c *fiber.Ctx) error {
 }
 
 func dnscryptInstallHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "DNSCrypt instalado por usuario %s", "Error instalando DNSCrypt: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt instalado correctamente", "instalar DNSCrypt", func(user *User) map[string]interface{} {
 		return installDNSCrypt(user.Username)
 	})
 }
@@ -1125,7 +1125,7 @@ func dnscryptConfigureHandler(c *fiber.Ctx) error {
 	if req.ServerName == "" {
 		req.ServerName = "adguard-dns"
 	}
-	return RunActionWithUser(c, "adblock", "DNSCrypt configurado por usuario %s", "Error configurando DNSCrypt: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt configurado correctamente", "configurar DNSCrypt", func(user *User) map[string]interface{} {
 		return configureDNSCrypt(req.ServerName, req.BlockAds, user.Username)
 	})
 }
