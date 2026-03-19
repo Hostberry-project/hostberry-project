@@ -18,6 +18,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"hostberry/internal/auth"
 	"hostberry/internal/config"
 	"hostberry/internal/constants"
 	"hostberry/internal/database"
@@ -452,7 +453,7 @@ func dashboardHandler(c *fiber.Ctx) error {
 func loginHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "login", fiber.Map{
 		"Title":                        i18n.T(c, "auth.login", "Login"),
-		"ShowDefaultCredentialsNotice": IsDefaultAdminCredentialsInUse(),
+		"ShowDefaultCredentialsNotice": auth.IsDefaultAdminCredentialsInUse(),
 	})
 }
 
