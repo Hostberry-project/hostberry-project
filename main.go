@@ -125,35 +125,6 @@ func main() {
 	}
 }
 
-func loadConfig() error {
-	data, err := os.ReadFile("config.yaml")
-	if err != nil {
-		appConfig = Config{
-			Server: ServerConfig{
-				Host:         DefaultServerHost,
-				Port:         DefaultServerPort,
-				Debug:        false,
-				ReadTimeout:  30,
-				WriteTimeout: 30,
-			},
-			Database: DatabaseConfig{
-				Type: "sqlite",
-				Path: "data/hostberry.db",
-			},
-			Security: SecurityConfig{
-				JWTSecret:      generateRandomSecret(),
-				TokenExpiry:    60,  // 1 hora
-				BcryptCost:     10,
-				RateLimitRPS:   10,
-				LockoutMinutes: 15, // bloqueo por intentos fallidos
-			},
-		}
-		return nil
-	}
-
-	return yaml.Unmarshal(data, &appConfig)
-}
-
 func createApp() *fiber.App {
 	engine := createTemplateEngine()
 	if engine == nil {
