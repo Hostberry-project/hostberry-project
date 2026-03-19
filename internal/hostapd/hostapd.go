@@ -78,9 +78,9 @@ func HostapdAccessPointsHandler(c *fiber.Ctx) error {
 		actuallyActive := hostapdActive && hostapdTransmitting
 
 		aps = append(aps, fiber.Map{
-			"name":      displayIface,
+			"name":      interfaceName,
 			"ssid":      ssid,
-			"interface": displayIface,
+			"interface": interfaceName,
 			"channel":   channel,
 			"security":  security,
 			"enabled":   actuallyActive, // Solo true si realmente está transmitiendo
