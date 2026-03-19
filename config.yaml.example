@@ -24,6 +24,9 @@ security:
   token_expiry: 60  # minutos (1 hora)
   bcrypt_cost: 10
   rate_limit_rps: 10
+  # Si es true y hay HTTPS (TLS propio o proxy con X-Forwarded-Proto=https),
+  # la aplicación redirigirá automáticamente HTTP -> HTTPS (excepto /health y /metrics).
+  enforce_https: false
 
 logging:
   level: "info"  # debug, info, warn, error
