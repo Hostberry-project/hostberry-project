@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/i18n"
 	"hostberry/internal/metrics"
 	"hostberry/internal/models"
 )

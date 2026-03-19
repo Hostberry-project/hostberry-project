@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"hostberry/internal/i18n"
 )
 
 func getNetworkInterfaces() map[string]interface{} {

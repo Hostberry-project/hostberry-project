@@ -11,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/i18n"
 )
 
 func networkRoutingHandler(c *fiber.Ctx) error {
