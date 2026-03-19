@@ -366,6 +366,7 @@ func setupRoutes(app *fiber.App) {
 		{
 			system.Get("/stats", systemStatsHandler)
 			system.Get("/info", systemInfoHandler)
+			system.Get("/https-info", systemHttpsInfoHandler)
 			system.Get("/logs", systemLogsHandler)
 			system.Get("/activity", systemActivityHandler)
 			system.Get("/network", systemNetworkHandler)
