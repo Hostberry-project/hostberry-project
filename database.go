@@ -153,10 +153,25 @@ func InsertLog(level, message, source string, userID *int) error {
 	return db.Create(&log).Error
 }
 
+const maxLogMessageLen = 1024 // evita mensajes enormes por datos de usuario o dumps de error
+
+func truncateForLog(s string, max int) string {
+	s = strings.TrimSpace(s)
+	if max <= 0 {
+		max = maxLogMessageLen
+	}
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "..."
+}
+
 // LogMsg unifica el formato de mensajes: "Descripción clara. Usuario: nombre."
 // Si user está vacío (ej. wizard), devuelve solo "Descripción clara."
+// Recorta cadenas largas para que los logs sigan siendo legibles.
 func LogMsg(action, user string) string {
-	action = strings.TrimRight(action, ".")
+	action = truncateForLog(strings.TrimRight(action, "."), 800)
+	user = truncateForLog(user, 120)
 	if user == "" {
 		return action + "."
 	}
@@ -165,7 +180,9 @@ func LogMsg(action, user string) string {
 
 // LogMsgErr formato para errores: "Error al [acción]: motivo. Usuario: nombre."
 func LogMsgErr(action, reason, user string) string {
-	action = strings.TrimRight(action, ".")
+	action = truncateForLog(strings.TrimRight(action, "."), 200)
+	reason = truncateForLog(reason, 600)
+	user = truncateForLog(user, 120)
 	if user == "" {
 		return "Error al " + action + ": " + reason + "."
 	}
@@ -174,6 +191,8 @@ func LogMsgErr(action, reason, user string) string {
 
 // LogMsgWarn formato para advertencias: "Advertencia: descripción. Usuario: nombre."
 func LogMsgWarn(desc, user string) string {
+	desc = truncateForLog(desc, 800)
+	user = truncateForLog(user, 120)
 	if user == "" {
 		return "Advertencia: " + desc + "."
 	}
