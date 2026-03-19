@@ -262,7 +262,7 @@ func setupRoutes(app *fiber.App) {
 		protected := web.Group("/", middleware.RequireAuth)
 		protected.Get("/dashboard", dashboardHandler)
 		protected.Get("/settings", settingsHandler)
-		protected.Get("/network", networkPageHandler)
+		protected.Get("/network", netHandlers.NetworkPageHandler)
 		protected.Get("/wifi", wifiPageHandler)
 		protected.Get("/wifi-scan", wifiScanPageHandler)
 		protected.Get("/vpn", vpnPageHandler)
@@ -315,11 +315,11 @@ func setupRoutes(app *fiber.App) {
 
 		network := api.Group("/network", middleware.RequireAuth)
 		{
-			network.Get("/status", networkStatusHandler)
+			network.Get("/status", netHandlers.NetworkStatusHandler)
 			network.Get("/interfaces", networkInterfacesHandler)
 			network.Get("/routing", netHandlers.NetworkRoutingHandler)
 			network.Post("/firewall/toggle", middleware.RequireAdmin, netHandlers.NetworkFirewallToggleHandler)
-			network.Post("/speedtest", middleware.RequireAdmin, networkSpeedtestHandler)
+			network.Post("/speedtest", middleware.RequireAdmin, netHandlers.NetworkSpeedtestHandler)
 			network.Get("/config", netHandlers.NetworkConfigHandler)
 			network.Post("/config", netHandlers.NetworkConfigHandler)
 		}
