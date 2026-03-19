@@ -174,31 +174,30 @@ func InsertStatistic(statType string, value float64) error {
 }
 
 func SetConfig(key, value string) error {
-	config := SystemConfig{Key: key, Value: value}
-	return db.Save(&config).Error
+	c := models.SystemConfig{Key: key, Value: value}
+	return db.Save(&c).Error
 }
 
 func GetConfig(key string) (string, error) {
-	var config SystemConfig
-	if err := db.First(&config, "key = ?", key).Error; err != nil {
+	var c models.SystemConfig
+	if err := db.First(&c, "key = ?", key).Error; err != nil {
 		return "", err
 	}
-	return config.Value, nil
+	return c.Value, nil
 }
 
 func GetAllConfigs() (map[string]string, error) {
 	if db == nil {
 		return make(map[string]string), nil
 	}
-	
-	var configs []SystemConfig
+	var configs []models.SystemConfig
 	if err := db.Find(&configs).Error; err != nil {
 		return nil, err
 	}
 	
 	result := make(map[string]string)
-	for _, config := range configs {
-		result[config.Key] = config.Value
+	for _, c := range configs {
+		result[c.Key] = c.Value
 	}
 	return result, nil
 }
