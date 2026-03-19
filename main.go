@@ -303,7 +303,7 @@ func setupRoutes(app *fiber.App) {
 			system.Get("/metrics", health.MetricsSummaryHandler)
 			system.Post("/backup", middleware.RequireAdmin, sys.SystemBackupHandler)
 			system.Post("/config", middleware.RequireAdmin, systemConfigHandler)
-			system.Post("/updates/execute", middleware.RequireAdmin, systemUpdatesExecuteHandler)
+			system.Post("/updates/execute", middleware.RequireAdmin, sys.SystemUpdatesExecuteHandler)
 			system.Post("/updates/project", middleware.RequireAdmin, sys.SystemUpdatesProjectHandler)
 			system.Post("/notifications/test-email", middleware.RequireAdmin, sys.SystemNotificationsTestEmailHandler)
 			system.Post("/restart", middleware.RequireAdmin, systemRestartHandler)
@@ -384,7 +384,7 @@ func setupRoutes(app *fiber.App) {
 		adblock := api.Group("/adblock", middleware.RequireAuth)
 		{
 			adblock.Get("/status", adblockStatusHandler)
-			adblock.Get("/lists", adblockListsHandler)
+			adblock.Get("/lists", sys.AdblockListsHandler)
 			adblock.Get("/domains", sys.AdblockDomainsHandler)
 			adblock.Post("/enable", middleware.RequireAdmin, adblockEnableHandler)
 			adblock.Post("/disable", middleware.RequireAdmin, adblockDisableHandler)
