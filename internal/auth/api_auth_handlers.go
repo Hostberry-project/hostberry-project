@@ -10,7 +10,6 @@ import (
 	"hostberry/internal/config"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
-	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	"hostberry/internal/validators"
 )
@@ -26,6 +25,15 @@ func translateLoginError(c *fiber.Ctx, err error) string {
 		return msg
 	}
 	return err.Error()
+}
+
+func getUserFromLocals(c *fiber.Ctx) (*models.User, bool) {
+	u := c.Locals("user")
+	if u == nil {
+		return nil, false
+	}
+	user, ok := u.(*models.User)
+	return user, ok && user != nil
 }
 
 func LoginAPIHandler(c *fiber.Ctx) error {
@@ -92,7 +100,7 @@ func LoginAPIHandler(c *fiber.Ctx) error {
 }
 
 func LogoutAPIHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
+	user, ok := getUserFromLocals(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.unauthorized", "Unauthorized")})
 	}
@@ -113,7 +121,7 @@ func LogoutAPIHandler(c *fiber.Ctx) error {
 }
 
 func MeHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
+	user, ok := getUserFromLocals(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.unauthorized", "Unauthorized")})
 	}
@@ -129,7 +137,7 @@ func MeHandler(c *fiber.Ctx) error {
 }
 
 func ChangePasswordAPIHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
+	user, ok := getUserFromLocals(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
@@ -283,7 +291,7 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 }
 
 func UpdateProfileAPIHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
+	user, ok := getUserFromLocals(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
@@ -315,7 +323,7 @@ func UpdateProfileAPIHandler(c *fiber.Ctx) error {
 }
 
 func UpdatePreferencesAPIHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
+	user, ok := getUserFromLocals(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
