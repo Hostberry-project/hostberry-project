@@ -266,7 +266,7 @@ func setupRoutes(app *fiber.App) {
 		protected.Get("/wifi", wifiPageHandler)
 		protected.Get("/wifi-scan", wifiScanPageHandler)
 		protected.Get("/vpn", vpnPageHandler)
-		protected.Get("/wireguard", wireguardPageHandler)
+		protected.Get("/wireguard", vpnHandlers.WireguardPageHandler)
 		protected.Get("/adblock", adblockHandlers.AdblockPageHandler)
 		protected.Get("/tor", torHandlers.TorPageHandler)
 		protected.Get("/hostapd", hostapdPageHandler)
@@ -375,13 +375,13 @@ func setupRoutes(app *fiber.App) {
 
 		wireguard := api.Group("/wireguard", middleware.RequireAuth)
 		{
-			wireguard.Get("/status", wireguardStatusHandler)
-			wireguard.Get("/interfaces", wireguardInterfacesHandler)
-			wireguard.Get("/peers", wireguardPeersHandler)
-			wireguard.Get("/config", wireguardGetConfigHandler)
-			wireguard.Post("/config", middleware.RequireAdmin, wireguardConfigHandler)
-			wireguard.Post("/toggle", middleware.RequireAdmin, wireguardToggleHandler)
-			wireguard.Post("/restart", middleware.RequireAdmin, wireguardRestartHandler)
+			wireguard.Get("/status", vpnHandlers.WireguardStatusHandler)
+			wireguard.Get("/interfaces", vpnHandlers.WireguardInterfacesHandler)
+			wireguard.Get("/peers", vpnHandlers.WireguardPeersHandler)
+			wireguard.Get("/config", vpnHandlers.WireguardGetConfigHandler)
+			wireguard.Post("/config", middleware.RequireAdmin, vpnHandlers.WireguardConfigHandler)
+			wireguard.Post("/toggle", middleware.RequireAdmin, vpnHandlers.WireguardToggleHandler)
+			wireguard.Post("/restart", middleware.RequireAdmin, vpnHandlers.WireguardRestartHandler)
 		}
 
 		adblock := api.Group("/adblock", middleware.RequireAuth)
