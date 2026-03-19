@@ -1173,13 +1173,13 @@ func blockyConfigureHandler(c *fiber.Ctx) error {
 }
 
 func blockyEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "Blocky habilitado por usuario %s", "Error habilitando Blocky: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky habilitado correctamente", "habilitar Blocky", func(user *User) map[string]interface{} {
 		return enableBlocky(user.Username)
 	})
 }
 
 func blockyDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "Blocky deshabilitado por usuario %s", "Error deshabilitando Blocky: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky deshabilitado correctamente", "deshabilitar Blocky", func(user *User) map[string]interface{} {
 		return disableBlocky(user.Username)
 	})
 }
@@ -1210,7 +1210,7 @@ func torStatusHandler(c *fiber.Ctx) error {
 }
 
 func torInstallHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Tor instalado por usuario %s", "Error instalando Tor: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Tor instalado correctamente", "instalar Tor", func(user *User) map[string]interface{} {
 		return installTor(user.Username)
 	})
 }
