@@ -51,12 +51,12 @@ func createDefaultAdmin() {
 		return
 	}
 
-	if appConfig.Server.Debug {
+	if config.AppConfig.Server.Debug {
 		LogTf("logs.utils_users_count", count)
 	}
 
 	if count == 0 {
-		if appConfig.Server.Debug {
+		if config.AppConfig.Server.Debug {
 			LogTln("logs.utils_creating_admin")
 		}
 
@@ -66,7 +66,7 @@ func createDefaultAdmin() {
 			adminPassword = "admin"
 			useBootstrap = true
 			log.Printf("SECURITY: Primer arranque. Usuario admin creado con contraseña por defecto. Cámbiala en Ajustes tras el primer acceso.")
-		} else if err := ValidatePassword(adminPassword); err != nil {
+		} else if err := validators.ValidatePassword(adminPassword); err != nil {
 			LogTf("logs.utils_admin_error", fmt.Errorf("HOSTBERRY_DEFAULT_ADMIN_PASSWORD inválida: %w", err))
 			return
 		}
@@ -81,7 +81,7 @@ func createDefaultAdmin() {
 		if err != nil {
 			LogTf("logs.utils_admin_error", err)
 		} else {
-			if appConfig.Server.Debug {
+			if config.AppConfig.Server.Debug {
 				LogT("logs.utils_admin_success")
 			}
 			_ = admin
