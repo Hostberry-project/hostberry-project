@@ -1079,7 +1079,7 @@ func wireguardConfigHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 	config := req.Config
-	return RunActionWithUser(c, "wireguard", "WireGuard configurado por usuario %s", "Error configurando WireGuard: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "wireguard", "WireGuard configurado correctamente", "configurar WireGuard", func(user *User) map[string]interface{} {
 		return configureWireGuard(config, user.Username)
 	})
 }
@@ -1090,7 +1090,7 @@ func adblockStatusHandler(c *fiber.Ctx) error {
 }
 
 func adblockEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "AdBlock habilitado por usuario %s", "Error habilitando AdBlock: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "AdBlock habilitado correctamente", "habilitar AdBlock", func(user *User) map[string]interface{} {
 		return enableAdBlock(user.Username)
 	})
 }
