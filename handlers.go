@@ -1131,13 +1131,13 @@ func dnscryptConfigureHandler(c *fiber.Ctx) error {
 }
 
 func dnscryptEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "DNSCrypt habilitado por usuario %s", "Error habilitando DNSCrypt: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt habilitado correctamente", "habilitar DNSCrypt", func(user *User) map[string]interface{} {
 		return enableDNSCrypt(user.Username)
 	})
 }
 
 func dnscryptDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "DNSCrypt deshabilitado por usuario %s", "Error deshabilitando DNSCrypt: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt deshabilitado correctamente", "deshabilitar DNSCrypt", func(user *User) map[string]interface{} {
 		return disableDNSCrypt(user.Username)
 	})
 }
@@ -1154,7 +1154,7 @@ func blockyConfigHandler(c *fiber.Ctx) error {
 }
 
 func blockyInstallHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "Blocky instalado por usuario %s", "Error instalando Blocky: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky instalado correctamente", "instalar Blocky", func(user *User) map[string]interface{} {
 		return installBlocky(user.Username)
 	})
 }
@@ -1167,7 +1167,7 @@ func blockyConfigureHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
 	}
-	return RunActionWithUser(c, "adblock", "Blocky configurado por usuario %s", "Error configurando Blocky: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky configurado correctamente", "configurar Blocky", func(user *User) map[string]interface{} {
 		return configureBlocky(req.Upstreams, req.BlockLists, user.Username)
 	})
 }
