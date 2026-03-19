@@ -499,13 +499,15 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			if connOut, err := connCmd.Output(); err == nil {
 				connName := strings.TrimSpace(string(connOut))
 				if connName != "" {
-					cmd := fmt.Sprintf("sudo nmcli connection modify '%s' ipv4.dns '%s' 2>&1", connName, dnsStr)
-					if out, err := executeCommand(cmd); err == nil {
-						applyCmd := fmt.Sprintf("sudo nmcli connection up '%s' 2>&1", connName)
-						executeCommand(applyCmd)
+					out, err := runSudoNmcli("connection", "modify", connName, "ipv4.dns", dnsStr)
+					if err == nil {
+						if _, upErr := runSudoNmcli("connection", "up", connName); upErr != nil {
+							log.Printf("nmcli connection up after DNS: %v", upErr)
+						}
 						applied = append(applied, fmt.Sprintf("DNS set to %s (via NetworkManager)", strings.Join(dnsServers, ", ")))
 						dnsApplied = true
 						log.Printf("DNS configured via nmcli: %s", dnsStr)
+						_ = out
 					} else {
 						log.Printf("nmcli DNS configuration failed: %v, output: %s", err, out)
 					}
