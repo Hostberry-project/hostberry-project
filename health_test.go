@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/health"
 )
 
 // helper para crear una app mínima con las rutas de health/metrics.
@@ -25,10 +26,10 @@ func newTestApp() *fiber.App {
 
 func TestHealthEndpoints(t *testing.T) {
 	app := newTestApp()
-	app.Get("/health", healthCheckHandler)
-	app.Get("/health/ready", readinessCheckHandler)
-	app.Get("/health/live", livenessCheckHandler)
-	app.Get("/metrics", metricsHandler)
+	app.Get("/health", health.HealthCheckHandler)
+	app.Get("/health/ready", health.ReadinessCheckHandler)
+	app.Get("/health/live", health.LivenessCheckHandler)
+	app.Get("/metrics", health.MetricsHandler)
 	app.Get("/api/v1/system/https-info", systemHttpsInfoHandler)
 
 	for _, path := range []string{"/health", "/health/ready", "/health/live"} {
