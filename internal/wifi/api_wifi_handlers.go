@@ -25,7 +25,7 @@ func executeCommand(cmd string) (string, error) { return utils.ExecuteCommand(cm
 
 func filterSudoErrors(output []byte) string { return utils.FilterSudoErrors(output) }
 
-func wifiNetworksHandler(c *fiber.Ctx) error {
+func WifiNetworksHandler(c *fiber.Ctx) error {
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
 	result := ScanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
@@ -34,11 +34,11 @@ func wifiNetworksHandler(c *fiber.Ctx) error {
 	return c.JSON([]fiber.Map{})
 }
 
-func wifiClientsHandler(c *fiber.Ctx) error {
+func WifiClientsHandler(c *fiber.Ctx) error {
 	return c.JSON([]fiber.Map{})
 }
 
-func wifiToggleHandler(c *fiber.Ctx) error {
+func WifiToggleHandler(c *fiber.Ctx) error {
 	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
@@ -134,7 +134,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 	return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 }
 
-func wifiUnblockHandler(c *fiber.Ctx) error {
+func WifiUnblockHandler(c *fiber.Ctx) error {
 	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
@@ -213,7 +213,7 @@ func wifiUnblockHandler(c *fiber.Ctx) error {
 	return c.Status(500).JSON(fiber.Map{"error": errorDetails})
 }
 
-func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
+func WifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
@@ -269,7 +269,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	})
 }
 
-func wifiConfigHandler(c *fiber.Ctx) error {
+func WifiConfigHandler(c *fiber.Ctx) error {
 	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
@@ -346,11 +346,11 @@ func wifiConfigHandler(c *fiber.Ctx) error {
 
 	return c.Status(400).JSON(fiber.Map{"error": "Se requiere ssid o region"})
 }
-func wifiStatusHandler(c *fiber.Ctx) error {
+func WifiStatusHandler(c *fiber.Ctx) error {
 	return wifiLegacyStatusHandler(c)
 }
 
-func wifiLegacyStatusHandler(c *fiber.Ctx) error {
+func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 	var enabled bool = false
 	var hardBlocked bool = false
 	var softBlocked bool = false
@@ -855,7 +855,7 @@ func wifiLegacyStatusHandler(c *fiber.Ctx) error {
 	})
 }
 
-func wifiLegacyStoredNetworksHandler(c *fiber.Ctx) error {
+func WifiLegacyStoredNetworksHandler(c *fiber.Ctx) error {
 	var networks []fiber.Map
 	var lastConnected []string
 
@@ -907,11 +907,11 @@ func wifiLegacyStoredNetworksHandler(c *fiber.Ctx) error {
 	})
 }
 
-func wifiLegacyAutoconnectHandler(c *fiber.Ctx) error {
+func WifiLegacyAutoconnectHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": false})
 }
 
-func wifiLegacyScanHandler(c *fiber.Ctx) error {
+func WifiLegacyScanHandler(c *fiber.Ctx) error {
 	userInterface := c.Locals("user")
 	if userInterface == nil {
 		log.Printf("ERROR: Usuario no encontrado en wifiLegacyScanHandler")
@@ -938,7 +938,7 @@ func wifiLegacyScanHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true, "networks": []fiber.Map{}})
 }
 
-func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
+func WifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	// Para el setup wizard puede que no haya sesión/token.
 	// Permitir desconectar sin auth: la lógica seguirá funcionando y omitimos logs.
 	username := "setup_wizard"
