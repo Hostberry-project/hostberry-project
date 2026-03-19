@@ -22,6 +22,11 @@ func detectWiFiInterface() string {
 	return constants.DefaultWiFiInterface
 }
 
+// DetectWiFiInterface wrapper exportado para usarlo desde main (setup/auto-conexión).
+func DetectWiFiInterface() string {
+	return detectWiFiInterface()
+}
+
 // WifiInterfacesHandler devuelve una lista simple de interfaces WiFi y su estado.
 func WifiInterfacesHandler(c *fiber.Ctx) error {
 	var interfaces []fiber.Map
