@@ -247,7 +247,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 
 	if isBlocked == newIsBlocked {
 		errorMsg := "El switch de software no cambió de estado"
-		database.InsertLog("WARN", LogMsgWarn("el conmutador de software WiFi no cambió: "+errorMsg, user.Username), "wifi", &userID)
+		database.InsertLog("WARN", database.LogMsgWarn("el conmutador de software WiFi no cambió: "+errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
