@@ -135,7 +135,7 @@ func Login(username, password string) (*models.User, string, error) {
 	if user.FailedAttempts >= maxAttempts {
 		if user.LockedUntil != nil && now.Before(*user.LockedUntil) {
 			remaining := time.Until(*user.LockedUntil).Round(time.Second)
-			return nil, "", &LoginError{Key: "auth.account_locked_retry_in", Default: "cuenta bloqueada. Podrás intentar de nuevo en " + remaining.String(), Args: []interface{}{remaining.String()}}
+			return nil, "", &models.LoginError{Key: "auth.account_locked_retry_in", Default: "cuenta bloqueada. Podrás intentar de nuevo en " + remaining.String(), Args: []interface{}{remaining.String()}}
 		}
 		// Desbloqueo automático: ya pasó el tiempo
 		user.FailedAttempts = 0
