@@ -157,7 +157,7 @@ func changePasswordAPIHandler(c *fiber.Ctx) error {
 	}
 
 	userID := user.ID
-	InsertLog("INFO", fmt.Sprintf("Usuario %s cambió su contraseña", user.Username), "auth", &userID)
+	InsertLog("INFO", LogMsg("Contraseña cambiada", user.Username), "auth", &userID)
 	return c.JSON(fiber.Map{"message": T(c, "auth.password_changed", "Password changed successfully")})
 }
 
@@ -246,7 +246,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	}
 
 	userID := user.ID
-	InsertLog("INFO", "Usuario cambió credenciales en primer login: "+user.Username, "auth", &userID)
+	InsertLog("INFO", LogMsg("Credenciales actualizadas en primer acceso", user.Username), "auth", &userID)
 
 	// Generar nuevo token con las credenciales actualizadas y dejar al usuario logueado
 	newToken, err := GenerateToken(&user)
@@ -309,7 +309,7 @@ func updateProfileAPIHandler(c *fiber.Ctx) error {
 	}
 
 	userID := user.ID
-		InsertLog("INFO", fmt.Sprintf("Usuario %s actualizó su perfil", user.Username), "auth", &userID)
+		InsertLog("INFO", LogMsg("Perfil actualizado", user.Username), "auth", &userID)
 	return c.JSON(fiber.Map{"message": "Perfil actualizado"})
 }
 
@@ -343,7 +343,7 @@ func updatePreferencesAPIHandler(c *fiber.Ctx) error {
 	}
 
 	userID := user.ID
-		InsertLog("INFO", fmt.Sprintf("Usuario %s actualizó sus preferencias", user.Username), "auth", &userID)
+		InsertLog("INFO", LogMsg("Preferencias actualizadas", user.Username), "auth", &userID)
 	return c.JSON(fiber.Map{"message": "Preferencias actualizadas"})
 }
 
