@@ -34,8 +34,8 @@ func main() {
 	}
 	config.Normalize(i18n.LogTf)
 
-	if err := InitI18n("locales"); err != nil {
-		LogTf("logs.i18n_init_warning", err)
+	if err := i18n.Init("locales"); err != nil {
+		i18n.LogTf("logs.i18n_init_warning", err)
 	}
 
 	if err := initDatabase(); err != nil {
@@ -55,7 +55,7 @@ func main() {
 	// Iniciar autoconexión WiFi en segundo plano
 	go func() {
 		// Esperar menos tiempo (5 segundos es suficiente)
-		LogTf("logs.wifi_auto_wait")
+		i18n.LogTf("logs.wifi_auto_wait")
 		time.Sleep(5 * time.Second)
 
 		// Intentar detectar interfaz (menos intentos, más rápido)
@@ -103,12 +103,12 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := app.ShutdownWithContext(ctx); err != nil {
-			LogTf("logs.server_shutdown_error", err)
+			i18n.LogTf("logs.server_shutdown_error", err)
 		}
 		os.Exit(0)
 	}()
 
-	LogTf("logs.server_ready", addr)
+	i18n.LogTf("logs.server_ready", addr)
 
 	// Si hay TLS configurado y los ficheros existen, levantar en HTTPS directamente.
 	if config.AppConfig.Server.TLSCertFile != "" && config.AppConfig.Server.TLSKeyFile != "" {
