@@ -21,6 +21,7 @@ import (
 	"hostberry/internal/models"
 	"hostberry/internal/validators"
 	webtemplates "hostberry/internal/templates"
+	"hostberry/internal/wifi"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
@@ -873,7 +874,7 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	result := connectWiFi(req.SSID, req.Password, interfaceName, country, username)
+	result := wifi.ConnectWiFi(req.SSID, req.Password, interfaceName, country, username)
 
 	if _, hasSuccess := result["success"]; !hasSuccess {
 		result["success"] = false
