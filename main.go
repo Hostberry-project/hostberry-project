@@ -491,7 +491,7 @@ func systemStatsHandler(c *fiber.Ctx) error {
 }
 
 func systemRestartHandler(c *fiber.Ctx) error {
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
