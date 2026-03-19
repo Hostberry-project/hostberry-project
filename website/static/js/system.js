@@ -68,7 +68,11 @@
 
   async function fetchSystemStats() {
     try {
-      const [statsResp, infoResp] = await Promise.all([api('/api/v1/system/stats'), api('/api/v1/system/info')]);
+      const [statsResp, infoResp, httpsResp] = await Promise.all([
+        api('/api/v1/system/stats'),
+        api('/api/v1/system/info'),
+        api('/api/v1/system/https-info')
+      ]);
 
       if (!statsResp || !statsResp.ok) throw new Error('Stats request failed');
       const statsPayload = await statsResp.json();
@@ -77,6 +81,31 @@
       // Manejar diferentes formatos de respuesta
       const stats = statsPayload?.data || statsPayload?.stats || statsPayload || {};
       const info = infoPayload?.data || infoPayload?.info || infoPayload || {};
+
+      // HTTPS status info (puede fallar sin romper el resto)
+      if (httpsResp && httpsResp.ok) {
+        const httpsInfo = await httpsResp.json().catch(() => ({}));
+        const isHttps = !!httpsInfo.is_https;
+        const badgeEl = document.getElementById('https-status-badge');
+        const textEl = document.getElementById('https-status-text');
+        if (badgeEl) {
+          badgeEl.classList.remove('bg-secondary', 'bg-success', 'bg-warning', 'bg-danger');
+          if (isHttps) {
+            badgeEl.classList.add('bg-success');
+            badgeEl.textContent = 'HTTPS';
+          } else {
+            badgeEl.classList.add('bg-warning', 'text-dark');
+            badgeEl.textContent = 'HTTP';
+          }
+        }
+        if (textEl) {
+          if (isHttps) {
+            textEl.textContent = t('https.secure_https_ok', 'Secure HTTPS connection active.');
+          } else {
+            textEl.textContent = t('https.insecure_http_warning', 'Warning: You are accessing HostBerry over HTTP (not encrypted).');
+          }
+        }
+      }
 
       // CPU
       const cpuUsage = Number(stats.cpu_usage ?? stats.cpu_percent ?? stats.cpu ?? 0) || 0;
