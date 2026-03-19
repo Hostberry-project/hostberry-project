@@ -336,6 +336,8 @@
     "login_success": "Sesión iniciada exitosamente",
     "login_failed": "Error al iniciar sesión",
     "logout_success": "Sesión cerrada exitosamente",
+    "logout_all_devices": "Cerrar sesión en todos los dispositivos",
+    "logout_all_confirm": "¿Seguro que quieres cerrar todas las sesiones activas en todos los dispositivos?",
     "password_changed": "Contraseña cambiada exitosamente",
     "password_mismatch": "Las contraseñas no coinciden",
     "invalid_credentials": "Credenciales inválidas",
