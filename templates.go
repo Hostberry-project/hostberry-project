@@ -16,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/i18n"
 )
 
 func registerTemplateFuncs(engine *html.Engine) {
