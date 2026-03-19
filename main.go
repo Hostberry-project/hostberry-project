@@ -285,12 +285,13 @@ func setupRoutes(app *fiber.App) {
 		auth := api.Group("/auth")
 		{
 			auth.Post("/login", loginAPIHandler)
-			auth.Post("/logout", middleware.RequireAuth, logoutAPIHandler)
-			auth.Get("/me", middleware.RequireAuth, meHandler)
-			auth.Post("/change-password", middleware.RequireAuth, changePasswordAPIHandler)
-			auth.Post("/first-login/change", firstLoginChangeAPIHandler)
-			auth.Post("/profile", middleware.RequireAuth, updateProfileAPIHandler)
-			auth.Post("/preferences", middleware.RequireAuth, updatePreferencesAPIHandler)
+			auth.Post("/login", auth.LoginAPIHandler)
+			auth.Post("/logout", middleware.RequireAuth, auth.LogoutAPIHandler)
+			auth.Get("/me", middleware.RequireAuth, auth.MeHandler)
+			auth.Post("/change-password", middleware.RequireAuth, auth.ChangePasswordAPIHandler)
+			auth.Post("/first-login/change", auth.FirstLoginChangeAPIHandler)
+			auth.Post("/profile", middleware.RequireAuth, auth.UpdateProfileAPIHandler)
+			auth.Post("/preferences", middleware.RequireAuth, auth.UpdatePreferencesAPIHandler)
 		}
 
 		system := api.Group("/system", middleware.RequireAuth)
