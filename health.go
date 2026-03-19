@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/constants"
+	"hostberry/internal/i18n"
 	"hostberry/internal/metrics"
 )
 
