@@ -3,9 +3,17 @@ package main
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+)
+
+// Contadores simples de peticiones HTTP por clase de estado.
+var (
+	httpRequests2xx uint64
+	httpRequests4xx uint64
+	httpRequests5xx uint64
 )
 
 func requireAuth(c *fiber.Ctx) error {
@@ -172,6 +180,15 @@ func loggingMiddleware(c *fiber.Ctx) error {
 	method := c.Method()
 	ip := c.IP()
 	status := c.Response().StatusCode()
+
+	// Actualizar contadores de métricas HTTP por clase de código.
+	if status >= 200 && status < 300 {
+		atomic.AddUint64(&httpRequests2xx, 1)
+	} else if status >= 400 && status < 500 {
+		atomic.AddUint64(&httpRequests4xx, 1)
+	} else if status >= 500 {
+		atomic.AddUint64(&httpRequests5xx, 1)
+	}
 
 	userID := c.Locals("user_id")
 	var userIDPtr *int
