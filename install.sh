@@ -2108,6 +2108,9 @@ show_final_info() {
 
     if [ "$MODE" = "install" ] && [ -n "$GENERATED_ADMIN_PASSWORD" ]; then
         print_warning "Login inicial: admin / ${GENERATED_ADMIN_PASSWORD} (se ha guardado también en ${INSTALL_DIR}/INSTALL_CREDENTIALS.txt)"
+        if [ "$(is_default_route_over_wifi)" = "1" ]; then
+            print_warning "Aviso: Estás accediendo probablemente por WiFi. Para evitar cortes de conexión, el reinicio automático se ha desactivado. Reinicia manualmente cuando te convenga (por ejemplo, desde una sesión por cable)."
+        fi
     else
         print_warning "Login:  admin / admin (cámbiala)"
     fi
