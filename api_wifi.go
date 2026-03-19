@@ -909,7 +909,7 @@ func wifiLegacyScanHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	user, ok := userInterface.(*User)
+	user, ok := userInterface.(*models.User)
 	if !ok || user == nil {
 		log.Printf("ERROR: Usuario inválido en wifiLegacyScanHandler")
 		return c.Status(401).JSON(fiber.Map{
