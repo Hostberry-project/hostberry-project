@@ -67,7 +67,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 	database.InsertLog("INFO", database.LogMsg("Inicio de sesión correcto", user.Username), "auth", &userID)
 
 	// Primer login o credenciales por defecto (admin/admin): forzar cambio de contraseña en first-login
-	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && CheckPassword("admin", user.Password))
+	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && auth.CheckPassword("admin", user.Password))
 
 	cookieExpiry := time.Duration(config.AppConfig.Security.TokenExpiry) * time.Minute
 	secure := false
@@ -150,11 +150,11 @@ func changePasswordAPIHandler(c *fiber.Ctx) error {
 	if req.CurrentPassword == "" || req.NewPassword == "" {
 		return c.Status(400).JSON(fiber.Map{"error": i18n.T(c, "auth.passwords_required", "Passwords required")})
 	}
-	if !CheckPassword(req.CurrentPassword, user.Password) {
+	if !auth.CheckPassword(req.CurrentPassword, user.Password) {
 		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.incorrect_current_password", "Current password is incorrect")})
 	}
 
-	hashed, err := HashPassword(req.NewPassword)
+	hashed, err := auth.HashPassword(req.NewPassword)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
 	}
@@ -236,7 +236,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	hashed, err := HashPassword(req.NewPassword)
+	hashed, err := auth.HashPassword(req.NewPassword)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Error hasheando contraseña",
