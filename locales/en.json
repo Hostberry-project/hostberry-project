@@ -1772,6 +1772,11 @@
     "insecure_http_warning": "Warning: You are accessing HostBerry over HTTP (not encrypted). For better security, configure HTTPS (for example behind Nginx or enabling TLS in config.yaml).",
     "secure_https_ok": "Secure HTTPS connection active."
   },
+  "system": {
+    "https_status": "HTTPS Status",
+    "https_hint_1": "To enable HTTPS directly, set tls_cert_file and tls_key_file in config.yaml (server section).",
+    "https_hint_2": "Alternatively, put HostBerry behind a reverse proxy (Nginx, Traefik) with TLS enabled."
+  },
   "logs": {
     "config_load_error": "Error loading configuration: %v",
     "i18n_init_warning": "⚠️  Warning: Error initializing i18n: %v",
