@@ -32,6 +32,7 @@ import (
 	hostapdHandlers "hostberry/internal/hostapd"
 	netHandlers "hostberry/internal/network"
 	vpnHandlers "hostberry/internal/vpn"
+	torHandlers "hostberry/internal/tor"
 )
 
 var templatesFS embed.FS
