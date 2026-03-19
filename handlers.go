@@ -1405,7 +1405,7 @@ func profilePageHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	configs, _ := GetAllConfigs()
+	configs, _ := database.GetAllConfigs()
 	configsJSON, _ := json.Marshal(configs)
 	return renderTemplate(c, "profile", fiber.Map{
 		"Title": i18n.T(c, "auth.profile", "Profile"),
@@ -1490,7 +1490,7 @@ func systemLogsHandler(c *fiber.Ctx) error {
 		offset = 0
 	}
 
-	logs, total, err := GetLogs(level, limit, offset)
+	logs, total, err := database.GetLogs(level, limit, offset)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": err.Error(),

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/database"
 	"hostberry/internal/i18n"
 )
 
@@ -45,7 +46,7 @@ func systemConfigHandler(c *fiber.Ctx) error {
 			valueStr = fmt.Sprintf("%v", v)
 		}
 		
-		if err := SetConfig(key, valueStr); err != nil {
+		if err := database.SetConfig(key, valueStr); err != nil {
 			i18n.LogTf("logs.config_save_error", key, err)
 			errors = append(errors, fmt.Sprintf("Error guardando %s", key))
 		}
