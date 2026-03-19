@@ -24,6 +24,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/vpn** | Lógica VPN: OpenVPN y WireGuard (`GetVPNStatus`, `GetOpenVPNConfig`, `ConnectVPN`, `ConfigureWireGuard`, etc.). |
 | **internal/system** | Lógica del sistema: info/estadísticas y acciones como `SystemRestart`/`SystemShutdown`. |
 | **internal/tor** | Lógica Tor: instalación/configuración/iptables (`GetTorStatus`, `InstallTor`, `ConfigureTor`, `EnableTorIptables`, etc.). |
+| **internal/hostapd** | Lógica Hostapd: APs/clients/configuración/diagnósticos y operaciones sobre hostapd. |
 
 ## Uso desde `package main`
 
@@ -38,7 +39,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 
 ## Raíz del módulo
 
-En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers) y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`; la lógica WiFi en `internal/wifi`, VPN en `internal/vpn`, Tor en `internal/tor`, AdBlock en `internal/adblock`, red en `internal/network` y sistema en `internal/system`.)
+En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers) y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`; la lógica WiFi en `internal/wifi`, VPN en `internal/vpn`, Tor en `internal/tor`, AdBlock en `internal/adblock`, red en `internal/network`, sistema en `internal/system` y hostapd en `internal/hostapd`.)
 
 Se eliminó `api_compat.go` (estaba vacío; la compatibilidad se cubre en otros módulos).
 
