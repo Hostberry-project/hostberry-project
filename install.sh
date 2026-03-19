@@ -1994,6 +1994,7 @@ Type=simple
 User=${USER_NAME}
 Group=${GROUP_NAME}
 WorkingDirectory=${INSTALL_DIR}
+Environment=HOSTBERRY_DEFAULT_ADMIN_PASSWORD=${GENERATED_ADMIN_PASSWORD}
 ExecStart=${INSTALL_DIR}/hostberry
 Restart=always
 RestartSec=10
