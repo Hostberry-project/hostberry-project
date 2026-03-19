@@ -535,7 +535,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 			if !found {
 				// No se encontró archivo de configuración - no traducir, es debug interno
 				// Último recurso: usar connectWiFi
-				country := DefaultCountryCode
+				country := constants.DefaultCountryCode
 				result := connectWiFi(ssid, "", interfaceName, country, "system")
 				if success, ok := result["success"].(bool); ok && success {
 					LogTf("logs.wifi_auto_success", ssid)
@@ -564,7 +564,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 	if err := startWpaSupplicant(interfaceName, wpaConfigPath, runDir); err != nil {
 		LogTf("logs.wifi_wpa_start_error", err)
 		LogT("logs.wifi_trying_connect")
-		country := DefaultCountryCode
+		country := constants.DefaultCountryCode
 		result := connectWiFi(ssid, "", interfaceName, country, "system")
 		if success, ok := result["success"].(bool); ok && success {
 			LogTf("logs.wifi_auto_success", ssid)
