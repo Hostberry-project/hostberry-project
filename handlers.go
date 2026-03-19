@@ -17,6 +17,7 @@ import (
 	"hostberry/internal/constants"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
+	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	"hostberry/internal/validators"
 	webtemplates "hostberry/internal/templates"
