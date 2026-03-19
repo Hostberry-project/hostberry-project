@@ -45,6 +45,8 @@ func main() {
 	i18n.LogTln("logs.checking_admin")
 	utils.CreateDefaultAdmin()
 
+	i18n.LogTf("logs.wifi_setup_token_info", wifisetup.HeaderName, wifisetup.QueryParam, wifisetup.TokenForDisplay())
+
 	wifi.StartWiFiAutoConnectDaemon()
 
 	app := server.CreateApp(templatesFS, staticFS)
