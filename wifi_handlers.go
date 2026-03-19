@@ -124,7 +124,7 @@ func stopWpaSupplicant(interfaceName string) {
 		}
 	}
 
-	for _, dir := range []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"} {
+	for _, dir := range WpaSocketDirs {
 		executeCommand(fmt.Sprintf("sudo rm -f %s/%s 2>/dev/null || true", dir, interfaceName))
 	}
 }
@@ -262,7 +262,7 @@ func waitForWpaCliConnection(interfaceName string, maxAttempts int) (string, err
 	if activeRunDir != "" {
 		socketDirs = append(socketDirs, activeRunDir)
 	}
-	socketDirs = append(socketDirs, "/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant")
+	socketDirs = append(socketDirs, WpaSocketDirs...)
 	seen := map[string]bool{}
 	uniqueDirs := []string{}
 	for _, dir := range socketDirs {
@@ -576,7 +576,7 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 	if appConfig.Server.Debug { log.Printf("Paso 4: Deteniendo wpa_supplicant existente...") }
 	stopWpaSupplicant(interfaceName)
 	
-	socketDirs := []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"}
+	socketDirs := WpaSocketDirs
 	for _, socketDir := range socketDirs {
 		socketFile := fmt.Sprintf("%s/%s", socketDir, interfaceName)
 		executeCommand(fmt.Sprintf("sudo rm -f %s 2>/dev/null || true", socketFile))
