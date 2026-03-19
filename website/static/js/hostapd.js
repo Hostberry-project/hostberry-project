@@ -45,8 +45,8 @@
       // Intentar obtener el estado del servicio
       const resp = await HostBerry.apiRequest('/api/v1/system/services');
       if (resp && resp.ok) {
-        const data = await resp.json();
-        const hostapd = data.services?.hostapd || {};
+        const data = await resp.json().catch(function () { return {}; });
+        const hostapd = (data && data.services && data.services.hostapd) ? data.services.hostapd : {};
         const enabled = hostapd.enabled === true || hostapd.enabled === 'enabled'; // Si está habilitado para iniciar al arranque
         const running = hostapd.status === 'active' || hostapd.active === true; // Si está corriendo actualmente
         
