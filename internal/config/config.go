@@ -54,6 +54,8 @@ type SecurityConfig struct {
 	// Permite llamar a /api/v1/wifi/{status,scan,connect,disconnect} sin JWT usando cabecera
 	// X-HostBerry-WiFi-Setup-Token o ?wifi_setup_token= (solo para automatización / recuperación).
 	WifiSetupToken string `yaml:"wifi_setup_token"`
+	// CORSAllowOrigins: orígenes adicionales permitidos con credenciales (proxy, otro hostname, etc.).
+	CORSAllowOrigins []string `yaml:"cors_allow_origins"`
 }
 
 // AppConfig es la configuración cargada (acceso global desde el resto del paquete main).

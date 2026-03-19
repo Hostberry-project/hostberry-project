@@ -29,10 +29,15 @@ func isUnsafeMethod(method string) bool {
 // Permite requests mutantes autenticadas por cookie solo desde mismo origen.
 // Mitiga CSRF cuando no se usa Authorization: Bearer.
 func isSameOriginForCookieAuth(c *fiber.Ctx) bool {
+	// Navegadores modernos marcan peticiones cross-site (p. ej. formularios maliciosos).
+	if strings.EqualFold(strings.TrimSpace(c.Get("Sec-Fetch-Site")), "cross-site") {
+		return false
+	}
+
 	origin := strings.TrimSpace(c.Get("Origin"))
 	referer := strings.TrimSpace(c.Get("Referer"))
 
-	// Si no hay cabeceras de origen/referer no bloqueamos para no romper clientes legacy.
+	// Si no hay cabeceras de origen/referer no bloqueamos para no romper clientes legacy (curl, integraciones).
 	if origin == "" && referer == "" {
 		return true
 	}
