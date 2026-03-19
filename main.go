@@ -99,7 +99,7 @@ func main() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, os.Interrupt, syscall.SIGTERM)
 		<-sigint
-		LogTln("logs.server_stopping")
+		i18n.LogTln("logs.server_stopping")
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := app.ShutdownWithContext(ctx); err != nil {
@@ -191,7 +191,7 @@ func createApp() *fiber.App {
 
 	app.Use(loggingMiddleware)
 
-	app.Use(LanguageMiddleware)
+	app.Use(i18n.LanguageMiddleware)
 
 	app.Use(requestIDMiddleware)
 
