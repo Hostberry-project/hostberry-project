@@ -185,7 +185,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	var user User
+ var user models.User
 	if err := db.Where("id = ? AND is_active = ?", claims.UserID, true).First(&user).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{
 			"error": T(c, "auth.user_not_found", "User not found"),
