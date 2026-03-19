@@ -150,6 +150,11 @@ func isLanguageSupported(lang string) bool {
 	return false
 }
 
+// Ready indica si el gestor de idiomas está inicializado (para health checks).
+func Ready() bool {
+	return manager != nil
+}
+
 // GetCurrentLanguage devuelve el idioma actual según cookie, query o Accept-Language.
 func GetCurrentLanguage(c *fiber.Ctx) string {
 	if manager == nil {
