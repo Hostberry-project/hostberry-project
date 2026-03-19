@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"hostberry/internal/config"
+	"hostberry/internal/database"
 	"hostberry/internal/models"
 	"hostberry/internal/validators"
 )
@@ -94,7 +95,7 @@ func CheckPassword(password, hash string) bool {
 
 func getMaxLoginAttempts() int {
 	defaultAttempts := 3
-	raw, err := GetConfig("max_login_attempts")
+	raw, err := database.GetConfig("max_login_attempts")
 	if err != nil {
 		return defaultAttempts
 	}
@@ -140,7 +141,7 @@ func Login(username, password string) (*models.User, string, error) {
 		// Desbloqueo automático: ya pasó el tiempo
 		user.FailedAttempts = 0
 		user.LockedUntil = nil
-		_ = db.Save(&user).Error
+		_ = database.DB.Save(&user).Error
 	}
 
 	if !CheckPassword(password, user.Password) {
@@ -149,7 +150,7 @@ func Login(username, password string) (*models.User, string, error) {
 			until := now.Add(time.Duration(lockoutMin) * time.Minute)
 			user.LockedUntil = &until
 		}
-		_ = db.Save(&user).Error
+		_ = database.DB.Save(&user).Error
 		if user.FailedAttempts >= maxAttempts {
 			if user.LockedUntil != nil {
 				return nil, "", &models.LoginError{Key: "auth.too_many_attempts_time", Default: "demasiados intentos fallidos. Cuenta bloqueada " + strconv.Itoa(lockoutMin) + " minutos.", Args: []interface{}{lockoutMin}}
@@ -162,7 +163,7 @@ func Login(username, password string) (*models.User, string, error) {
 	if !strings.HasPrefix(user.Password, "$2a$") && !strings.HasPrefix(user.Password, "$2b$") {
 		if hashed, err := HashPassword(password); err == nil {
 			user.Password = hashed
-			_ = db.Save(&user).Error
+			_ = database.DB.Save(&user).Error
 		}
 	}
 
