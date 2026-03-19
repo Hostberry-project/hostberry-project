@@ -372,7 +372,7 @@ func systemShutdownHandler(c *fiber.Ctx) error {
 	}
 
 	if err, ok := result["error"].(string); ok {
-		InsertLog("ERROR", LogMsgErr("apagar sistema", err, user.Username), "system", &userID)
+		database.InsertLog("ERROR", database.LogMsgErr("apagar sistema", err, user.Username), "system", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": err})
 	}
 
@@ -895,7 +895,7 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 		errorMsg = errorMsgVal
 	}
 	if userID != nil {
-		InsertLog("ERROR", LogMsgErr("conectar WiFi a "+req.SSID, errorMsg, username), "wifi", userID)
+		database.InsertLog("ERROR", database.LogMsgErr("conectar WiFi a "+req.SSID, errorMsg, username), "wifi", userID)
 	}
 	return c.Status(500).JSON(fiber.Map{
 		"success": false,
@@ -928,7 +928,7 @@ func vpnConnectHandler(c *fiber.Ctx) error {
 		return c.JSON(result)
 	}
 	if errorMsg, ok := result["error"].(string); ok {
-		InsertLog("ERROR", LogMsgErr("conectar VPN ("+req.Type+")", errorMsg, user.Username), "vpn", &userID)
+		database.InsertLog("ERROR", database.LogMsgErr("conectar VPN ("+req.Type+")", errorMsg, user.Username), "vpn", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
 	}
 	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
@@ -1280,7 +1280,7 @@ func torConfigureHandler(c *fiber.Ctx) error {
 	}
 
 	if errorMsg, ok := result["error"].(string); ok {
-		InsertLog("ERROR", LogMsgErr("configurar Tor", errorMsg, user.Username), "tor", &userID)
+		database.InsertLog("ERROR", database.LogMsgErr("configurar Tor", errorMsg, user.Username), "tor", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
 	}
 
@@ -1388,7 +1388,7 @@ func profilePageHandler(c *fiber.Ctx) error {
 	if !ok {
 		return c.Redirect("/login")
 	}
-	logs, _, _ := GetLogs("all", 10, 0)
+	logs, _, _ := database.GetLogs("all", 10, 0)
 	type activity struct {
 		Action      string
 		Timestamp   string
