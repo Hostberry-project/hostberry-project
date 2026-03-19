@@ -151,7 +151,7 @@
         try {
             const servicesResp = await apiRequestFn('/api/v1/system/services');
             if (servicesResp && servicesResp.ok) {
-                const servicesData = await servicesResp.json();
+                const servicesData = await servicesResp.json().catch(function () { return {}; });
                 const services = servicesData.services || {};
                 
                 // HostAPD
@@ -219,9 +219,8 @@
         try {
             const resp = await apiRequestFn('/api/v1/system/services');
             if (!resp || !resp.ok) throw new Error('Services request failed');
-            
-            const data = await resp.json();
-            const services = data.services || {};
+            const data = await resp.json().catch(function () { return {}; });
+            const services = (data && data.services) ? data.services : {};
             
             // Actualizar estado de servicios en System Health
             if (services.wireguard) {

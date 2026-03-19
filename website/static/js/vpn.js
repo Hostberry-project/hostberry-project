@@ -67,7 +67,7 @@
     try {
       const resp = await api('/api/v1/vpn/clients');
       if (resp && resp.ok) {
-        const clients = await resp.json();
+        const clients = await resp.json().catch(function () { return []; });
         const tbody = document.getElementById('clientsTable');
         if (!tbody) return;
         tbody.innerHTML = '';
