@@ -108,10 +108,10 @@ func main() {
 	LogTf("logs.server_ready", addr)
 
 	// Si hay TLS configurado y los ficheros existen, levantar en HTTPS directamente.
-	if appConfig.Server.TLSCertFile != "" && appConfig.Server.TLSKeyFile != "" {
-		if _, err := os.Stat(appConfig.Server.TLSCertFile); err == nil {
-			if _, err := os.Stat(appConfig.Server.TLSKeyFile); err == nil {
-				if err := app.ListenTLS(addr, appConfig.Server.TLSCertFile, appConfig.Server.TLSKeyFile); err != nil {
+	if config.AppConfig.Server.TLSCertFile != "" && config.AppConfig.Server.TLSKeyFile != "" {
+		if _, err := os.Stat(config.AppConfig.Server.TLSCertFile); err == nil {
+			if _, err := os.Stat(config.AppConfig.Server.TLSKeyFile); err == nil {
+				if err := app.ListenTLS(addr, config.AppConfig.Server.TLSCertFile, config.AppConfig.Server.TLSKeyFile); err != nil {
 					LogTfatal("logs.server_start_error", err)
 				}
 				return
