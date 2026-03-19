@@ -44,7 +44,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 	result := toggleWiFi(interfaceName, isBlocked)
 
 	if success, ok := result["success"].(bool); ok && success {
-		database.InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente", user.Username), "wifi", &userID)
+		database.InsertLog("INFO", database.LogMsg("WiFi activado o desactivado correctamente", user.Username), "wifi", &userID)
 		return c.JSON(result)
 	}
 
@@ -83,7 +83,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 					}
 				}
 			}
-			database.InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente (rfkill)", user.Username), "wifi", &userID)
+			database.InsertLog("INFO", database.LogMsg("WiFi activado o desactivado correctamente (rfkill)", user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": "WiFi toggle exitoso"})
 		}
 	}
@@ -110,12 +110,12 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 			execCommand(fmt.Sprintf("ip link set %s up 2>/dev/null", iface)).Run()
 			execCommand(fmt.Sprintf("ifconfig %s up 2>/dev/null", iface)).Run()
 			time.Sleep(1 * time.Second)
-			database.InsertLog("INFO", LogMsg("WiFi activado en interfaz "+iface, user.Username), "wifi", &userID)
+			database.InsertLog("INFO", database.LogMsg("WiFi activado en interfaz "+iface, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": fmt.Sprintf("WiFi activado en interfaz %s", iface)})
 		} else {
 			iwCmd := fmt.Sprintf("ifconfig %s down", iface)
 			execCommand(iwCmd + " 2>/dev/null").Run()
-			database.InsertLog("INFO", LogMsg("WiFi desactivado en interfaz "+iface, user.Username), "wifi", &userID)
+			database.InsertLog("INFO", database.LogMsg("WiFi desactivado en interfaz "+iface, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": fmt.Sprintf("WiFi desactivado en interfaz %s", iface)})
 		}
 	}
@@ -177,7 +177,7 @@ func wifiUnblockHandler(c *fiber.Ctx) error {
 	if success {
 		time.Sleep(1 * time.Second)
 
-		database.InsertLog("INFO", LogMsg("WiFi desbloqueado correctamente", user.Username), "wifi", &userID)
+		database.InsertLog("INFO", database.LogMsg("WiFi desbloqueado correctamente", user.Username), "wifi", &userID)
 		return c.JSON(fiber.Map{"success": true, "message": "WiFi desbloqueado exitosamente"})
 	}
 
@@ -252,7 +252,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	}
 
 	message := fmt.Sprintf("Switch de software %s exitosamente", action)
-	database.InsertLog("INFO", LogMsg("Conmutador de software WiFi "+action+" correctamente", user.Username), "wifi", &userID)
+	database.InsertLog("INFO", database.LogMsg("Conmutador de software WiFi "+action+" correctamente", user.Username), "wifi", &userID)
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": message,
@@ -296,14 +296,14 @@ func wifiConfigHandler(c *fiber.Ctx) error {
 				verifyOutput := strings.TrimSpace(string(verifyOut))
 
 				if strings.Contains(verifyOutput, req.Region) || output == "" {
-					database.InsertLog("INFO", LogMsg("Región WiFi cambiada a "+req.Region, user.Username), "wifi", &userID)
+					database.InsertLog("INFO", database.LogMsg("Región WiFi cambiada a "+req.Region, user.Username), "wifi", &userID)
 					return c.JSON(fiber.Map{"success": true, "message": "Región WiFi cambiada exitosamente a " + req.Region})
 				}
 			}
 
 			crdaCmd := exec.Command("sh", "-c", fmt.Sprintf("echo 'REGDOMAIN=%s' | sudo tee /etc/default/crda >/dev/null 2>&1", req.Region))
 			if crdaCmd.Run() == nil {
-				database.InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (crda)", user.Username), "wifi", &userID)
+				database.InsertLog("INFO", database.LogMsg("Región WiFi configurada a "+req.Region+" (crda)", user.Username), "wifi", &userID)
 				exec.Command("sh", "-c", "sudo nmcli radio wifi off 2>/dev/null").Run()
 				time.Sleep(1 * time.Second)
 				exec.Command("sh", "-c", "sudo nmcli radio wifi on 2>/dev/null").Run()
@@ -312,14 +312,14 @@ func wifiConfigHandler(c *fiber.Ctx) error {
 
 			regdomCmd := exec.Command("sh", "-c", fmt.Sprintf("echo '%s' | sudo tee /etc/conf.d/wireless-regdom >/dev/null 2>&1", req.Region))
 			if regdomCmd.Run() == nil {
-				database.InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (wireless-regdom)", user.Username), "wifi", &userID)
+				database.InsertLog("INFO", database.LogMsg("Región WiFi configurada a "+req.Region+" (wireless-regdom)", user.Username), "wifi", &userID)
 				return c.JSON(fiber.Map{"success": true, "message": "Región WiFi configurada. Reinicia WiFi o el sistema para aplicar cambios."})
 			}
 		}
 
 		crdaCmd2 := exec.Command("sh", "-c", fmt.Sprintf("echo 'REGDOMAIN=%s' | sudo tee /etc/default/crda >/dev/null 2>&1", req.Region))
 		if crdaCmd2.Run() == nil {
-			database.InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region, user.Username), "wifi", &userID)
+			database.InsertLog("INFO", database.LogMsg("Región WiFi configurada a "+req.Region, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": "Región WiFi configurada. Reinicia WiFi para aplicar cambios."})
 		}
 
@@ -960,7 +960,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 
 		if disconnectErr == nil {
 			if userID != nil {
-				database.InsertLog("INFO", LogMsg("Desconexión WiFi de "+connectionName, username), "wifi", userID)
+				database.InsertLog("INFO", database.LogMsg("Desconexión WiFi de "+connectionName, username), "wifi", userID)
 			}
 			return c.JSON(fiber.Map{"success": true, "message": "Disconnected from " + connectionName})
 		}
@@ -979,7 +979,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 
 			if deviceDisconnectErr == nil {
 				if userID != nil {
-					database.InsertLog("INFO", LogMsg("Dispositivo WiFi desconectado: "+deviceName, username), "wifi", userID)
+					database.InsertLog("INFO", database.LogMsg("Dispositivo WiFi desconectado: "+deviceName, username), "wifi", userID)
 				}
 				return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi device " + deviceName})
 			}
@@ -1013,7 +1013,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	}
 
 	if userID != nil {
-		database.InsertLog("INFO", LogMsg("Desconexión WiFi (método alternativo)", username), "wifi", userID)
+		database.InsertLog("INFO", database.LogMsg("Desconexión WiFi (método alternativo)", username), "wifi", userID)
 	}
 	return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi"})
 }
