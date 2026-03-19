@@ -44,11 +44,10 @@
         throw new Error(`Request failed ${resp.status}: ${errText}`);
       }
       
-      const data = await resp.json();
-      if(!data){
+      const data = await resp.json().catch(function () { return null; });
+      if (!data) {
         throw new Error('Empty response from server');
       }
-      
       return data;
     } catch (error) {
       console.error('Error en fetchJson:', url, error);
