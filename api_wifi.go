@@ -705,11 +705,12 @@ func wifiLegacyStatusHandler(c *fiber.Ctx) error {
 							} else {
 								signalPart := fields[0]
 								signalStr := strings.TrimSpace(signalPart)
-							signalStr = strings.TrimSuffix(signalStr, "dBm")
-							signalStr = strings.TrimSpace(signalStr)
-							if signalStr != "" && signalStr != "0" {
-								connectionInfo["signal"] = signalStr
-								log.Printf("Found signal from iwconfig: %s", signalStr)
+								signalStr = strings.TrimSuffix(signalStr, "dBm")
+								signalStr = strings.TrimSpace(signalStr)
+								if signalStr != "" && signalStr != "0" {
+									connectionInfo["signal"] = signalStr
+									log.Printf("Found signal from iwconfig: %s", signalStr)
+								}
 							}
 						}
 					}
@@ -718,11 +719,13 @@ func wifiLegacyStatusHandler(c *fiber.Ctx) error {
 					if strings.Contains(iwconfigStr, "Channel:") {
 						parts := strings.Split(iwconfigStr, "Channel:")
 						if len(parts) > 1 {
-							channelPart := strings.Fields(parts[1])[0]
-							channelStr := strings.TrimSpace(channelPart)
-							if channelStr != "" {
-								connectionInfo["channel"] = channelStr
-								log.Printf("Found channel from iwconfig: %s", channelStr)
+							channelFields := strings.Fields(parts[1])
+							if len(channelFields) > 0 {
+								channelStr := strings.TrimSpace(channelFields[0])
+								if channelStr != "" {
+									connectionInfo["channel"] = channelStr
+									log.Printf("Found channel from iwconfig: %s", channelStr)
+								}
 							}
 						}
 					}
