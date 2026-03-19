@@ -85,13 +85,22 @@ Este documento recoge un resumen de mejoras arquitectónicas, de seguridad, oper
 - **4.2 Endpoint de métricas (NUEVO, COMPLETADO)**
   - `GET /metrics`:
     - Implementado en `health.go:metricsHandler` y registrado en `main.go:setupRoutes`.
-    - Devuelve texto plano en formato tipo Prometheus:
-      - `hostberry_up 1`
-      - `hostberry_build_info{version="2.0.0",go_version="go1.x"} 1`
-      - `hostberry_mem_bytes <bytes>`
-      - `hostberry_goroutines <n>`
-      - `hostberry_unix_time_seconds <timestamp>`
-    - No expone información sensible (ni usuarios, ni tokens, ni configuraciones privadas).
+    - Devuelve texto plano en formato tipo Prometheus, sin información sensible:
+      - **Estado general y build**:
+        - `hostberry_up 1`
+        - `hostberry_build_info{version="2.0.0",go_version="go1.x"} 1`
+        - `hostberry_unix_time_seconds <timestamp>`
+      - **Uso de recursos**:
+        - `hostberry_mem_bytes <bytes>`
+        - `hostberry_goroutines <n>`
+      - **Tráfico HTTP por clase de estado**:
+        - `hostberry_http_requests_total{code_class="2xx"} <n>`
+        - `hostberry_http_requests_total{code_class="4xx"} <n>`
+        - `hostberry_http_requests_total{code_class="5xx"} <n>`
+      - **Estado de servicios de red**:
+        - `hostberry_service_up{service="hostapd"} 0|1` (via `systemctl is-active hostapd`)
+        - `hostberry_service_up{service="dnsmasq"} 0|1`
+        - `hostberry_wifi_interface_up{interface="wlan0"} 0|1` (estado UP/DOWN de la interfaz WiFi principal)
 
 ### 5. Próximas mejoras sugeridas (pendientes)
 
