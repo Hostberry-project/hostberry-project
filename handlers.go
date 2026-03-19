@@ -13,9 +13,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
-	"hostberry/internal/models"
 	"hostberry/internal/constants"
+	"hostberry/internal/database"
 	"hostberry/internal/i18n"
+	"hostberry/internal/models"
 	"hostberry/internal/validators"
 )
 
