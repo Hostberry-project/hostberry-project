@@ -1082,7 +1082,7 @@ func wireguardConfigHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 	config := req.Config
-	return RunActionWithUser(c, "wireguard", "WireGuard configurado correctamente", "configurar WireGuard", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "wireguard", "WireGuard configurado correctamente", "configurar WireGuard", func(user *models.User) map[string]interface{} {
 		return configureWireGuard(config, user.Username)
 	})
 }
@@ -1093,13 +1093,13 @@ func adblockStatusHandler(c *fiber.Ctx) error {
 }
 
 func adblockEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "AdBlock habilitado correctamente", "habilitar AdBlock", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "AdBlock habilitado correctamente", "habilitar AdBlock", func(user *models.User) map[string]interface{} {
 		return enableAdBlock(user.Username)
 	})
 }
 
 func adblockDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "AdBlock deshabilitado correctamente", "deshabilitar AdBlock", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "AdBlock deshabilitado correctamente", "deshabilitar AdBlock", func(user *models.User) map[string]interface{} {
 		return disableAdBlock(user.Username)
 	})
 }
@@ -1111,7 +1111,7 @@ func dnscryptStatusHandler(c *fiber.Ctx) error {
 }
 
 func dnscryptInstallHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "DNSCrypt instalado correctamente", "instalar DNSCrypt", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt instalado correctamente", "instalar DNSCrypt", func(user *models.User) map[string]interface{} {
 		return installDNSCrypt(user.Username)
 	})
 }
@@ -1128,19 +1128,19 @@ func dnscryptConfigureHandler(c *fiber.Ctx) error {
 	if req.ServerName == "" {
 		req.ServerName = "adguard-dns"
 	}
-	return RunActionWithUser(c, "adblock", "DNSCrypt configurado correctamente", "configurar DNSCrypt", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt configurado correctamente", "configurar DNSCrypt", func(user *models.User) map[string]interface{} {
 		return configureDNSCrypt(req.ServerName, req.BlockAds, user.Username)
 	})
 }
 
 func dnscryptEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "DNSCrypt habilitado correctamente", "habilitar DNSCrypt", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt habilitado correctamente", "habilitar DNSCrypt", func(user *models.User) map[string]interface{} {
 		return enableDNSCrypt(user.Username)
 	})
 }
 
 func dnscryptDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "DNSCrypt deshabilitado correctamente", "deshabilitar DNSCrypt", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "DNSCrypt deshabilitado correctamente", "deshabilitar DNSCrypt", func(user *models.User) map[string]interface{} {
 		return disableDNSCrypt(user.Username)
 	})
 }
@@ -1157,7 +1157,7 @@ func blockyConfigHandler(c *fiber.Ctx) error {
 }
 
 func blockyInstallHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "Blocky instalado correctamente", "instalar Blocky", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky instalado correctamente", "instalar Blocky", func(user *models.User) map[string]interface{} {
 		return installBlocky(user.Username)
 	})
 }
@@ -1170,19 +1170,19 @@ func blockyConfigureHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
 	}
-	return RunActionWithUser(c, "adblock", "Blocky configurado correctamente", "configurar Blocky", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky configurado correctamente", "configurar Blocky", func(user *models.User) map[string]interface{} {
 		return configureBlocky(req.Upstreams, req.BlockLists, user.Username)
 	})
 }
 
 func blockyEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "Blocky habilitado correctamente", "habilitar Blocky", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky habilitado correctamente", "habilitar Blocky", func(user *models.User) map[string]interface{} {
 		return enableBlocky(user.Username)
 	})
 }
 
 func blockyDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "adblock", "Blocky deshabilitado correctamente", "deshabilitar Blocky", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "adblock", "Blocky deshabilitado correctamente", "deshabilitar Blocky", func(user *models.User) map[string]interface{} {
 		return disableBlocky(user.Username)
 	})
 }
@@ -1213,7 +1213,7 @@ func torStatusHandler(c *fiber.Ctx) error {
 }
 
 func torInstallHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Tor instalado correctamente", "instalar Tor", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Tor instalado correctamente", "instalar Tor", func(user *models.User) map[string]interface{} {
 		return installTor(user.Username)
 	})
 }
@@ -1285,25 +1285,25 @@ func torConfigureHandler(c *fiber.Ctx) error {
 }
 
 func torEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Tor habilitado correctamente", "habilitar Tor", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Tor habilitado correctamente", "habilitar Tor", func(user *models.User) map[string]interface{} {
 		return enableTor(user.Username)
 	})
 }
 
 func torIptablesEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Red torificada correctamente", "torificar red", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Red torificada correctamente", "torificar red", func(user *models.User) map[string]interface{} {
 		return enableTorIptables(user.Username)
 	})
 }
 
 func torIptablesDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Torificación de red desactivada correctamente", "desactivar torificación de red", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Torificación de red desactivada correctamente", "desactivar torificación de red", func(user *models.User) map[string]interface{} {
 		return disableTorIptables(user.Username)
 	})
 }
 
 func torDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Tor deshabilitado correctamente", "deshabilitar Tor", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Tor deshabilitado correctamente", "deshabilitar Tor", func(user *models.User) map[string]interface{} {
 		return disableTor(user.Username)
 	})
 }
