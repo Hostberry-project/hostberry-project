@@ -126,6 +126,46 @@ func LogoutAPIHandler(c *fiber.Ctx) error {
 	})
 }
 
+// LogoutAllSessionsAPIHandler invalida todos los JWT activos del usuario.
+// Estrategia: incrementar token_version en BD para revocar tokens emitidos previamente.
+func LogoutAllSessionsAPIHandler(c *fiber.Ctx) error {
+	user, ok := getUserFromLocals(c)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.unauthorized", "Unauthorized")})
+	}
+
+	nextVersion := user.TokenVersion + 1
+	if nextVersion < 2 {
+		nextVersion = 2
+	}
+
+	if err := database.DB.Model(user).Update("token_version", nextVersion).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
+	}
+	user.TokenVersion = nextVersion
+
+	secure := false
+	if c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https") {
+		secure = true
+	}
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		HTTPOnly: true,
+		SameSite: "Strict",
+		Secure:   secure,
+		MaxAge:   -1,
+	})
+
+	userID := user.ID
+	database.InsertLog("INFO", database.LogMsg("Cierre de sesión global en todos los dispositivos", user.Username), "auth", &userID)
+
+	return c.JSON(fiber.Map{
+		"message": "Sesiones cerradas en todos los dispositivos",
+	})
+}
+
 func MeHandler(c *fiber.Ctx) error {
 	user, ok := getUserFromLocals(c)
 	if !ok {
