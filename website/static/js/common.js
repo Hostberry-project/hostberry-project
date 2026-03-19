@@ -433,6 +433,20 @@
 
     setupSidebarToggle();
     setupSessionKeepAlive();
+
+    // Aviso HTTP/HTTPS: solo mostrar si se está en HTTP (sin TLS)
+    try{
+      var isSecure = window.location.protocol === 'https:' ||
+        (window.location.port === '' && window.location.protocol === 'https:');
+      var warnEl = document.getElementById('hb-https-warning');
+      if(warnEl){
+        if(!isSecure){
+          warnEl.style.display = 'block';
+        }else{
+          warnEl.style.display = 'none';
+        }
+      }
+    }catch(_e){}
     
     const el = document.getElementById('hb-current-username');
     const token = localStorage.getItem('access_token');
