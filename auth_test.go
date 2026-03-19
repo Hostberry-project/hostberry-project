@@ -3,13 +3,16 @@ package main
 import (
 	"testing"
 	"time"
+
+	"hostberry/internal/config"
+	"hostberry/internal/models"
 )
 
 // TestGenerateAndValidateToken comprueba que un token generado con GenerateToken
 // se puede validar con ValidateToken y que contiene el UserID correcto.
 func TestGenerateAndValidateToken(t *testing.T) {
-	appConfig = Config{
-		Security: SecurityConfig{
+	config.AppConfig = &config.Config{
+		Security: config.SecurityConfig{
 			JWTSecret:    "test-secret",
 			TokenExpiry:  5,
 			BcryptCost:   4,
@@ -17,7 +20,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 		},
 	}
 
-	u := &User{
+	u := &models.User{
 		ID:        42,
 		Username:  "testuser",
 		CreatedAt: time.Now(),
