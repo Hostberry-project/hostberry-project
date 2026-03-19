@@ -41,12 +41,12 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 	result := toggleWiFi(interfaceName, isBlocked)
 
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", fmt.Sprintf("WiFi toggle exitoso (usuario: %s)", user.Username), "wifi", &userID)
+		InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente", user.Username), "wifi", &userID)
 		return c.JSON(result)
 	}
 
 	if errorMsg, ok := result["error"].(string); ok && errorMsg != "" {
-		InsertLog("ERROR", fmt.Sprintf("Error en WiFi toggle (usuario: %s): %s", user.Username, errorMsg), "wifi", &userID)
+		InsertLog("ERROR", LogMsgErr("cambiar estado WiFi", errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
@@ -80,7 +80,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 					}
 				}
 			}
-			InsertLog("INFO", fmt.Sprintf("WiFi toggle exitoso usando rfkill con sudo (usuario: %s)", user.Username), "wifi", &userID)
+			InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente (rfkill)", user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": "WiFi toggle exitoso"})
 		}
 	}
@@ -107,7 +107,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 			execCommand(fmt.Sprintf("ip link set %s up 2>/dev/null", iface)).Run()
 			execCommand(fmt.Sprintf("ifconfig %s up 2>/dev/null", iface)).Run()
 			time.Sleep(1 * time.Second)
-			InsertLog("INFO", fmt.Sprintf("WiFi activado usando ifconfig/ip en interfaz %s (usuario: %s)", iface, user.Username), "wifi", &userID)
+			InsertLog("INFO", LogMsg("WiFi activado en interfaz "+iface, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": fmt.Sprintf("WiFi activado en interfaz %s", iface)})
 		} else {
 			iwCmd := fmt.Sprintf("ifconfig %s down", iface)
