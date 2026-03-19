@@ -57,7 +57,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 	}
 
 	userID := user.ID
-	InsertLog("INFO", fmt.Sprintf("Usuario %s inició sesión", user.Username), "auth", &userID)
+	InsertLog("INFO", LogMsg("Inicio de sesión correcto", user.Username), "auth", &userID)
 
 	// Primer login o credenciales por defecto (admin/admin): forzar cambio de contraseña en first-login
 	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && CheckPassword("admin", user.Password))
@@ -96,7 +96,7 @@ func logoutAPIHandler(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": T(c, "auth.unauthorized", "Unauthorized")})
 	}
 	userID := user.ID
-	InsertLog("INFO", fmt.Sprintf("Usuario %s cerró sesión", user.Username), "auth", &userID)
+	InsertLog("INFO", LogMsg("Cierre de sesión", user.Username), "auth", &userID)
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
