@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gorm.io/driver/sqlite"
@@ -150,6 +151,33 @@ func InsertLog(level, message, source string, userID *int) error {
 		UserID:  userID,
 	}
 	return db.Create(&log).Error
+}
+
+// LogMsg unifica el formato de mensajes: "Descripción clara. Usuario: nombre."
+// Si user está vacío (ej. wizard), devuelve solo "Descripción clara."
+func LogMsg(action, user string) string {
+	action = strings.TrimRight(action, ".")
+	if user == "" {
+		return action + "."
+	}
+	return action + ". Usuario: " + user + "."
+}
+
+// LogMsgErr formato para errores: "Error al [acción]: motivo. Usuario: nombre."
+func LogMsgErr(action, reason, user string) string {
+	action = strings.TrimRight(action, ".")
+	if user == "" {
+		return "Error al " + action + ": " + reason + "."
+	}
+	return "Error al " + action + ": " + reason + ". Usuario: " + user + "."
+}
+
+// LogMsgWarn formato para advertencias: "Advertencia: descripción. Usuario: nombre."
+func LogMsgWarn(desc, user string) string {
+	if user == "" {
+		return "Advertencia: " + desc + "."
+	}
+	return "Advertencia: " + desc + ". Usuario: " + user + "."
 }
 
 func GetLogs(level string, limit, offset int) ([]SystemLog, int64, error) {
