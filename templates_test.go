@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"hostberry/internal/config"
+	webtemplates "hostberry/internal/templates"
 )
 
 func TestTemplatesLoad(t *testing.T) {
@@ -11,7 +12,7 @@ func TestTemplatesLoad(t *testing.T) {
 		Server: config.ServerConfig{Debug: false},
 	}
 
-	engine := createTemplateEngine()
+	engine := webtemplates.CreateTemplateEngine(templatesFS)
 	if engine == nil {
 		t.Fatal("engine de templates es nil")
 	}
