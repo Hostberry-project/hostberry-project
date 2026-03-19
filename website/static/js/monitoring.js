@@ -130,9 +130,10 @@
   async function updateStats(){
     try{
       if(updateStats._retryCount) updateStats._retryCount = 0;
-      const [systemStatsResp, networkStatsResp] = await Promise.all([
+      const [systemStatsResp, networkStatsResp, metricsResp] = await Promise.all([
         fetchJson('/api/v1/system/stats'),
-        fetchJson(`/api/v1/system/network${selectedInterface ? `?interface=${encodeURIComponent(selectedInterface)}` : ''}`)
+        fetchJson(`/api/v1/system/network${selectedInterface ? `?interface=${encodeURIComponent(selectedInterface)}` : ''}`),
+        fetchJson('/api/v1/system/metrics')
       ]);
       
       // Manejar respuesta de system stats (puede venir directamente o envuelta)
@@ -251,6 +252,33 @@
       setText('net-packets', `${packetsSent} / ${packetsRecv}`);
       
       pushNetHistory(downloadSpeed, uploadSpeed);
+
+      // Actualizar métricas HTTP y servicios si están disponibles
+      if(metricsResp && typeof metricsResp === 'object'){
+        if(typeof metricsResp.http_2xx === 'number') setText('mon-http-2xx', String(metricsResp.http_2xx));
+        if(typeof metricsResp.http_4xx === 'number') setText('mon-http-4xx', String(metricsResp.http_4xx));
+        if(typeof metricsResp.http_5xx === 'number') setText('mon-http-5xx', String(metricsResp.http_5xx));
+
+        const hostapdBadge = document.getElementById('mon-hostapd-status');
+        const dnsmasqBadge = document.getElementById('mon-dnsmasq-status');
+        const wifiBadge = document.getElementById('mon-wifi-status');
+
+        const setBadge = (el, up) => {
+          if(!el) return;
+          el.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
+          if(up){
+            el.classList.add('bg-success');
+            el.textContent = 'UP';
+          }else{
+            el.classList.add('bg-danger');
+            el.textContent = 'DOWN';
+          }
+        };
+
+        if(typeof metricsResp.hostapd_up === 'boolean') setBadge(hostapdBadge, metricsResp.hostapd_up);
+        if(typeof metricsResp.dnsmasq_up === 'boolean') setBadge(dnsmasqBadge, metricsResp.dnsmasq_up);
+        if(typeof metricsResp.wifi_up === 'boolean') setBadge(wifiBadge, metricsResp.wifi_up);
+      }
 
       setText('monitoring-last-update', new Date().toLocaleTimeString());
       ensureNetChart();
