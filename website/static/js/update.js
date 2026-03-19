@@ -176,7 +176,7 @@
       notify('info', t('update.updating_system', 'Updating system...'));
       addLogEntry(t('update.updating_system', 'Updating system...'), 'info');
 
-      const resp = await api('/api/v1/system/updates/execute', { method: 'POST' });
+      const resp = await api('/api/v1/system/updates/execute', { method: 'POST', sourceElement: document.getElementById('action-update-system') });
       if (resp && (resp.status === 404 || resp.status === 405 || resp.status === 501)) {
         const msg = t('errors.not_implemented', 'Not implemented');
         notify('warning', msg);
@@ -205,7 +205,7 @@
       notify('info', t('update.updating_project', 'Updating project...'));
       addLogEntry(t('update.updating_project', 'Updating project...'), 'info');
 
-      const resp = await api('/api/v1/system/updates/project', { method: 'POST' });
+      const resp = await api('/api/v1/system/updates/project', { method: 'POST', sourceElement: document.getElementById('action-update-project') });
       if (resp && (resp.status === 404 || resp.status === 405 || resp.status === 501)) {
         const msg = t('errors.not_implemented', 'Not implemented');
         notify('warning', msg);
