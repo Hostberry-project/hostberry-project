@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
+	middleware "hostberry/internal/middleware"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
 )
@@ -22,7 +23,7 @@ func systemConfigHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
