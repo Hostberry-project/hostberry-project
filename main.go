@@ -314,11 +314,11 @@ func setupRoutes(app *fiber.App) {
 		{
 			network.Get("/status", networkStatusHandler)
 			network.Get("/interfaces", networkInterfacesHandler)
-			network.Get("/routing", networkRoutingHandler)
-			network.Post("/firewall/toggle", middleware.RequireAdmin, networkFirewallToggleHandler)
+			network.Get("/routing", netHandlers.NetworkRoutingHandler)
+			network.Post("/firewall/toggle", middleware.RequireAdmin, netHandlers.NetworkFirewallToggleHandler)
 			network.Post("/speedtest", middleware.RequireAdmin, networkSpeedtestHandler)
-			network.Get("/config", networkConfigHandler)
-			network.Post("/config", networkConfigHandler)
+			network.Get("/config", netHandlers.NetworkConfigHandler)
+			network.Post("/config", netHandlers.NetworkConfigHandler)
 		}
 
 		wifi := api.Group("/wifi", middleware.RequireAuth)
