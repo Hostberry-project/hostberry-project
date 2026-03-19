@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os/exec"
 	"runtime"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -102,6 +105,16 @@ func metricsHandler(c *fiber.Ctx) error {
 	// NOTA: no exponemos información sensible (ni usuarios, ni tokens, etc.).
 	now := time.Now().Unix()
 
+	// Lectura atomica de contadores HTTP
+	req2xx := atomic.LoadUint64(&httpRequests2xx)
+	req4xx := atomic.LoadUint64(&httpRequests4xx)
+	req5xx := atomic.LoadUint64(&httpRequests5xx)
+
+	// Estado de servicios del sistema (hostapd/dnsmasq) y WiFi
+	hostapdUp := serviceIsActive("hostapd")
+	dnsmasqUp := serviceIsActive("dnsmasq")
+	wifiIfaceUp := wifiInterfaceUp()
+
 	body := "" +
 		"# HELP hostberry_up 1 si la aplicación está respondiendo.\n" +
 		"# TYPE hostberry_up gauge\n" +
@@ -117,8 +130,46 @@ func metricsHandler(c *fiber.Ctx) error {
 		"hostberry_goroutines " + fmt.Sprintf("%d", runtime.NumGoroutine()) + "\n\n" +
 		"# HELP hostberry_unix_time_seconds Marca de tiempo UNIX del último scrape.\n" +
 		"# TYPE hostberry_unix_time_seconds gauge\n" +
-		"hostberry_unix_time_seconds " + fmt.Sprintf("%d", now) + "\n"
+		"hostberry_unix_time_seconds " + fmt.Sprintf("%d", now) + "\n\n" +
+		"# HELP hostberry_http_requests_total Número total de peticiones HTTP por clase de código.\n" +
+		"# TYPE hostberry_http_requests_total counter\n" +
+		"hostberry_http_requests_total{code_class=\"2xx\"} " + fmt.Sprintf("%d", req2xx) + "\n" +
+		"hostberry_http_requests_total{code_class=\"4xx\"} " + fmt.Sprintf("%d", req4xx) + "\n" +
+		"hostberry_http_requests_total{code_class=\"5xx\"} " + fmt.Sprintf("%d", req5xx) + "\n\n" +
+		"# HELP hostberry_service_up Estado de servicios del sistema (1=activo, 0=no activo).\n" +
+		"# TYPE hostberry_service_up gauge\n" +
+		"hostberry_service_up{service=\"hostapd\"} " + fmt.Sprintf("%d", hostapdUp) + "\n" +
+		"hostberry_service_up{service=\"dnsmasq\"} " + fmt.Sprintf("%d", dnsmasqUp) + "\n\n" +
+		"# HELP hostberry_wifi_interface_up Indica si la interfaz WiFi principal está activa (1=UP,0=no).\n" +
+		"# TYPE hostberry_wifi_interface_up gauge\n" +
+		"hostberry_wifi_interface_up{interface=\"" + DefaultWiFiInterface + "\"} " + fmt.Sprintf("%d", wifiIfaceUp) + "\n"
 
 	c.Set(fiber.HeaderContentType, "text/plain; charset=utf-8")
 	return c.SendString(body)
+}
+
+// serviceIsActive devuelve 1 si systemd reporta el servicio como "active", 0 en caso contrario.
+func serviceIsActive(name string) int {
+	cmd := exec.Command("systemctl", "is-active", name)
+	out, err := cmd.Output()
+	if err != nil {
+		return 0
+	}
+	state := strings.TrimSpace(string(out))
+	if state == "active" {
+		return 1
+	}
+	return 0
+}
+
+// wifiInterfaceUp devuelve 1 si la interfaz WiFi principal está UP, 0 en caso contrario.
+func wifiInterfaceUp() int {
+	if DefaultWiFiInterface == "" {
+		return 0
+	}
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null | grep -q 'state UP'", DefaultWiFiInterface))
+	if err := cmd.Run(); err == nil {
+		return 1
+	}
+	return 0
 }
