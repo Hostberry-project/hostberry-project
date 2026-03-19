@@ -664,9 +664,9 @@
       let ap0Exists = false;
       
       if (resp && resp.ok) {
-        const data = await resp.json();
+        const data = await resp.json().catch(function () { return {}; });
         let interfaces = [];
-        if (Array.isArray(data)) {
+        if (data && Array.isArray(data)) {
           interfaces = data;
         } else if (data.interfaces && Array.isArray(data.interfaces)) {
           interfaces = data.interfaces;
@@ -716,8 +716,8 @@
     try {
       const resp = await HostBerry.apiRequest('/api/v1/hostapd/config');
       if (resp && resp.ok) {
-        const result = await resp.json();
-        if (result.success && result.config) {
+        const result = await resp.json().catch(function () { return {}; });
+        if (result && result.success && result.config) {
           const config = result.config;
           
           // Rellenar campos del formulario
