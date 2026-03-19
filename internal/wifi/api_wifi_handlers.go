@@ -1,4 +1,4 @@
-package main
+package wifi
 
 import (
 	"encoding/json"
@@ -15,8 +15,16 @@ import (
 	"hostberry/internal/database"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
-	"hostberry/internal/wifi"
+	"hostberry/internal/utils"
+	"os/exec"
 )
+
+// Wrappers para compatibilidad con lógica original desde `package main`.
+func execCommand(cmd string) *exec.Cmd { return utils.ExecCommand(cmd) }
+
+func executeCommand(cmd string) (string, error) { return utils.ExecuteCommand(cmd) }
+
+func filterSudoErrors(output []byte) string { return utils.FilterSudoErrors(output) }
 
 func wifiNetworksHandler(c *fiber.Ctx) error {
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
