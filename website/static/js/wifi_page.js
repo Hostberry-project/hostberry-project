@@ -373,16 +373,16 @@
             icon.className = statusData.enabled ? 'bi bi-wifi-off' : 'bi bi-wifi';
           }
         }
-          await loadConnectionStatus();
-          } else {
+        await loadConnectionStatus();
+      } else {
         showAlert('danger', translateError(data.error) || t('wifi.toggle_error', 'Error toggling WiFi'));
       }
     } catch (error) {
       console.error(t('wifi.toggle_error', 'Error toggling WiFi') + ':', error);
       showAlert('danger', t('wifi.toggle_error', 'Error toggling WiFi'));
-      } finally {
-          btn.disabled = false;
-      text.textContent = originalText;
+    } finally {
+      btn.disabled = false;
+      if (text) text.textContent = originalText;
     }
   }
   
