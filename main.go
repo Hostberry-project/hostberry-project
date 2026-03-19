@@ -31,6 +31,7 @@ import (
 	sys "hostberry/internal/system"
 	hostapdHandlers "hostberry/internal/hostapd"
 	netHandlers "hostberry/internal/network"
+	vpnHandlers "hostberry/internal/vpn"
 )
 
 var templatesFS embed.FS
@@ -340,15 +341,15 @@ func setupRoutes(app *fiber.App) {
 		vpn := api.Group("/vpn", middleware.RequireAuth)
 		{
 			vpn.Get("/status", vpnStatusHandler)
-			vpn.Get("/config", vpnGetConfigHandler)
+			vpn.Get("/config", vpnHandlers.VpnGetConfigHandler)
 			vpn.Post("/connect", vpnConnectHandler)
-			vpn.Get("/connections", vpnConnectionsHandler)
-			vpn.Get("/servers", vpnServersHandler)
-			vpn.Get("/clients", vpnClientsHandler)
-			vpn.Post("/toggle", middleware.RequireAdmin, vpnToggleHandler)
-			vpn.Post("/config", middleware.RequireAdmin, vpnConfigHandler)
-			vpn.Post("/connections/:name/toggle", middleware.RequireAdmin, vpnConnectionToggleHandler)
-			vpn.Post("/certificates/generate", middleware.RequireAdmin, vpnCertificatesGenerateHandler)
+			vpn.Get("/connections", vpnHandlers.VpnConnectionsHandler)
+			vpn.Get("/servers", vpnHandlers.VpnServersHandler)
+			vpn.Get("/clients", vpnHandlers.VpnClientsHandler)
+			vpn.Post("/toggle", middleware.RequireAdmin, vpnHandlers.VpnToggleHandler)
+			vpn.Post("/config", middleware.RequireAdmin, vpnHandlers.VpnConfigHandler)
+			vpn.Post("/connections/:name/toggle", middleware.RequireAdmin, vpnHandlers.VpnConnectionToggleHandler)
+			vpn.Post("/certificates/generate", middleware.RequireAdmin, vpnHandlers.VpnCertificatesGenerateHandler)
 		}
 
 		hostapd := api.Group("/hostapd", middleware.RequireAuth)
