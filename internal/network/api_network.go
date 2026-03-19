@@ -626,6 +626,9 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 				iface := ""
 				if ifaceOut, err := ifaceCmd.Output(); err == nil {
 					iface = strings.TrimSpace(string(ifaceOut))
+					if validators.ValidateIfaceName(iface) != nil {
+						iface = ""
+					}
 				}
 
 				if iface != "" {
