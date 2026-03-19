@@ -202,24 +202,24 @@
                 </div>
                 <div class="actions-card-body">
                     <div class="action-buttons">
-                        <button class="btn btn-primary" id="action-backup">
-                            <i class="bi bi-hdd-network me-2"></i>
+                        <button class="btn btn-primary" id="action-backup" data-requires-admin="true" aria-label="{{ call .t "system.backup" "Backup" }}">
+                            <i class="bi bi-hdd-network me-2" aria-hidden="true"></i>
                             {{ call .t "system.backup" "Backup" }}
                         </button>
-                        <button class="btn btn-success" id="action-update-system">
-                            <i class="bi bi-arrow-up-circle me-2"></i>
+                        <button class="btn btn-success" id="action-update-system" data-requires-admin="true" aria-label="{{ call .t "update.update_system" "Actualizar Debian" }}">
+                            <i class="bi bi-arrow-up-circle me-2" aria-hidden="true"></i>
                             {{ call .t "update.update_system" "Actualizar Debian" }}
                         </button>
-                        <button class="btn btn-info" id="action-update-project">
-                            <i class="bi bi-code-slash me-2"></i>
+                        <button class="btn btn-info" id="action-update-project" data-requires-admin="true" aria-label="{{ call .t "update.update_project" "Actualizar HostBerry" }}">
+                            <i class="bi bi-code-slash me-2" aria-hidden="true"></i>
                             {{ call .t "update.update_project" "Actualizar HostBerry" }}
                         </button>
-                        <button class="btn btn-warning" id="action-restart">
-                            <i class="bi bi-arrow-clockwise me-2"></i>
+                        <button class="btn btn-warning" id="action-restart" data-requires-admin="true" aria-label="{{ call .t "system.restart" "Restart" }}">
+                            <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>
                             {{ call .t "system.restart" "Restart" }}
                         </button>
-                        <button class="btn btn-danger" id="action-shutdown">
-                            <i class="bi bi-power me-2"></i>
+                        <button class="btn btn-danger" id="action-shutdown" data-requires-admin="true" aria-label="{{ call .t "system.shutdown" "Shutdown" }}">
+                            <i class="bi bi-power me-2" aria-hidden="true"></i>
                             {{ call .t "system.shutdown" "Shutdown" }}
                         </button>
                     </div>
