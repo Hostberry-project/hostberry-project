@@ -19,6 +19,7 @@ import (
 	"hostberry/internal/i18n"
 	"hostberry/internal/models"
 	"hostberry/internal/validators"
+	webtemplates "hostberry/internal/templates"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
