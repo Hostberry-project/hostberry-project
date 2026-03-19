@@ -50,6 +50,10 @@ type SecurityConfig struct {
 	RateLimitRPS   int    `yaml:"rate_limit_rps"`
 	LockoutMinutes int    `yaml:"lockout_minutes"`
 	EnforceHTTPS   bool   `yaml:"enforce_https"`
+	// WifiSetupToken: si está vacío tras cargar config, se genera uno por arranque (ver logs).
+	// Permite llamar a /api/v1/wifi/{status,scan,connect,disconnect} sin JWT usando cabecera
+	// X-HostBerry-WiFi-Setup-Token o ?wifi_setup_token= (solo para automatización / recuperación).
+	WifiSetupToken string `yaml:"wifi_setup_token"`
 }
 
 // AppConfig es la configuración cargada (acceso global desde el resto del paquete main).

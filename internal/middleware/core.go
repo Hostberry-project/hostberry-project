@@ -14,6 +14,7 @@ import (
 	"hostberry/internal/metrics"
 	webtemplates "hostberry/internal/templates"
 	"hostberry/internal/models"
+	"hostberry/internal/wifisetup"
 )
 
 func isUnsafeMethod(method string) bool {
