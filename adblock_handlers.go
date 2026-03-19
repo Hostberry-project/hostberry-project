@@ -721,8 +721,8 @@ func installBlocky(user string) map[string]interface{} {
 		result["error"] = fmt.Sprintf("Error creando archivo temporal: %v", err)
 		return result
 	}
+	defer tarballFile.Close()
 	_, err = io.Copy(tarballFile, resp.Body)
-	tarballFile.Close()
 	if err != nil {
 		os.Remove(tarballPath)
 		result["success"] = false
