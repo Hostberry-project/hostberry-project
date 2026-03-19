@@ -62,3 +62,11 @@ func validateHostapdPOST(req *HostapdConfigBody) error {
 	}
 	return nil
 }
+
+// validateHostapdPhyName opcional: tras autodetectar phy desde el sistema.
+func validateHostapdPhyName(phyName string) error {
+	if phyName == "" {
+		return fiber.NewError(400, "No se pudo determinar el dispositivo phy WiFi")
+	}
+	return validators.ValidatePhyName(phyName)
+}

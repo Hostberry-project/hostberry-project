@@ -140,6 +140,18 @@ func ValidateDhcpLeaseTime(s string) error {
 	return nil
 }
 
+// phyNameRegex: nombres devueltos por nl80211 (phy0, phy1, …).
+var phyNameRegex = regexp.MustCompile(`^phy[0-9]+$`)
+
+// ValidatePhyName comprueba un identificador wiphy antes de usarlo en `iw phy`.
+func ValidatePhyName(phy string) error {
+	phy = strings.TrimSpace(phy)
+	if !phyNameRegex.MatchString(phy) {
+		return fiber.NewError(400, "Identificador phy inválido")
+	}
+	return nil
+}
+
 // ifaceNameRegex: nombres de interfaz Linux habituales (IFNAMSIZ ≤ 16, sin espacios ni metacaracteres de shell).
 var ifaceNameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._@-]{0,14}$`)
 
