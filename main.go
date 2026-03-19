@@ -328,7 +328,7 @@ func setupRoutes(app *fiber.App) {
 			wifi.Get("/scan", wifiScanHandler)
 			wifi.Post("/scan", wifiScanHandler)
 			wifi.Get("/interfaces", wifiInterfacesHandler)
-			wifi.Post("/connect", wifiConnectHandler)
+			wifi.Post("/connect", wifiHandlers.WifiConnectHandler)
 			wifi.Post("/disconnect", wifiHandlers.WifiLegacyDisconnectHandler)
 			wifi.Get("/networks", wifiHandlers.WifiNetworksHandler)
 			wifi.Get("/clients", wifiHandlers.WifiClientsHandler)
@@ -340,9 +340,9 @@ func setupRoutes(app *fiber.App) {
 
 		vpn := api.Group("/vpn", middleware.RequireAuth)
 		{
-			vpn.Get("/status", vpnStatusHandler)
+			vpn.Get("/status", vpnHandlers.VpnStatusHandler)
 			vpn.Get("/config", vpnHandlers.VpnGetConfigHandler)
-			vpn.Post("/connect", vpnConnectHandler)
+			vpn.Post("/connect", vpnHandlers.VpnConnectHandler)
 			vpn.Get("/connections", vpnHandlers.VpnConnectionsHandler)
 			vpn.Get("/servers", vpnHandlers.VpnServersHandler)
 			vpn.Get("/clients", vpnHandlers.VpnClientsHandler)
