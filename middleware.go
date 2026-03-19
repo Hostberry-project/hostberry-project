@@ -105,7 +105,7 @@ func requireAuth(c *fiber.Ctx) error {
 	}
 
 	var user models.User
-	if err := db.First(&user, claims.UserID).Error; err != nil {
+	if err := database.DB.First(&user, claims.UserID).Error; err != nil {
 		i18n.LogTf("logs.middleware_user_not_found", claims.UserID, err)
 		if strings.HasPrefix(path, "/api/") {
 			return c.Status(401).JSON(fiber.Map{
@@ -175,7 +175,7 @@ func RunActionWithUser(c *fiber.Ctx, source, successAction, errorActionPrefix st
 	userID := user.ID
 	result := action(user)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", LogMsg(successAction, user.Username), source, &userID)
+		database.InsertLog("INFO", database.LogMsg(successAction, user.Username), source, &userID)
 		return c.JSON(result)
 	}
 	if errorMsg, ok := result["error"].(string); ok {
