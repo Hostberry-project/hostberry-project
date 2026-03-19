@@ -28,5 +28,10 @@ func requestIDMiddleware(c *fiber.Ctx) error {
 }
 
 func generateSimpleID() string {
-	return hex.EncodeToString([]byte{byte(time.Now().Unix() % 256)})
+	// Fallback cuando rand.Read falla: tiempo + pid para reducir colisiones
+	b := make([]byte, 8)
+	for i := range b {
+		b[i] = byte(time.Now().UnixNano() >> (i * 8))
+	}
+	return hex.EncodeToString(b)
 }
