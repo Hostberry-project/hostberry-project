@@ -352,14 +352,14 @@ func setupRoutes(app *fiber.App) {
 
 		hostapd := api.Group("/hostapd", middleware.RequireAuth)
 		{
-			hostapd.Get("/access-points", hostapd.HostapdAccessPointsHandler)
-			hostapd.Get("/clients", hostapd.HostapdClientsHandler)
-			hostapd.Get("/config", hostapd.HostapdGetConfigHandler)
-			hostapd.Get("/diagnostics", hostapd.HostapdDiagnosticsHandler)
-			hostapd.Post("/create-ap0", middleware.RequireAdmin, hostapd.HostapdCreateAp0Handler)
-			hostapd.Post("/toggle", middleware.RequireAdmin, hostapd.HostapdToggleHandler)
-			hostapd.Post("/restart", middleware.RequireAdmin, hostapd.HostapdRestartHandler)
-			hostapd.Post("/config", middleware.RequireAdmin, hostapd.HostapdConfigHandler)
+			hostapd.Get("/access-points", hostapdHandlers.HostapdAccessPointsHandler)
+			hostapd.Get("/clients", hostapdHandlers.HostapdClientsHandler)
+			hostapd.Get("/config", hostapdHandlers.HostapdGetConfigHandler)
+			hostapd.Get("/diagnostics", hostapdHandlers.HostapdDiagnosticsHandler)
+			hostapd.Post("/create-ap0", middleware.RequireAdmin, hostapdHandlers.HostapdCreateAp0Handler)
+			hostapd.Post("/toggle", middleware.RequireAdmin, hostapdHandlers.HostapdToggleHandler)
+			hostapd.Post("/restart", middleware.RequireAdmin, hostapdHandlers.HostapdRestartHandler)
+			hostapd.Post("/config", middleware.RequireAdmin, hostapdHandlers.HostapdConfigHandler)
 		}
 
 		help := api.Group("/help", middleware.RequireAuth)
