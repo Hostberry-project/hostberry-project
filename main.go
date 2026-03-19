@@ -11,7 +11,12 @@ import (
 	server "hostberry/internal/server"
 )
 
+// Embebemos templates y estáticos para reducir lecturas a disco en Raspberry Pi.
+// Esto acelera la carga inicial y evita depender de rutas en filesystem.
+//go:embed website/templates
 var templatesFS embed.FS
+
+//go:embed website/static
 var staticFS embed.FS
 
 func main() {
