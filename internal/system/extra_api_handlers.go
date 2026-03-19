@@ -52,7 +52,7 @@ func currentUserInfo(c *fiber.Ctx) (string, *int) {
 	return user.Username, &id
 }
 
-func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
+func SystemUpdatesExecuteHandler(c *fiber.Ctx) error {
 	username, userID := currentUserInfo(c)
 	_ = database.InsertLog("INFO", database.LogMsg("Actualización del sistema iniciada", username), "system", userID)
 
@@ -87,7 +87,7 @@ func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
 	})
 }
 
-func systemUpdatesProjectHandler(c *fiber.Ctx) error {
+func SystemUpdatesProjectHandler(c *fiber.Ctx) error {
 	username, userID := currentUserInfo(c)
 	repoPath, err := os.Getwd()
 	if err != nil {
@@ -138,7 +138,7 @@ func getConfigValue(key string) string {
 	return strings.TrimSpace(value)
 }
 
-func systemNotificationsTestEmailHandler(c *fiber.Ctx) error {
+func SystemNotificationsTestEmailHandler(c *fiber.Ctx) error {
 	var req struct {
 		To string `json:"to"`
 	}
@@ -216,7 +216,7 @@ func systemNotificationsTestEmailHandler(c *fiber.Ctx) error {
 	})
 }
 
-func adblockListsHandler(c *fiber.Ctx) error {
+func AdblockListsHandler(c *fiber.Ctx) error {
 	disabled := getDisabledAdblockLists()
 	lastUpdate := getConfigValue("adblock_last_update")
 	if lastUpdate == "" {
@@ -237,7 +237,7 @@ func adblockListsHandler(c *fiber.Ctx) error {
 	return c.JSON(lists)
 }
 
-func adblockDomainsHandler(c *fiber.Ctx) error {
+func AdblockDomainsHandler(c *fiber.Ctx) error {
 	base := readBlockedDomainsFromHosts(400)
 	overrides := getAdblockDomainOverrides()
 
@@ -265,7 +265,7 @@ func adblockDomainsHandler(c *fiber.Ctx) error {
 	return c.JSON(domains)
 }
 
-func adblockUpdateHandler(c *fiber.Ctx) error {
+func AdblockUpdateHandler(c *fiber.Ctx) error {
 	username, userID := currentUserInfo(c)
 
 	if _, err := executeCommand("sudo systemctl reload dnsmasq 2>/dev/null || sudo systemctl restart dnsmasq 2>/dev/null || true"); err != nil {
