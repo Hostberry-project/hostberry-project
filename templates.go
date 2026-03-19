@@ -179,7 +179,7 @@ func createTemplateEngine() *html.Engine {
 					}
 					
 					if !allCriticalFound {
-						LogT("logs.templates_embedded_incomplete")
+						i18n.LogT("logs.templates_embedded_incomplete")
 						err = fmt.Errorf("templates críticos faltantes")
 					} else {
 						engine = html.NewFileSystem(http.FS(tmplFS), ".html")
@@ -196,12 +196,12 @@ func createTemplateEngine() *html.Engine {
 								i18n.LogTf("logs.templates_embedded_list", templateNames)
 							}
 						} else {
-							LogT("logs.templates_embedded_nil")
+							i18n.LogT("logs.templates_embedded_nil")
 							err = fmt.Errorf("engine es nil")
 						}
 					}
 				} else {
-					LogT("logs.templates_embedded_empty")
+					i18n.LogT("logs.templates_embedded_empty")
 					err = fmt.Errorf("templates embebidos vacíos")
 				}
 			} else {
