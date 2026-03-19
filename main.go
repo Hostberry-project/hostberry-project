@@ -89,8 +89,8 @@ func main() {
 	setupRoutes(app)
 
 	addr := fmt.Sprintf("%s:%d", config.AppConfig.Server.Host, config.AppConfig.Server.Port)
-	LogTf("logs.server_starting", addr)
-	LogTf("logs.server_config",
+	i18n.LogTf("logs.server_starting", addr)
+	i18n.LogTf("logs.server_config",
 		config.AppConfig.Server.Debug,
 		config.AppConfig.Server.ReadTimeout,
 		config.AppConfig.Server.WriteTimeout)
