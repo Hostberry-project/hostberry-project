@@ -6,6 +6,7 @@ import (
 	"hostberry/internal/config"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
+	"hostberry/internal/utils"
 	server "hostberry/internal/server"
 )
 
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	i18n.LogTln("logs.checking_admin")
-	createDefaultAdmin()
+	utils.CreateDefaultAdmin()
 
 	server.StartWiFiAutoConnect()
 
