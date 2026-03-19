@@ -683,7 +683,7 @@
     "scan": "WiFi Scan",
     "software_switch": "Software switch",
     "toggle_wifi": "Toggle WiFi",
-    "unblock_error": "Error unblocking WiFi"
+    "unblock_error": "Error al desbloquear WiFi"
   },
   "vpn": {
     "title": "VPN",
@@ -1246,16 +1246,16 @@
     "wireguard_start_error": "Error iniciando WireGuard",
     "wireguard_status_error": "Error obteniendo estado WireGuard",
     "wireguard_stop_error": "Error deteniendo WireGuard",
-    "error_occurred": "An error occurred",
+    "error_occurred": "Ha ocurrido un error",
     "forbidden": "Permisos insuficientes para realizar esta acción.",
-    "network_stats_error": "Error getting network statistics",
+    "network_stats_error": "Error al obtener estadísticas de red",
     "not_implemented": "Not implemented",
-    "security_status_error": "Error getting security status",
-    "services_status_error": "Error getting services status",
+    "security_status_error": "Error al obtener estado de seguridad",
+    "services_status_error": "Error al obtener estado de servicios",
     "stat_type_not_found": "Stat type '{stat_type}' not found",
-    "system_info_error": "Error getting system info",
-    "system_stats_error": "Error getting system statistics",
-    "translations_error": "Error getting translations",
+    "system_info_error": "Error al obtener información del sistema",
+    "system_stats_error": "Error al obtener estadísticas del sistema",
+    "translations_error": "Error al obtener traducciones",
     "unexpected_response": "Respuesta inesperada del servidor"
   },
   "messages": {
