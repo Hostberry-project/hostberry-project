@@ -744,13 +744,38 @@ func installBlocky(user string) map[string]interface{} {
 		}
 		return result
 	}
-	// PATH explícito: entornos (systemd, cron) pueden no tener tar/cp/chmod en PATH
-	extractCmd := fmt.Sprintf("sudo sh -c 'export PATH=/usr/bin:/bin; tar -xzf %s/blocky.tar.gz -C %s && cp %s/blocky /usr/local/bin/blocky && chmod +x /usr/local/bin/blocky'", tmpDir, tmpDir, tmpDir)
-	if out, err := executeCommand(extractCmd); err != nil {
+	// Importante: evitar "sudo sh -c" para no depender de shells desde executeCommand.
+	tarballInTmp := filepath.Join(tmpDir, "blocky.tar.gz")
+	if out, err := exec.Command("sudo", "tar", "-xzf", tarballInTmp, "-C", tmpDir).CombinedOutput(); err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error extrayendo Blocky: %v", err)
-		if out != "" {
-			result["error"] = strings.TrimSpace(out)
+		if out != nil {
+			outStr := strings.TrimSpace(string(out))
+			if outStr != "" {
+				result["error"] = outStr
+			}
+		}
+		return result
+	}
+	if out, err := exec.Command("sudo", "cp", filepath.Join(tmpDir, "blocky"), "/usr/local/bin/blocky").CombinedOutput(); err != nil {
+		result["success"] = false
+		result["error"] = fmt.Sprintf("Error copiando Blocky: %v", err)
+		if out != nil {
+			outStr := strings.TrimSpace(string(out))
+			if outStr != "" {
+				result["error"] = outStr
+			}
+		}
+		return result
+	}
+	if out, err := exec.Command("sudo", "chmod", "+x", "/usr/local/bin/blocky").CombinedOutput(); err != nil {
+		result["success"] = false
+		result["error"] = fmt.Sprintf("Error haciendo ejecutable Blocky: %v", err)
+		if out != nil {
+			outStr := strings.TrimSpace(string(out))
+			if outStr != "" {
+				result["error"] = outStr
+			}
 		}
 		return result
 	}
