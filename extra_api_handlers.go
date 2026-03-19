@@ -17,6 +17,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/database"
+	middleware "hostberry/internal/middleware"
 	"hostberry/internal/validators"
 )
 
@@ -33,7 +34,7 @@ var (
 )
 
 func currentUserInfo(c *fiber.Ctx) (string, *int) {
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok || user == nil {
 		return "unknown", nil
 	}
