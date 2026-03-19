@@ -284,7 +284,6 @@ func setupRoutes(app *fiber.App) {
 	{
 		auth := api.Group("/auth")
 		{
-			auth.Post("/login", loginAPIHandler)
 			auth.Post("/login", auth.LoginAPIHandler)
 			auth.Post("/logout", middleware.RequireAuth, auth.LogoutAPIHandler)
 			auth.Get("/me", middleware.RequireAuth, auth.MeHandler)
