@@ -197,7 +197,7 @@
 
     <!-- Network Traffic Chart -->
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-lg-8 col-md-12 mb-4">
             <div class="actions-card">
                 <div class="actions-card-header">
                     <h5 class="actions-card-title">
@@ -207,6 +207,43 @@
                 </div>
                 <div class="actions-card-body" style="position: relative; height: 300px;">
                     <canvas id="net-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- HTTP & Services Metrics -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="actions-card h-100">
+                <div class="actions-card-header">
+                    <h5 class="actions-card-title mb-0">
+                        <i class="bi bi-speedometer2 me-2"></i>
+                        {{ call .t "monitoring.http_metrics" "HTTP & Services" }}
+                    </h5>
+                </div>
+                <div class="actions-card-body">
+                    <div class="mb-3">
+                        <h6 class="text-white-50 mb-1">{{ call .t "monitoring.http_requests" "HTTP requests" }}</h6>
+                        <p class="text-white mb-1 small">
+                            2xx: <strong id="mon-http-2xx">0</strong>
+                        </p>
+                        <p class="text-white mb-1 small">
+                            4xx: <strong id="mon-http-4xx">0</strong>
+                        </p>
+                        <p class="text-white mb-3 small">
+                            5xx: <strong id="mon-http-5xx">0</strong>
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="text-white-50 mb-1">{{ call .t "monitoring.services_status" "Services status" }}</h6>
+                        <p class="text-white mb-1 small">
+                            hostapd: <span id="mon-hostapd-status" class="badge bg-secondary">-</span>
+                        </p>
+                        <p class="text-white mb-1 small">
+                            dnsmasq: <span id="mon-dnsmasq-status" class="badge bg-secondary">-</span>
+                        </p>
+                        <p class="text-white mb-0 small">
+                            WiFi ({{ DefaultWiFiInterface }}): <span id="mon-wifi-status" class="badge bg-secondary">-</span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
