@@ -83,7 +83,7 @@ func (rl *RateLimiter) cleanup() {
 func rateLimitMiddleware(c *fiber.Ctx) error {
 	if globalRateLimiter == nil {
 		globalRateLimiter = NewRateLimiter(
-			appConfig.Security.RateLimitRPS,
+			config.AppConfig.Security.RateLimitRPS,
 			time.Second,
 		)
 	}

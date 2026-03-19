@@ -11,6 +11,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"hostberry/internal/config"
+	"hostberry/internal/validators"
 )
 
 const (
@@ -41,8 +44,8 @@ func generateSecureAdminPassword() (string, error) {
 
 func createDefaultAdmin() {
 	var count int64
-	if err := db.Model(&User{}).Count(&count).Error; err != nil {
-		if appConfig.Server.Debug {
+	if err := db.Model(&models.User{}).Count(&count).Error; err != nil {
+		if config.AppConfig.Server.Debug {
 			LogTf("logs.utils_count_error", err)
 		}
 		return
