@@ -64,7 +64,7 @@ func healthCheckHandler(c *fiber.Ctx) error {
 }
 
 func readinessCheckHandler(c *fiber.Ctx) error {
-	if db == nil {
+	if database.DB == nil {
 		return c.Status(503).JSON(fiber.Map{
 			"status":  "not_ready",
 			"message": "Database not initialized",
