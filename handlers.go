@@ -359,32 +359,6 @@ func updatePreferencesAPIHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Preferencias actualizadas"})
 }
 
-func systemInfoHandler(c *fiber.Ctx) error {
-	result := sys.GetSystemInfo()
-	return c.JSON(result)
-}
-
-func systemShutdownHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
-	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
-	}
-	userID := user.ID
-
-	result := sys.SystemShutdown(user.Username)
-	if success, ok := result["success"].(bool); ok && success {
-		database.InsertLog("INFO", database.LogMsg("Sistema apagado correctamente", user.Username), "system", &userID)
-		return c.JSON(result)
-	}
-
-	if err, ok := result["error"].(string); ok {
-		database.InsertLog("ERROR", database.LogMsgErr("apagar sistema", err, user.Username), "system", &userID)
-		return c.Status(500).JSON(fiber.Map{"error": err})
-	}
-
-	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
-}
-
 func networkStatusHandler(c *fiber.Ctx) error {
 	result := network.GetNetworkStatus()
 	return c.JSON(result)
