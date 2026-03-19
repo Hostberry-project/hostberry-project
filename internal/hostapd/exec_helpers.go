@@ -109,6 +109,13 @@ func wiphyFromIwDevInfo(info string) string {
 	if validatePhyName(w) {
 		return w
 	}
+	// `iw dev` suele mostrar «wiphy 0»; el identificador para `iw phy` es «phy0».
+	if matched, _ := regexp.MatchString(`^[0-9]+$`, w); matched {
+		cand := "phy" + w
+		if validatePhyName(cand) {
+			return cand
+		}
+	}
 	return ""
 }
 
