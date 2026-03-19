@@ -428,8 +428,7 @@
     
     try {
       const resp = await apiRequest('/api/v1/wifi/software-switch', { method: 'POST' });
-        const data = await resp.json();
-      
+      const data = await resp.json().catch(function () { return {}; });
       if (resp.ok && data.success) {
         showAlert('success', t('wifi.software_switch_toggled', 'Software switch toggled successfully'));
         if (icon) {
