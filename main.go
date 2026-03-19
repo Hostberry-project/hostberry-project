@@ -319,6 +319,8 @@ func setupRoutes(app *fiber.App) {
 	app.Get("/health", healthCheckHandler)
 	app.Get("/health/ready", readinessCheckHandler)
 	app.Get("/health/live", livenessCheckHandler)
+	// Métricas: endpoint público pero sin información sensible (para Prometheus/monitorización).
+	app.Get("/metrics", metricsHandler)
 
 	web := app.Group("/")
 	{
