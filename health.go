@@ -46,7 +46,7 @@ func healthCheckHandler(c *fiber.Ctx) error {
 	}
 
 
-	if i18nManager != nil {
+	if i18n.Ready() {
 		response.Services["i18n"] = "healthy"
 	} else {
 		response.Services["i18n"] = "unhealthy"
