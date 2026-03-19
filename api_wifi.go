@@ -112,13 +112,13 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 		} else {
 			iwCmd := fmt.Sprintf("ifconfig %s down", iface)
 			execCommand(iwCmd + " 2>/dev/null").Run()
-			InsertLog("INFO", fmt.Sprintf("WiFi desactivado usando ifconfig en interfaz %s (usuario: %s)", iface, user.Username), "wifi", &userID)
+			InsertLog("INFO", LogMsg("WiFi desactivado en interfaz "+iface, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": fmt.Sprintf("WiFi desactivado en interfaz %s", iface)})
 		}
 	}
 
 	errorMsg := "No se pudo cambiar el estado de WiFi. Verifica que tengas permisos sudo configurados (NOPASSWD) o que rfkill/ip estén disponibles. Para configurar sudo sin contraseña, ejecuta: sudo visudo y agrega: usuario ALL=(ALL) NOPASSWD: /usr/sbin/rfkill, /sbin/ip, /sbin/ifconfig"
-	InsertLog("ERROR", fmt.Sprintf("Error en WiFi toggle (usuario: %s): %s", user.Username, errorMsg), "wifi", &userID)
+	InsertLog("ERROR", LogMsgErr("cambiar estado WiFi", errorMsg, user.Username), "wifi", &userID)
 	return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 }
 
@@ -174,7 +174,7 @@ func wifiUnblockHandler(c *fiber.Ctx) error {
 	if success {
 		time.Sleep(1 * time.Second)
 
-		InsertLog("INFO", fmt.Sprintf("WiFi desbloqueado exitosamente usando %s (usuario: %s)", method, user.Username), "wifi", &userID)
+		InsertLog("INFO", LogMsg("WiFi desbloqueado correctamente", user.Username), "wifi", &userID)
 		return c.JSON(fiber.Map{"success": true, "message": "WiFi desbloqueado exitosamente"})
 	}
 
@@ -197,7 +197,7 @@ func wifiUnblockHandler(c *fiber.Ctx) error {
 		errorDetails += fmt.Sprintf(" Comandos disponibles: %s. Verifica permisos sudo (NOPASSWD) ejecutando: sudo fix_wifi_permissions.sh", strings.Join(availableCmds, ", "))
 	}
 
-	InsertLog("ERROR", fmt.Sprintf("Error desbloqueando WiFi (usuario: %s): %s", user.Username, errorDetails), "wifi", &userID)
+	InsertLog("ERROR", LogMsgErr("desbloquear WiFi", errorDetails, user.Username), "wifi", &userID)
 	return c.Status(500).JSON(fiber.Map{"error": errorDetails})
 }
 
