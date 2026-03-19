@@ -167,6 +167,10 @@ func ChangePasswordAPIHandler(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
 	}
 	user.Password = hashed
+	if user.TokenVersion <= 0 {
+		user.TokenVersion = 1
+	}
+	user.TokenVersion++
 	if err := database.DB.Save(user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
 	}
@@ -252,6 +256,10 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	}
 	user.Password = hashed
 	user.LoginCount++
+	if user.TokenVersion <= 0 {
+		user.TokenVersion = 1
+	}
+	user.TokenVersion++
 
 	if err := database.DB.Save(&user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
