@@ -335,6 +335,8 @@
     "login_success": "Login successful",
     "login_failed": "Login failed",
     "logout_success": "Logout successful",
+    "logout_all_devices": "Logout all devices",
+    "logout_all_confirm": "Are you sure you want to close all active sessions on all devices?",
     "password_changed": "Password changed successfully",
     "password_mismatch": "Passwords do not match",
     "invalid_credentials": "Invalid credentials",
