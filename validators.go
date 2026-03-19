@@ -16,8 +16,8 @@ func ValidateUsername(username string) error {
 	if len(username) > 50 {
 		return fiber.NewError(400, "El nombre de usuario no puede tener más de 50 caracteres")
 	}
-	matched, _ := regexp.MatchString("^[a-zA-Z0-9_]+$", username)
-	if !matched {
+	usernameRegex := regexp.MustCompile("^[a-zA-Z0-9_]+$")
+	if !usernameRegex.MatchString(username) {
 		return fiber.NewError(400, "El nombre de usuario solo puede contener letras, números y guiones bajos")
 	}
 	return nil
