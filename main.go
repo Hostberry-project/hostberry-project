@@ -274,7 +274,7 @@ func setupRoutes(app *fiber.App) {
 		protected.Get("/setup-wizard/vpn", sys.SetupWizardVpnPageHandler)
 		protected.Get("/setup-wizard/wireguard", sys.SetupWizardWireguardPageHandler)
 		protected.Get("/setup-wizard/tor", sys.SetupWizardTorPageHandler)
-		protected.Get("/profile", profilePageHandler)
+		protected.Get("/profile", sys.ProfilePageHandler)
 		protected.Get("/system", sys.SystemPageHandler)
 		protected.Get("/monitoring", sys.MonitoringPageHandler)
 		protected.Get("/update", sys.UpdatePageHandler)
