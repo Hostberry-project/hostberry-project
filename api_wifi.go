@@ -31,7 +31,7 @@ func wifiClientsHandler(c *fiber.Ctx) error {
 }
 
 func wifiToggleHandler(c *fiber.Ctx) error {
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
@@ -127,7 +127,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 }
 
 func wifiUnblockHandler(c *fiber.Ctx) error {
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
@@ -206,7 +206,7 @@ func wifiUnblockHandler(c *fiber.Ctx) error {
 }
 
 func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
@@ -262,7 +262,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 }
 
 func wifiConfigHandler(c *fiber.Ctx) error {
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
@@ -935,7 +935,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	// Permitir desconectar sin auth: la lógica seguirá funcionando y omitimos logs.
 	username := "setup_wizard"
 	var userID *int
-	if u, ok := GetUser(c); ok && u != nil {
+	if u, ok := middleware.GetUser(c); ok && u != nil {
 		username = u.Username
 		id := u.ID
 		userID = &id
