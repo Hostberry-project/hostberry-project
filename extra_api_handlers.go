@@ -108,7 +108,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 		}
 
 		_ = SetConfig("project_last_update", time.Now().Format(time.RFC3339))
-		_ = InsertLog("INFO", fmt.Sprintf("Proyecto actualizado correctamente por %s", user), "system", uid)
+		_ = InsertLog("INFO", LogMsg("Proyecto actualizado correctamente", user), "system", uid)
 	}(username, userID, repoPath)
 
 	return c.JSON(fiber.Map{
