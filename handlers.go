@@ -182,7 +182,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	claims, err := ValidateToken(tokenString)
+	claims, err := auth.ValidateToken(tokenString)
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{
 			"error": i18n.T(c, "auth.invalid_token", "Invalid token"),
@@ -256,7 +256,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	database.InsertLog("INFO", database.LogMsg("Credenciales actualizadas en primer acceso", user.Username), "auth", &userID)
 
 	// Generar nuevo token con las credenciales actualizadas y dejar al usuario logueado
-	newToken, err := GenerateToken(&user)
+	newToken, err := auth.GenerateToken(&user)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Error generando sesión",
