@@ -163,7 +163,33 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 	}
 
 	var networkBlock string
+	// Detectar tipo de seguridad (WPA3 vs WPA2) a partir del escaneo interno
+	securityType := ""
 	if password != "" {
+		if scanRes := scanWiFiNetworks(interfaceName); scanRes != nil {
+			if nets, ok := scanRes["networks"].([]map[string]interface{}); ok {
+				for _, net := range nets {
+					if v, ok := net["ssid"].(string); ok && v == ssid {
+						if sec, ok := net["security"].(string); ok {
+							securityType = sec
+						}
+						break
+					}
+				}
+			}
+		}
+	}
+
+	escape := func(s string) string {
+		s = strings.ReplaceAll(s, "\\", "\\\\")
+		return strings.ReplaceAll(s, "\"", "\\\"")
+	}
+
+	if password != "" && strings.EqualFold(securityType, "WPA3") {
+		// WPA3 Personal (SAE)
+		networkBlock = fmt.Sprintf("network={\n\tssid=\"%s\"\n\tkey_mgmt=SAE\n\tsae_password=\"%s\"\n}", escape(ssid), escape(password))
+	} else if password != "" {
+		// WPA2/PSK (o tipo desconocido): delegar en wpa_passphrase
 		cmd := exec.Command("wpa_passphrase", ssid, password)
 		cmd.Env = append(os.Environ(), "LANG=C")
 		out, err := cmd.Output()
@@ -223,10 +249,6 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 		return result
 	}
 	netID := strings.TrimSpace(netIDOut)
-	escape := func(s string) string {
-		s = strings.ReplaceAll(s, "\\", "\\\\")
-		return strings.ReplaceAll(s, "\"", "\\\"")
-	}
 	if _, err := runWpaCli("set_network", netID, "ssid", fmt.Sprintf("\"%s\"", escape(ssid))); err != nil {
 		result["error"] = "Error configurando SSID"
 		return result
