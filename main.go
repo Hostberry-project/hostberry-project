@@ -29,7 +29,7 @@ import (
 	webtemplates "hostberry/internal/templates"
 	"hostberry/internal/wifi"
 	sys "hostberry/internal/system"
-	hostapd "hostberry/internal/hostapd"
+	hostapdHandlers "hostberry/internal/hostapd"
 )
 
 var templatesFS embed.FS
