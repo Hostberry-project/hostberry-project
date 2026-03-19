@@ -280,7 +280,22 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 			return result
 		}
 	}
-	result["error"] = "Tiempo de espera agotado. Comprueba la contraseña e inténtalo de nuevo."
+
+	// Intentar diferenciar entre contraseña incorrecta y otros problemas
+	if statusOut, _ := runWpaCli("status"); statusOut != "" {
+		// Algunos drivers indican fallo de autenticación explícito
+		if strings.Contains(statusOut, "AUTH_FAILED") || strings.Contains(statusOut, "WRONG_KEY") {
+			result["error"] = "La contraseña WiFi parece incorrecta. Comprueba la clave e inténtalo de nuevo."
+			return result
+		}
+		// Si estamos repetidamente en 4-Way Handshake sin completar, suele ser problema de clave
+		if strings.Contains(statusOut, "4WAY_HANDSHAKE") {
+			result["error"] = "No se pudo completar la autenticación WPA. Verifica la contraseña y el tipo de seguridad (WPA2/WPA3)."
+			return result
+		}
+	}
+
+	result["error"] = "Tiempo de espera agotado. Comprueba la contraseña y la cobertura de la red e inténtalo de nuevo."
 	return result
 }
 
