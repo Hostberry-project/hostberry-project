@@ -94,9 +94,9 @@ func systemHttpsInfoHandler(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"is_https":        isHttps,
-		"host":            appConfig.Server.Host,
-		"port":            appConfig.Server.Port,
-		"tls_cert_file":   appConfig.Server.TLSCertFile,
-		"tls_key_file":    appConfig.Server.TLSKeyFile,
+		"host":            config.AppConfig.Server.Host,
+		"port":            config.AppConfig.Server.Port,
+		"tls_cert_file":   config.AppConfig.Server.TLSCertFile,
+		"tls_key_file":    config.AppConfig.Server.TLSKeyFile,
 	})
 }
