@@ -829,7 +829,7 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := ValidateSSID(req.SSID); err != nil {
+	if err := validators.ValidateSSID(req.SSID); err != nil {
 		return err
 	}
 
@@ -1079,7 +1079,7 @@ func wireguardConfigHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
 	}
-	if err := ValidateWireGuardConfig(req.Config); err != nil {
+	if err := validators.ValidateWireGuardConfig(req.Config); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 	config := req.Config
