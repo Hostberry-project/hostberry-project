@@ -218,7 +218,7 @@ func Register(username, password, email string) (*models.User, error) {
 		IsActive: true,
 	}
 
-	if err := db.Create(&user).Error; err != nil {
+	if err := database.DB.Create(&user).Error; err != nil {
 		return nil, fmt.Errorf("error creando usuario en BD: %v", err)
 	}
 
@@ -249,7 +249,7 @@ func RegisterBootstrap(username, password, email string) (*models.User, error) {
 		Timezone: "UTC",
 		IsActive: true,
 	}
-	if err := db.Create(&user).Error; err != nil {
+	if err := database.DB.Create(&user).Error; err != nil {
 		return nil, fmt.Errorf("error creando usuario en BD: %v", err)
 	}
 	return &user, nil
