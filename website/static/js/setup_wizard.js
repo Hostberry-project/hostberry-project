@@ -19,6 +19,19 @@
     document.querySelectorAll('.step-dot').forEach(function(el) {
       el.classList.toggle('active', parseInt(el.getAttribute('data-step'), 10) === step);
     });
+
+    // Cuando estamos en el paso 1, refrescar periódicamente el estado WiFi
+    // para mantener actualizado el banner y la red marcada como conectada.
+    if (step === 1) {
+      if (!window.__hbWizardWifiTimer) {
+        window.__hbWizardWifiTimer = setInterval(function() {
+          fetchWifiStatus();
+        }, 10000);
+      }
+    } else if (window.__hbWizardWifiTimer) {
+      clearInterval(window.__hbWizardWifiTimer);
+      window.__hbWizardWifiTimer = null;
+    }
   }
 
   function signalBars(signal) {
