@@ -22,7 +22,7 @@ import (
 func translateLoginError(c *fiber.Ctx, err error) string {
 	var le *models.LoginError
 	if errors.As(err, &le) {
-		msg := T(c, le.Key, le.Default)
+		msg := i18n.T(c, le.Key, le.Default)
 		if len(le.Args) > 0 {
 			msg = strings.ReplaceAll(msg, "{minutes}", fmt.Sprint(le.Args[0]))
 			msg = strings.ReplaceAll(msg, "{duration}", fmt.Sprint(le.Args[0]))
@@ -40,7 +40,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"error": T(c, "errors.invalid_data", "Invalid data"),
+			"error": i18n.T(c, "errors.invalid_data", "Invalid data"),
 		})
 	}
 
@@ -50,7 +50,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 
 	if req.Password == "" {
 		return c.Status(400).JSON(fiber.Map{
-			"error": T(c, "auth.password_required", "Password is required"),
+			"error": i18n.T(c, "auth.password_required", "Password is required"),
 		})
 	}
 
@@ -98,7 +98,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 func logoutAPIHandler(c *fiber.Ctx) error {
 	user, ok := GetUser(c)
 	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": T(c, "auth.unauthorized", "Unauthorized")})
+		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.unauthorized", "Unauthorized")})
 	}
 	userID := user.ID
 	InsertLog("INFO", LogMsg("Cierre de sesión", user.Username), "auth", &userID)
@@ -112,14 +112,14 @@ func logoutAPIHandler(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(fiber.Map{
-		"message": T(c, "auth.logout_success", "Logout successful"),
+		"message": i18n.T(c, "auth.logout_success", "Logout successful"),
 	})
 }
 
 func meHandler(c *fiber.Ctx) error {
 	user, ok := GetUser(c)
 	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": T(c, "auth.unauthorized", "Unauthorized")})
+		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.unauthorized", "Unauthorized")})
 	}
 	return c.JSON(fiber.Map{
 		"id":       user.ID,
@@ -143,27 +143,27 @@ func changePasswordAPIHandler(c *fiber.Ctx) error {
 		NewPassword     string `json:"new_password"`
 	}
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": T(c, "errors.invalid_data", "Invalid data")})
+		return c.Status(400).JSON(fiber.Map{"error": i18n.T(c, "errors.invalid_data", "Invalid data")})
 	}
 	if req.CurrentPassword == "" || req.NewPassword == "" {
-		return c.Status(400).JSON(fiber.Map{"error": T(c, "auth.passwords_required", "Passwords required")})
+		return c.Status(400).JSON(fiber.Map{"error": i18n.T(c, "auth.passwords_required", "Passwords required")})
 	}
 	if !CheckPassword(req.CurrentPassword, user.Password) {
-		return c.Status(401).JSON(fiber.Map{"error": T(c, "auth.incorrect_current_password", "Current password is incorrect")})
+		return c.Status(401).JSON(fiber.Map{"error": i18n.T(c, "auth.incorrect_current_password", "Current password is incorrect")})
 	}
 
 	hashed, err := HashPassword(req.NewPassword)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": T(c, "errors.server_error", "Internal server error")})
+		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
 	}
 	user.Password = hashed
 	if err := db.Save(user).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": T(c, "errors.server_error", "Internal server error")})
+		return c.Status(500).JSON(fiber.Map{"error": i18n.T(c, "errors.server_error", "Internal server error")})
 	}
 
 	userID := user.ID
 	InsertLog("INFO", LogMsg("Contraseña cambiada", user.Username), "auth", &userID)
-	return c.JSON(fiber.Map{"message": T(c, "auth.password_changed", "Password changed successfully")})
+	return c.JSON(fiber.Map{"message": i18n.T(c, "auth.password_changed", "Password changed successfully")})
 }
 
 func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
@@ -176,27 +176,27 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 
 	if tokenString == "" {
 		return c.Status(401).JSON(fiber.Map{
-			"error": T(c, "auth.token_required", "Token required"),
+			"error": i18n.T(c, "auth.token_required", "Token required"),
 		})
 	}
 
 	claims, err := ValidateToken(tokenString)
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{
-			"error": T(c, "auth.invalid_token", "Invalid token"),
+			"error": i18n.T(c, "auth.invalid_token", "Invalid token"),
 		})
 	}
 
  var user models.User
 	if err := db.Where("id = ? AND is_active = ?", claims.UserID, true).First(&user).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{
-			"error": T(c, "auth.user_not_found", "User not found"),
+			"error": i18n.T(c, "auth.user_not_found", "User not found"),
 		})
 	}
 
 	if user.LoginCount != 1 {
 		return c.Status(403).JSON(fiber.Map{
-			"error": T(c, "auth.first_login_only", "This endpoint is only available on first login"),
+			"error": i18n.T(c, "auth.first_login_only", "This endpoint is only available on first login"),
 		})
 	}
 
@@ -276,7 +276,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(fiber.Map{
-		"message":      T(c, "auth.credentials_updated_redirect", "Credenciales actualizadas. Redirigiendo al dashboard."),
+		"message":      i18n.T(c, "auth.credentials_updated_redirect", "Credenciales actualizadas. Redirigiendo al dashboard."),
 		"access_token": newToken,
 		"user": fiber.Map{
 			"id":       user.ID,
@@ -1317,13 +1317,13 @@ func torCircuitHandler(c *fiber.Ctx) error {
 
 func networkPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "network", fiber.Map{
-		"Title": T(c, "network.title", "Network Management"),
+		"Title": i18n.T(c, "network.title", "Network Management"),
 	})
 }
 
 func wifiPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "wifi", fiber.Map{
-		"Title":         T(c, "wifi.overview", "WiFi Overview"),
+		"Title":         i18n.T(c, "wifi.overview", "WiFi Overview"),
 		"wifi_stats":    fiber.Map{},
 		"wifi_status":   fiber.Map{},
 		"wifi_config":   fiber.Map{},
@@ -1334,13 +1334,13 @@ func wifiPageHandler(c *fiber.Ctx) error {
 
 func wifiScanPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "wifi_scan", fiber.Map{
-		"Title": T(c, "wifi.scan", "WiFi Scan"),
+		"Title": i18n.T(c, "wifi.scan", "WiFi Scan"),
 	})
 }
 
 func vpnPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "vpn", fiber.Map{
-		"Title":        T(c, "vpn.overview", "VPN Overview"),
+		"Title":        i18n.T(c, "vpn.overview", "VPN Overview"),
 		"vpn_stats":    fiber.Map{},
 		"vpn_status":   fiber.Map{},
 		"vpn_config":   fiber.Map{},
@@ -1351,7 +1351,7 @@ func vpnPageHandler(c *fiber.Ctx) error {
 
 func wireguardPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "wireguard", fiber.Map{
-		"Title":            T(c, "wireguard.overview", "WireGuard Overview"),
+		"Title":            i18n.T(c, "wireguard.overview", "WireGuard Overview"),
 		"wireguard_stats":  fiber.Map{},
 		"wireguard_status": fiber.Map{},
 		"wireguard_config": fiber.Map{},
@@ -1361,20 +1361,20 @@ func wireguardPageHandler(c *fiber.Ctx) error {
 
 func torPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "tor", fiber.Map{
-		"Title": T(c, "tor.title", "Tor Configuration"),
+		"Title": i18n.T(c, "tor.title", "Tor Configuration"),
 		"tor_status": getTorStatus(),
 	})
 }
 
 func adblockPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "adblock", fiber.Map{
-		"Title": T(c, "adblock.overview", "AdBlock (Blocky)"),
+		"Title": i18n.T(c, "adblock.overview", "AdBlock (Blocky)"),
 	})
 }
 
 func hostapdPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "hostapd", fiber.Map{
-		"Title":          T(c, "hostapd.overview", "Hotspot Overview"),
+		"Title":          i18n.T(c, "hostapd.overview", "Hotspot Overview"),
 		"hostapd_stats":  fiber.Map{},
 		"hostapd_status": fiber.Map{},
 		"hostapd_config": fiber.Map{},
@@ -1407,7 +1407,7 @@ func profilePageHandler(c *fiber.Ctx) error {
 	configs, _ := GetAllConfigs()
 	configsJSON, _ := json.Marshal(configs)
 	return renderTemplate(c, "profile", fiber.Map{
-		"Title": T(c, "auth.profile", "Profile"),
+		"Title": i18n.T(c, "auth.profile", "Profile"),
 		"user":  user,
 		"recent_activities": activities,
 		"settings":          configs,
@@ -1418,52 +1418,52 @@ func profilePageHandler(c *fiber.Ctx) error {
 
 func systemPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "system", fiber.Map{
-		"Title": T(c, "system.title", "System Manager"),
+		"Title": i18n.T(c, "system.title", "System Manager"),
 	})
 }
 
 func monitoringPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "monitoring", fiber.Map{
-		"Title": T(c, "monitoring.title", "Monitoring"),
+		"Title": i18n.T(c, "monitoring.title", "Monitoring"),
 	})
 }
 
 func updatePageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "update", fiber.Map{
-		"Title": T(c, "update.title", "Updates"),
+		"Title": i18n.T(c, "update.title", "Updates"),
 	})
 }
 
 func firstLoginPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "first_login", fiber.Map{
-		"Title": T(c, "auth.first_login", "First Login"),
+		"Title": i18n.T(c, "auth.first_login", "First Login"),
 	})
 }
 
 func setupWizardPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "setup_wizard", fiber.Map{
-		"Title":      T(c, "setup_wizard.title", "Configuración inicial"),
+		"Title":      i18n.T(c, "setup_wizard.title", "Configuración inicial"),
 		"last_update": time.Now().Unix(),
 	})
 }
 
 func setupWizardVpnPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "setup_wizard_vpn", fiber.Map{
-		"Title":      T(c, "setup_wizard.security_vpn", "VPN"),
+		"Title":      i18n.T(c, "setup_wizard.security_vpn", "VPN"),
 		"last_update": time.Now().Unix(),
 	})
 }
 
 func setupWizardWireguardPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "setup_wizard_wireguard", fiber.Map{
-		"Title":      T(c, "setup_wizard.security_wireguard", "WireGuard"),
+		"Title":      i18n.T(c, "setup_wizard.security_wireguard", "WireGuard"),
 		"last_update": time.Now().Unix(),
 	})
 }
 
 func setupWizardTorPageHandler(c *fiber.Ctx) error {
 	return renderTemplate(c, "setup_wizard_tor", fiber.Map{
-		"Title":      T(c, "setup_wizard.security_tor", "Tor"),
+		"Title":      i18n.T(c, "setup_wizard.security_tor", "Tor"),
 		"last_update": time.Now().Unix(),
 	})
 }
