@@ -145,7 +145,7 @@ func createApp() *fiber.App {
 		Views:        engine,
 		ReadTimeout:  time.Duration(config.AppConfig.Server.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(config.AppConfig.Server.WriteTimeout) * time.Second,
-		ErrorHandler: errorHandler,
+		ErrorHandler: middleware.ErrorHandler,
 	})
 
 	if app.Config().Views == nil {
@@ -191,10 +191,10 @@ func createApp() *fiber.App {
 	}))
 
 	// Middleware de seguridad: cabeceras y, opcionalmente, redirección HTTP→HTTPS.
-	app.Use(securityHeadersMiddleware)
-	app.Use(enforceHTTPSMiddleware)
+	app.Use(middleware.SecurityHeadersMiddleware)
+	app.Use(middleware.EnforceHTTPSMiddleware)
 
-	app.Use(loggingMiddleware)
+	app.Use(middleware.LoggingMiddleware)
 
 	app.Use(i18n.LanguageMiddleware)
 
