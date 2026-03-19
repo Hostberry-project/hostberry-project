@@ -57,7 +57,7 @@
     try {
       const resp = await api('/api/v1/wireguard/peers');
       if (resp && resp.ok) {
-        const peers = await resp.json();
+        const peers = await resp.json().catch(function () { return []; });
         const tbody = document.getElementById('peersTable');
         if (!tbody) return;
         tbody.innerHTML = '';
