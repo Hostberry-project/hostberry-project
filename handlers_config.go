@@ -51,12 +51,16 @@ func systemConfigHandler(c *fiber.Ctx) error {
 		if key == "timezone" && valueStr != "" {
 			tz := strings.TrimSpace(valueStr)
 			
-			if strings.Contains(tz, "..") || strings.Contains(tz, ";") {
+			if strings.Contains(tz, "..") || strings.Contains(tz, ";") || strings.HasPrefix(tz, "/") {
 				errors = append(errors, "Zona horaria inválida")
 				continue
 			}
 			
-			zonePath := filepath.Join("/usr/share/zoneinfo", tz)
+			zonePath := filepath.Clean(filepath.Join("/usr/share/zoneinfo", tz))
+			if !strings.HasPrefix(zonePath, "/usr/share/zoneinfo") {
+				errors = append(errors, "Zona horaria inválida")
+				continue
+			}
 			if _, err := os.Stat(zonePath); os.IsNotExist(err) {
 				errors = append(errors, "Zona horaria no encontrada")
 				continue
