@@ -60,14 +60,25 @@
       const isConnected = currentConnectedSSID && ssid === currentConnectedSSID;
       const signal = net.signal != null ? net.signal : net.signal_strength;
       const bars = signalBars(signal);
+      const security = (net.security || '').toString().toUpperCase();
+      var secLabel = '';
+      if (security === 'WPA3') {
+        secLabel = d('WPA3', 'WPA3');
+      } else if (security === 'WPA2' || security === 'WPA') {
+        secLabel = d('WPA2', 'WPA2');
+      } else if (security === 'OPEN') {
+        secLabel = d('Open', 'Abierta');
+      }
       const card = document.createElement('button');
       card.type = 'button';
       card.className = 'wizard-network-card' + (isConnected ? ' wizard-network-connected' : '');
       card.dataset.ssid = ssid;
+      card.dataset.security = security || '';
       card.innerHTML =
         '<span class="wizard-network-icon"><i class="bi bi-wifi"></i><span class="wizard-signal-bars" data-bars="' + bars + '"></span></span>' +
         '<span class="d-flex align-items-center justify-content-center flex-wrap gap-1">' +
         '<span class="wizard-network-ssid">' + escapeHtml(ssid) + '</span>' +
+        (secLabel ? '<span class="badge bg-secondary">' + secLabel + '</span>' : '') +
         (isConnected ? '<span class="badge bg-success">' + t('setup_wizard.connected', d('Connected', 'Conectado')) + '</span>' : '') +
         '</span>' +
         (signal !== '' && signal != null ? '<span class="wizard-network-signal">' + signal + ' dBm</span>' : '');
@@ -75,9 +86,21 @@
         selectedSSID = ssid;
         grid.querySelectorAll('.wizard-network-card').forEach(function(c) { c.classList.remove('selected'); });
         card.classList.add('selected');
-        document.getElementById('wizard-wifi-password-box').classList.remove('d-none');
-        document.getElementById('wizard-wifi-password').value = '';
-        document.getElementById('wizard-wifi-password').focus();
+        var pwdBox = document.getElementById('wizard-wifi-password-box');
+        var pwdInput = document.getElementById('wizard-wifi-password');
+        var sec = (card.dataset.security || '').toUpperCase();
+        // Redes abiertas: no pedimos contraseña
+        if (sec === 'OPEN') {
+          if (pwdBox) pwdBox.classList.add('d-none');
+          if (pwdInput) pwdInput.value = '';
+        } else {
+          if (pwdBox) pwdBox.classList.remove('d-none');
+          if (pwdInput) {
+            pwdInput.value = '';
+            pwdInput.placeholder = d('WiFi password', 'Contraseña WiFi');
+            pwdInput.focus();
+          }
+        }
       });
       grid.appendChild(card);
     });
@@ -333,11 +356,23 @@
     var connectBtn = document.getElementById('wizard-connect-btn');
     if (connectBtn) connectBtn.addEventListener('click', connectWiFi);
 
-    // Continuar (mantener conexión): avanza directo a paso 2
+    // Continuar (mantener conexión): comprobar primero que hay conexión
     var continueBtn = document.getElementById('wizard-continue-connected-btn');
     if (continueBtn) {
       continueBtn.addEventListener('click', function() {
-        setStep(2);
+        (async function() {
+          try {
+            var r = await apiRequest('/api/v1/wifi/status', { method: 'GET' });
+            if (r && r.ok) {
+              var s = await r.json().catch(function() { return {}; });
+              if ((s && s.connection_type === 'ethernet') || (s && s.connection_type === 'wifi' && (s.connected === true || s.connected === undefined))) {
+                setStep(2);
+                return;
+              }
+            }
+          } catch (_) {}
+          showAlert('warning', t('setup_wizard.error_no_connection', d('No active network connection detected. Please connect to a WiFi or use Ethernet before continuing.', 'No se ha detectado una conexión de red activa. Conéctate a una WiFi o usa cable Ethernet antes de continuar.')));
+        })();
       });
     }
     var back2 = document.getElementById('wizard-back-2');
