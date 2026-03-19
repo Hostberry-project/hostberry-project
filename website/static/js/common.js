@@ -487,11 +487,25 @@
           if(data && data.username){
             el.textContent = data.username;
           }
-          // Ocultar acciones solo-admin (restart/shutdown) si el rol no es admin
-          if(data && data.role && String(data.role).toLowerCase() !== 'admin'){
+          var isAdmin = data && data.role && String(data.role).toLowerCase() === 'admin';
+          if (typeof HostBerry !== 'undefined') HostBerry.isAdmin = isAdmin;
+
+          if (!isAdmin) {
+            document.body.classList.add('hb-readonly');
+            var banner = document.getElementById('hb-readonly-banner');
+            if (banner) {
+              banner.classList.remove('d-none');
+            }
             document.querySelectorAll('[data-action="restart"],[data-action="shutdown"]').forEach(function(btn){
               btn.classList.add('d-none');
             });
+            document.querySelectorAll('[data-requires-admin="true"]').forEach(function(btn){
+              btn.classList.add('d-none');
+            });
+          } else {
+            document.body.classList.remove('hb-readonly');
+            var banner = document.getElementById('hb-readonly-banner');
+            if (banner) banner.classList.add('d-none');
           }
         }
       }catch(_e){
