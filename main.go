@@ -146,7 +146,7 @@ func createApp() *fiber.App {
 	if app.Config().Views == nil {
 		i18n.LogTfatal("logs.template_views_error")
 	}
-	LogTln("logs.template_views_ok")
+	i18n.LogTln("logs.template_views_ok")
 
 	setupStaticFiles(app)
 
@@ -206,12 +206,12 @@ func setupStaticFiles(app *fiber.App) {
 			Compress:  true,
 			ByteRange: true,
 		})
-		LogTln("logs.static_files_loaded")
+		i18n.LogTln("logs.static_files_loaded")
 	} else {
 		staticSubFS, err := fs.Sub(staticFS, "website/static")
 		if err != nil {
-			LogTf("logs.static_files_embed_error", err)
-			LogT("logs.static_files_not_found")
+			i18n.LogTf("logs.static_files_embed_error", err)
+			i18n.LogT("logs.static_files_not_found")
 		} else {
 			app.Get("/static/*", func(c *fiber.Ctx) error {
 				path := c.Params("*")
@@ -229,7 +229,7 @@ func setupStaticFiles(app *fiber.App) {
 				c.Type(filepath.Ext(path))
 				return c.SendStream(file, int(stat.Size()))
 			})
-			LogTln("logs.static_files_embedded")
+			i18n.LogTln("logs.static_files_embedded")
 		}
 	}
 }
