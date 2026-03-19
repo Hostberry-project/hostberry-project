@@ -488,7 +488,7 @@ func settingsHandler(c *fiber.Ctx) error {
 }
 
 func systemStatsHandler(c *fiber.Ctx) error {
-	stats := getSystemStats()
+	stats := sys.GetSystemStats()
 	return c.JSON(stats)
 }
 
@@ -499,7 +499,7 @@ func systemRestartHandler(c *fiber.Ctx) error {
 	}
 	userID := user.ID
 
-	result := systemRestart(user.Username)
+	result := sys.SystemRestart(user.Username)
 	if success, ok := result["success"].(bool); ok && success {
 		database.InsertLog("INFO", database.LogMsg("Sistema reiniciado correctamente", user.Username), "system", &userID)
 		return c.JSON(result)
