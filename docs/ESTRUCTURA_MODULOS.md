@@ -1,6 +1,6 @@
 # Estructura modular del proyecto
 
-El proyecto está organizado con paquetes internos bajo `internal/` para separar configuración, modelos, constantes y validadores del paquete principal.
+El proyecto está organizado con paquetes bajo `internal/` para separar configuración, modelos, lógica de negocio y utilidades del paquete principal.
 
 ## Paquetes `internal/`
 
@@ -10,19 +10,29 @@ El proyecto está organizado con paquetes internos bajo `internal/` para separar
 | **internal/constants** | Constantes globales: `DefaultWiFiInterface`, `DefaultCountryCode`, `DefaultServerHost`, `DefaultServerPort`, `DefaultUnknownValue`. |
 | **internal/models** | Modelos de dominio y BD: `User`, `Claims`, `LoginError`, `SystemLog`, `SystemConfig`, `SystemStatistic`, `NetworkConfig`, `VPNConfig`, `WireGuardConfig`, `AdBlockConfig`. |
 | **internal/validators** | Funciones de validación: `ValidateUsername`, `ValidatePassword`, `ValidateEmail`, `ValidateIP`, `ValidateSSID`, `ValidateWireGuardConfig`, `ValidateVPNConfig`. |
+| **internal/metrics** | Contadores HTTP por clase de estado (2xx, 4xx, 5xx) para métricas y health. `Add2xx()`, `Add4xx()`, `Add5xx()`, `Load2xx()`, etc. |
+| **internal/i18n** | Internacionalización: `Init()`, `T()`, `GetCurrentLanguage()`, `TemplateFuncs()`, `LanguageMiddleware`, `LogT`, `LogTf`, `LogTln`, `LogTfatal`, `SetLogLanguage`, `GetLogLanguage`, `Ready()`. |
+| **internal/database** | Conexión y operaciones de BD: `Init()`, `DB`, `InsertLog`, `GetLogs`, `SetConfig`, `GetConfig`, `GetAllConfigs`, `InsertStatistic`, `LogMsg`, `LogMsgErr`, `LogMsgWarn`. |
+| **internal/auth** | Autenticación y JWT: `GenerateToken`, `ValidateToken`, `HashPassword`, `CheckPassword`, `Login`, `Register`, `RegisterBootstrap`, `IsDefaultAdminCredentialsInUse`. |
 
 ## Uso desde `package main`
 
-- **Configuración:** `config.Load()`, `config.Normalize(LogTf)`, `config.AppConfig`, `config.GenerateRandomSecret()`.
+- **Configuración:** `config.Load()`, `config.Normalize()`, `config.AppConfig`.
 - **Constantes:** `constants.DefaultWiFiInterface`, `constants.DefaultCountryCode`, etc.
 - **Modelos:** `models.User`, `models.Claims`, `models.SystemLog`, etc.
 - **Validadores:** `validators.ValidateUsername()`, `validators.ValidatePassword()`, etc.
+- **Métricas:** `metrics.Add2xx()`, `metrics.Load2xx()`, etc. (usado por middleware y health).
+- **i18n:** `i18n.Init()`, `i18n.T()`, `i18n.LanguageMiddleware`, `i18n.LogTf()`, etc.
+- **Base de datos:** `database.Init()`, `database.DB`, `database.InsertLog()`, `database.GetLogs()`, etc.
+- **Auth:** `auth.Login()`, `auth.ValidateToken()`, `auth.GenerateToken()`, `auth.RegisterBootstrap()`, etc.
 
 ## Raíz del módulo
 
-El resto del código sigue en el paquete `main` (handlers, middleware, database, auth, wifi, templates, health, utils, etc.) y consume los paquetes internos mediante imports `hostberry/internal/...`.
+En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), middleware (`middleware.go`, `rate_limiter.go`, `request_id.go`), `templates.go`, `utils.go`, `health.go`, `wifi_helpers.go` y el resto de archivos que orquestan la app y usan los paquetes internos.
 
-Para compilar y ejecutar tests:
+Se eliminó `api_compat.go` (estaba vacío; la compatibilidad se cubre en otros módulos).
+
+## Compilar y tests
 
 ```bash
 go build -o hostberry .
