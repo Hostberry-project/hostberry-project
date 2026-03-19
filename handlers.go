@@ -15,7 +15,6 @@ import (
 	"hostberry/internal/config"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
-	adblock "hostberry/internal/adblock"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	"hostberry/internal/tor"
