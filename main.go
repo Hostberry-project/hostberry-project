@@ -492,32 +492,6 @@ func settingsHandler(c *fiber.Ctx) error {
 	})
 }
 
-func systemStatsHandler(c *fiber.Ctx) error {
-	stats := sys.GetSystemStats()
-	return c.JSON(stats)
-}
-
-func systemRestartHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
-	if !ok {
-		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
-	}
-	userID := user.ID
-
-	result := sys.SystemRestart(user.Username)
-	if success, ok := result["success"].(bool); ok && success {
-		database.InsertLog("INFO", database.LogMsg("Sistema reiniciado correctamente", user.Username), "system", &userID)
-		return c.JSON(result)
-	}
-
-	if errMsg, ok := result["error"].(string); ok {
-		database.InsertLog("ERROR", database.LogMsgErr("reiniciar sistema", errMsg, user.Username), "system", &userID)
-		return c.Status(500).JSON(fiber.Map{"error": errMsg})
-	}
-
-	return c.JSON(result)
-}
-
 func detectWiFiInterface() string {
 	cmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}' | grep -E '^wlan|^wl' | head -1")
 	out, err := cmd.Output()
