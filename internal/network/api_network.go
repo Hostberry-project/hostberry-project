@@ -20,7 +20,7 @@ func executeCommand(cmd string) (string, error) {
 	return utils.ExecuteCommand(cmd)
 }
 
-func networkRoutingHandler(c *fiber.Ctx) error {
+func NetworkRoutingHandler(c *fiber.Ctx) error {
 	out, err := exec.Command("sh", "-c", "ip route 2>/dev/null").CombinedOutput()
 	if err != nil {
 		i18n.LogTf("logs.api_route_error", err, string(out))
@@ -73,11 +73,11 @@ func networkRoutingHandler(c *fiber.Ctx) error {
 	return c.JSON(routes)
 }
 
-func networkFirewallToggleHandler(c *fiber.Ctx) error {
+func NetworkFirewallToggleHandler(c *fiber.Ctx) error {
 	return c.Status(501).JSON(fiber.Map{"error": "Firewall toggle no implementado"})
 }
 
-func networkConfigHandler(c *fiber.Ctx) error {
+func NetworkConfigHandler(c *fiber.Ctx) error {
 	if c.Method() == "GET" {
 		config := fiber.Map{
 			"hostname": "",
