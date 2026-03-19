@@ -32,6 +32,9 @@ security:
   # Con valor fijo = mismo token hasta que cambies config (útil para scripts).
   # Cabecera: X-HostBerry-WiFi-Setup-Token, o query: ?wifi_setup_token=
   # wifi_setup_token: ""
+  # Orígenes CORS adicionales con credenciales (además del mismo Host que la petición y localhost).
+  # cors_allow_origins:
+  #   - "https://tu-dominio-publico.tld"
 
 logging:
   level: "info"  # debug, info, warn, error
