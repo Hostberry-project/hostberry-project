@@ -210,7 +210,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	}
 
 	if req.NewUsername != "" {
-		if err := ValidateUsername(req.NewUsername); err != nil {
+		if err := validators.ValidateUsername(req.NewUsername); err != nil {
 			return err
 		}
 		if req.NewUsername != user.Username {
@@ -229,7 +229,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 			"error": "La nueva contraseña es requerida",
 		})
 	}
-	if err := ValidatePassword(req.NewPassword); err != nil {
+	if err := validators.ValidatePassword(req.NewPassword); err != nil {
 		return err
 	}
 

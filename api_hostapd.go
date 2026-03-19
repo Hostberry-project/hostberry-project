@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/constants"
 )
 
 func hostapdAccessPointsHandler(c *fiber.Ctx) error {
