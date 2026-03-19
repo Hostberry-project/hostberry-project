@@ -20,6 +20,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"hostberry/internal/config"
 	"hostberry/internal/constants"
+	"hostberry/internal/i18n"
 	"hostberry/internal/models"
 )
 
@@ -29,9 +30,9 @@ var staticFS embed.FS
 
 func main() {
 	if err := config.Load(); err != nil {
-		LogTfatal("logs.config_load_error", err)
+		i18n.LogTfatal("logs.config_load_error", err)
 	}
-	config.Normalize(LogTf)
+	config.Normalize(i18n.LogTf)
 
 	if err := InitI18n("locales"); err != nil {
 		LogTf("logs.i18n_init_warning", err)
