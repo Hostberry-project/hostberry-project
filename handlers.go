@@ -1098,31 +1098,31 @@ func wireguardConfigHandler(c *fiber.Ctx) error {
 }
 
 func adblockStatusHandler(c *fiber.Ctx) error {
-	result := getAdBlockStatus()
+	result := adblock.GetAdBlockStatus()
 	return c.JSON(result)
 }
 
 func adblockEnableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "AdBlock habilitado correctamente", "habilitar AdBlock", func(user *models.User) map[string]interface{} {
-		return enableAdBlock(user.Username)
+		return adblock.EnableAdBlock(user.Username)
 	})
 }
 
 func adblockDisableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "AdBlock deshabilitado correctamente", "deshabilitar AdBlock", func(user *models.User) map[string]interface{} {
-		return disableAdBlock(user.Username)
+		return adblock.DisableAdBlock(user.Username)
 	})
 }
 
 // Handlers para DNSCrypt
 func dnscryptStatusHandler(c *fiber.Ctx) error {
-	result := getDNSCryptStatus()
+	result := adblock.GetDNSCryptStatus()
 	return c.JSON(result)
 }
 
 func dnscryptInstallHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt instalado correctamente", "instalar DNSCrypt", func(user *models.User) map[string]interface{} {
-		return installDNSCrypt(user.Username)
+		return adblock.InstallDNSCrypt(user.Username)
 	})
 }
 
@@ -1139,36 +1139,36 @@ func dnscryptConfigureHandler(c *fiber.Ctx) error {
 		req.ServerName = "adguard-dns"
 	}
 	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt configurado correctamente", "configurar DNSCrypt", func(user *models.User) map[string]interface{} {
-		return configureDNSCrypt(req.ServerName, req.BlockAds, user.Username)
+		return adblock.ConfigureDNSCrypt(req.ServerName, req.BlockAds, user.Username)
 	})
 }
 
 func dnscryptEnableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt habilitado correctamente", "habilitar DNSCrypt", func(user *models.User) map[string]interface{} {
-		return enableDNSCrypt(user.Username)
+		return adblock.EnableDNSCrypt(user.Username)
 	})
 }
 
 func dnscryptDisableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "DNSCrypt deshabilitado correctamente", "deshabilitar DNSCrypt", func(user *models.User) map[string]interface{} {
-		return disableDNSCrypt(user.Username)
+		return adblock.DisableDNSCrypt(user.Username)
 	})
 }
 
 // Handlers para Blocky
 func blockyStatusHandler(c *fiber.Ctx) error {
-	result := getBlockyStatus()
+	result := adblock.GetBlockyStatus()
 	return c.JSON(result)
 }
 
 func blockyConfigHandler(c *fiber.Ctx) error {
-	cfg := getBlockyConfig()
+	cfg := adblock.GetBlockyConfig()
 	return c.JSON(cfg)
 }
 
 func blockyInstallHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "Blocky instalado correctamente", "instalar Blocky", func(user *models.User) map[string]interface{} {
-		return installBlocky(user.Username)
+		return adblock.InstallBlocky(user.Username)
 	})
 }
 
@@ -1181,19 +1181,19 @@ func blockyConfigureHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Datos inválidos"})
 	}
 	return middleware.RunActionWithUser(c, "adblock", "Blocky configurado correctamente", "configurar Blocky", func(user *models.User) map[string]interface{} {
-		return configureBlocky(req.Upstreams, req.BlockLists, user.Username)
+		return adblock.ConfigureBlocky(req.Upstreams, req.BlockLists, user.Username)
 	})
 }
 
 func blockyEnableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "Blocky habilitado correctamente", "habilitar Blocky", func(user *models.User) map[string]interface{} {
-		return enableBlocky(user.Username)
+		return adblock.EnableBlocky(user.Username)
 	})
 }
 
 func blockyDisableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "adblock", "Blocky deshabilitado correctamente", "deshabilitar Blocky", func(user *models.User) map[string]interface{} {
-		return disableBlocky(user.Username)
+		return adblock.DisableBlocky(user.Username)
 	})
 }
 
@@ -1208,7 +1208,7 @@ func blockyAPIProxyHandler(c *fiber.Ctx) error {
 	if method == "POST" && c.Body() != nil {
 		body = c.Body()
 	}
-	code, data := blockyAPIProxy(method, path, body)
+	code, data := adblock.BlockyAPIProxy(method, path, body)
 	if code == 0 {
 		return c.Status(502).JSON(fiber.Map{"error": "Blocky no responde. ¿Está el servicio activo?"})
 	}
