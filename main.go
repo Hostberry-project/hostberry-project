@@ -428,11 +428,11 @@ func setupRoutes(app *fiber.App) {
 	}
 
 	wifiLegacy := app.Group("/api/wifi", middleware.RequireAuth)
-	wifiLegacy.Get("/status", wifiLegacyStatusHandler)
-	wifiLegacy.Get("/stored_networks", wifiLegacyStoredNetworksHandler)
-	wifiLegacy.Get("/autoconnect", wifiLegacyAutoconnectHandler)
-	wifiLegacy.Get("/scan", wifiLegacyScanHandler)
-	wifiLegacy.Post("/disconnect", wifiLegacyDisconnectHandler)
+	wifiLegacy.Get("/status", wifiHandlers.WifiLegacyStatusHandler)
+	wifiLegacy.Get("/stored_networks", wifiHandlers.WifiLegacyStoredNetworksHandler)
+	wifiLegacy.Get("/autoconnect", wifiHandlers.WifiLegacyAutoconnectHandler)
+	wifiLegacy.Get("/scan", wifiHandlers.WifiLegacyScanHandler)
+	wifiLegacy.Post("/disconnect", wifiHandlers.WifiLegacyDisconnectHandler)
 }
 
 func indexHandler(c *fiber.Ctx) error {
