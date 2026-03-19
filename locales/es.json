@@ -1795,6 +1795,10 @@
     "http_requests": "Peticiones HTTP",
     "services_status": "Estado de servicios"
   },
+  "https": {
+    "insecure_http_warning": "Advertencia: Estás accediendo a HostBerry por HTTP (sin cifrar). Para mayor seguridad, configura HTTPS (por ejemplo, detrás de Nginx o activando TLS en config.yaml).",
+    "secure_https_ok": "Conexión segura por HTTPS activa."
+  },
   "logs": {
     "config_load_error": "Error cargando configuración: %v",
     "i18n_init_warning": "⚠️  Advertencia: Error inicializando i18n: %v",

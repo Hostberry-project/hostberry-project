@@ -444,6 +444,12 @@
           if(data && data.username){
             el.textContent = data.username;
           }
+          // Ocultar acciones solo-admin (restart/shutdown) si el rol no es admin
+          if(data && data.role && String(data.role).toLowerCase() !== 'admin'){
+            document.querySelectorAll('[data-action="restart"],[data-action="shutdown"]').forEach(function(btn){
+              btn.classList.add('d-none');
+            });
+          }
         }
       }catch(_e){
         // silent
