@@ -260,9 +260,9 @@ func createTemplateEngine() *html.Engine {
 }
 
 func renderTemplate(c *fiber.Ctx, name string, data fiber.Map) error {
-	language := GetCurrentLanguage(c)
+	language := i18n.GetCurrentLanguage(c)
 	
-	i18nFuncs := TemplateFuncs(c)
+	i18nFuncs := i18n.TemplateFuncs(c)
 	
 	if data == nil {
 		data = fiber.Map{}
