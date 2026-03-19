@@ -304,8 +304,8 @@ func setupRoutes(app *fiber.App) {
 			system.Post("/backup", middleware.RequireAdmin, sys.SystemBackupHandler)
 			system.Post("/config", middleware.RequireAdmin, systemConfigHandler)
 			system.Post("/updates/execute", middleware.RequireAdmin, systemUpdatesExecuteHandler)
-			system.Post("/updates/project", middleware.RequireAdmin, systemUpdatesProjectHandler)
-			system.Post("/notifications/test-email", middleware.RequireAdmin, systemNotificationsTestEmailHandler)
+			system.Post("/updates/project", middleware.RequireAdmin, sys.SystemUpdatesProjectHandler)
+			system.Post("/notifications/test-email", middleware.RequireAdmin, sys.SystemNotificationsTestEmailHandler)
 			system.Post("/restart", middleware.RequireAdmin, systemRestartHandler)
 			system.Post("/shutdown", middleware.RequireAdmin, systemShutdownHandler)
 		}
@@ -385,10 +385,10 @@ func setupRoutes(app *fiber.App) {
 		{
 			adblock.Get("/status", adblockStatusHandler)
 			adblock.Get("/lists", adblockListsHandler)
-			adblock.Get("/domains", adblockDomainsHandler)
+			adblock.Get("/domains", sys.AdblockDomainsHandler)
 			adblock.Post("/enable", middleware.RequireAdmin, adblockEnableHandler)
 			adblock.Post("/disable", middleware.RequireAdmin, adblockDisableHandler)
-			adblock.Post("/update", middleware.RequireAdmin, adblockUpdateHandler)
+			adblock.Post("/update", middleware.RequireAdmin, sys.AdblockUpdateHandler)
 			adblock.Post("/lists/:name/toggle", middleware.RequireAdmin, adblockToggleListHandler)
 			adblock.Post("/domains/:name/toggle", middleware.RequireAdmin, adblockToggleDomainHandler)
 			adblock.Post("/config", middleware.RequireAdmin, adblockConfigHandler)
