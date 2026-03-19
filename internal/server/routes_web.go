@@ -41,8 +41,5 @@ func setupWebRoutes(app *fiber.App) {
 		protected.Get("/monitoring", sys.MonitoringPageHandler)
 		protected.Get("/update", sys.UpdatePageHandler)
 	}
-
-	// Traducciones: endpoint sin auth (lo usa el frontend).
-	app.Get("/translations/:lang", i18n.TranslationsHandler)
 }
 
