@@ -144,6 +144,26 @@ func GetUser(c *fiber.Ctx) (*User, bool) {
 	return user, ok && user != nil
 }
 
+// requireAdmin asegura que el usuario autenticado tenga rol "admin".
+// Si no es admin, devuelve 403 (para APIs) o redirige a /dashboard para páginas.
+func requireAdmin(c *fiber.Ctx) error {
+	user, ok := GetUser(c)
+	if !ok || user == nil {
+		if strings.HasPrefix(c.Path(), "/api/") {
+			return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
+		}
+		return c.Redirect("/login")
+	}
+	role := strings.ToLower(strings.TrimSpace(user.Role))
+	if role != "admin" {
+		if strings.HasPrefix(c.Path(), "/api/") {
+			return c.Status(403).JSON(fiber.Map{"error": "Permisos insuficientes (se requiere rol admin)"})
+		}
+		return c.Redirect("/dashboard")
+	}
+	return c.Next()
+}
+
 // RunActionWithUser exige usuario autenticado, ejecuta action(user) y devuelve JSON según result["success"]/result["error"].
 // successLog y errorLogFormat se pasan a fmt.Sprintf (successLog: 1 arg = username; errorLogFormat: 2 args = errorMsg, username).
 func RunActionWithUser(c *fiber.Ctx, source, successLog, errorLogFormat string, action func(*User) map[string]interface{}) error {
