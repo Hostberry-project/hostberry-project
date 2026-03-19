@@ -305,6 +305,12 @@ func execCommand(cmd string) *exec.Cmd {
 	return exec.Command("sh", "-c", cmd)
 }
 
+// ExecCommand es un wrapper exportado para que el paquete main pueda usar
+// el helper sin tener que re-implementar la lógica de sudo/no-sudo.
+func ExecCommand(cmd string) *exec.Cmd {
+	return execCommand(cmd)
+}
+
 func clearCommandCache() {
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
