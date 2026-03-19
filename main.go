@@ -28,6 +28,7 @@ import (
 	"hostberry/internal/models"
 	webtemplates "hostberry/internal/templates"
 	"hostberry/internal/wifi"
+	sys "hostberry/internal/system"
 )
 
 var templatesFS embed.FS
