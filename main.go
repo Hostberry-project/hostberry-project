@@ -77,6 +77,19 @@ func main() {
 		LogTfatal("logs.config_load_error", err)
 	}
 
+	// Endurecer configuración de seguridad en tiempo de arranque:
+	// - Asegurar que siempre hay un JWT secret no vacío.
+	// - Normalizar bcrypt_cost a un rango seguro (4–15).
+	if strings.TrimSpace(appConfig.Security.JWTSecret) == "" {
+		appConfig.Security.JWTSecret = generateRandomSecret()
+		LogTf("logs.config_jwt_regenerated", "JWT secret vacío en config.yaml: generado uno nuevo en memoria")
+	}
+	if appConfig.Security.BcryptCost < 4 || appConfig.Security.BcryptCost > 15 {
+		// Valor por defecto seguro y razonable para Raspberry/entornos modestos.
+		LogTf("logs.config_bcrypt_cost_normalized", appConfig.Security.BcryptCost)
+		appConfig.Security.BcryptCost = 10
+	}
+
 	if err := InitI18n("locales"); err != nil {
 		LogTf("logs.i18n_init_warning", err)
 	}
