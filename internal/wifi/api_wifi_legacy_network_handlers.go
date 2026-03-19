@@ -1,0 +1,188 @@
+package wifi
+
+import (
+	"fmt"
+	"log"
+	"os/exec"
+	"strings"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/constants"
+	"hostberry/internal/database"
+	middleware "hostberry/internal/middleware"
+	"hostberry/internal/models"
+)
+
+func WifiLegacyStoredNetworksHandler(c *fiber.Ctx) error {
+	var networks []fiber.Map
+	var lastConnected []string
+
+	interfaceName := "wlan0"
+
+	listCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo wpa_cli -i %s list_networks 2>/dev/null", interfaceName))
+	listOut, err := listCmd.CombinedOutput()
+
+	if err == nil && len(listOut) > 0 {
+		lines := strings.Split(string(listOut), "\n")
+		for i, line := range lines {
+			if i == 0 || strings.TrimSpace(line) == "" {
+				continue // Saltar encabezado y líneas vacías
+			}
+
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				networkID := fields[0]
+				ssid := fields[1]
+
+				if ssid != "" && ssid != "--" {
+					ssid = strings.Trim(ssid, "\"")
+
+					network := fiber.Map{
+						"id":     networkID,
+						"ssid":   ssid,
+						"status": "saved",
+					}
+
+					enabledCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo wpa_cli -i %s get_network %s disabled 2>/dev/null", interfaceName, networkID))
+					enabledOut, _ := enabledCmd.CombinedOutput()
+					if strings.TrimSpace(string(enabledOut)) == "0" {
+						network["enabled"] = true
+						lastConnected = append(lastConnected, ssid)
+					} else {
+						network["enabled"] = false
+					}
+
+					networks = append(networks, network)
+				}
+			}
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"success":        true,
+		"networks":       networks,
+		"last_connected": lastConnected,
+	})
+}
+
+func WifiLegacyAutoconnectHandler(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"success": false})
+}
+
+func WifiLegacyScanHandler(c *fiber.Ctx) error {
+	userInterface := c.Locals("user")
+	if userInterface == nil {
+		log.Printf("ERROR: Usuario no encontrado en wifiLegacyScanHandler")
+		return c.Status(401).JSON(fiber.Map{
+			"success": false,
+			"error":   "No autenticado. Por favor, inicia sesión nuevamente.",
+		})
+	}
+
+	user, ok := userInterface.(*models.User)
+	if !ok || user == nil {
+		log.Printf("ERROR: Usuario inválido en wifiLegacyScanHandler")
+		return c.Status(401).JSON(fiber.Map{
+			"success": false,
+			"error":   "Usuario no encontrado. Por favor, inicia sesión nuevamente.",
+		})
+	}
+
+	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
+	result := ScanWiFiNetworks(interfaceName)
+	if networks, ok := result["networks"]; ok {
+		return c.JSON(fiber.Map{"success": true, "networks": networks})
+	}
+	return c.JSON(fiber.Map{"success": true, "networks": []fiber.Map{}})
+}
+
+func WifiLegacyDisconnectHandler(c *fiber.Ctx) error {
+	// Para el setup wizard puede que no haya sesión/token.
+	// Permitir desconectar sin auth: la lógica seguirá funcionando y omitimos logs.
+	username := "setup_wizard"
+	var userID *int
+	if u, ok := middleware.GetUser(c); ok && u != nil {
+		username = u.Username
+		id := u.ID
+		userID = &id
+	}
+
+	activeConnCmd := execCommand("nmcli -t -f NAME,TYPE,DEVICE connection show --active | grep -i wifi")
+	activeConnOut, err := activeConnCmd.Output()
+
+	var connectionName string
+	if err == nil && len(activeConnOut) > 0 {
+		lines := strings.Split(strings.TrimSpace(string(activeConnOut)), "\n")
+		if len(lines) > 0 {
+			parts := strings.Split(lines[0], ":")
+			if len(parts) > 0 {
+				connectionName = strings.TrimSpace(parts[0])
+			}
+		}
+	}
+
+	if connectionName != "" {
+		disconnectCmd := execCommand(fmt.Sprintf("nmcli connection down '%s'", connectionName))
+		disconnectOut, disconnectErr := disconnectCmd.CombinedOutput()
+
+		if disconnectErr == nil {
+			if userID != nil {
+				database.InsertLog("INFO", database.LogMsg("Desconexión WiFi de "+connectionName, username), "wifi", userID)
+			}
+			return c.JSON(fiber.Map{"success": true, "message": "Disconnected from " + connectionName})
+		}
+
+		log.Printf("Error desconectando conexión %s: %s, intentando desconectar dispositivo", connectionName, string(disconnectOut))
+	}
+
+	wifiDeviceCmd := execCommand("nmcli -t -f DEVICE,TYPE device status | grep -i wifi | head -1 | cut -d: -f1")
+	wifiDeviceOut, err := wifiDeviceCmd.Output()
+
+	if err == nil && len(wifiDeviceOut) > 0 {
+		deviceName := strings.TrimSpace(string(wifiDeviceOut))
+		if deviceName != "" {
+			deviceDisconnectCmd := execCommand(fmt.Sprintf("nmcli device disconnect '%s'", deviceName))
+			deviceDisconnectOut, deviceDisconnectErr := deviceDisconnectCmd.CombinedOutput()
+
+			if deviceDisconnectErr == nil {
+				if userID != nil {
+					database.InsertLog("INFO", database.LogMsg("Dispositivo WiFi desconectado: "+deviceName, username), "wifi", userID)
+				}
+				return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi device " + deviceName})
+			}
+
+			log.Printf("Error desconectando dispositivo %s: %s", deviceName, string(deviceDisconnectOut))
+		}
+	}
+
+	networkingOffCmd := execCommand("nmcli networking off")
+	networkingOffOut, networkingOffErr := networkingOffCmd.CombinedOutput()
+
+	if networkingOffErr != nil {
+		errorMsg := fmt.Sprintf("Error desconectando WiFi: %s", strings.TrimSpace(string(networkingOffOut)))
+		if userID != nil {
+			database.InsertLog("ERROR", database.LogMsgErr("desconectar WiFi", errorMsg, username), "wifi", userID)
+		}
+		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
+	}
+
+	time.Sleep(1 * time.Second)
+
+	networkingOnCmd := execCommand("nmcli networking on")
+	networkingOnOut, networkingOnErr := networkingOnCmd.CombinedOutput()
+
+	if networkingOnErr != nil {
+		errorMsg := fmt.Sprintf("Error reactivando networking: %s", strings.TrimSpace(string(networkingOnOut)))
+		if userID != nil {
+			database.InsertLog("ERROR", database.LogMsgErr("reactivar red tras desconexión WiFi", errorMsg, username), "wifi", userID)
+		}
+		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
+	}
+
+	if userID != nil {
+		database.InsertLog("INFO", database.LogMsg("Desconexión WiFi (método alternativo)", username), "wifi", userID)
+	}
+	return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi"})
+}
+
