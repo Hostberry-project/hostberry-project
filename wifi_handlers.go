@@ -14,13 +14,16 @@ import (
 const WpaSupplicantConfigDir = "/etc/wpa_supplicant"
 const WpaSupplicantAltConfigDir = "/var/lib/hostberry/wpa_supplicant"
 
+// WpaSocketDirs: directorios donde wpa_supplicant puede crear el socket (evita repetir la lista).
+var WpaSocketDirs = []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"}
+
 var activeRunDir string
 
 func getRunDir() string {
 	if activeRunDir != "" {
 		return activeRunDir
 	}
-	candidates := []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"}
+	candidates := WpaSocketDirs
 	for _, dir := range candidates {
 		if _, err := os.Stat(dir); err == nil {
 			testFile := fmt.Sprintf("%s/.test_write", dir)
@@ -61,7 +64,7 @@ func ensureWpaSupplicantDirs() error {
 	exec.Command("sudo", "chmod", "755", WpaSupplicantConfigDir).Run()
 	exec.Command("sudo", "chown", "root:netdev", WpaSupplicantConfigDir).Run()
 
-	runDirCandidates := []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"}
+	runDirCandidates := WpaSocketDirs
 	var createdDir string
 
 	for _, dir := range runDirCandidates {
