@@ -29,6 +29,10 @@ DATA_DIR="${INSTALL_DIR}/data"
 GITHUB_REPO="https://github.com/Hostberry-project/hostberry-project.git"
 TEMP_CLONE_DIR="/tmp/hostberry-install"
 
+# Secretos generados en instalación (JWT y password admin inicial)
+GENERATED_JWT_SECRET=""
+GENERATED_ADMIN_PASSWORD=""
+
 # Reboot al final para activar el modo HostBerry (ap0).
 # Se hará SOLO en modo install (no en update).
 NEED_REBOOT_FOR_AP0=0
