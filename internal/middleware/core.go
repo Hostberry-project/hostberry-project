@@ -16,6 +16,48 @@ import (
 	"hostberry/internal/models"
 )
 
+func isUnsafeMethod(method string) bool {
+	switch method {
+	case fiber.MethodPost, fiber.MethodPut, fiber.MethodPatch, fiber.MethodDelete:
+		return true
+	default:
+		return false
+	}
+}
+
+// Permite requests mutantes autenticadas por cookie solo desde mismo origen.
+// Mitiga CSRF cuando no se usa Authorization: Bearer.
+func isSameOriginForCookieAuth(c *fiber.Ctx) bool {
+	origin := strings.TrimSpace(c.Get("Origin"))
+	referer := strings.TrimSpace(c.Get("Referer"))
+
+	// Si no hay cabeceras de origen/referer no bloqueamos para no romper clientes legacy.
+	if origin == "" && referer == "" {
+		return true
+	}
+
+	host := strings.ToLower(strings.TrimSpace(c.Hostname()))
+	if host == "" {
+		return false
+	}
+
+	if origin != "" {
+		if u, err := url.Parse(origin); err != nil || !strings.EqualFold(u.Hostname(), host) {
+			return false
+		}
+		return true
+	}
+
+	if referer != "" {
+		if u, err := url.Parse(referer); err != nil || !strings.EqualFold(u.Hostname(), host) {
+			return false
+		}
+		return true
+	}
+
+	return true
+}
+
 // RequireAuth protege rutas: valida token/JWT y carga el usuario en Locals.
 func RequireAuth(c *fiber.Ctx) error {
 	if c.Method() == fiber.MethodOptions {
@@ -72,6 +114,11 @@ func RequireAuth(c *fiber.Ctx) error {
 			if token == "" {
 				return c.Status(401).JSON(fiber.Map{
 					"error": "No autorizado - token requerido",
+				})
+			}
+			if isUnsafeMethod(c.Method()) && !isSameOriginForCookieAuth(c) {
+				return c.Status(403).JSON(fiber.Map{
+					"error": "Origen no permitido para autenticación por cookie",
 				})
 			}
 		} else {
@@ -315,8 +362,20 @@ func SecurityHeadersMiddleware(c *fiber.Ctx) error {
 	if c.Get("X-Frame-Options") == "" {
 		c.Set("X-Frame-Options", "SAMEORIGIN")
 	}
+	if c.Get("X-XSS-Protection") == "" {
+		c.Set("X-XSS-Protection", "1; mode=block")
+	}
 	if c.Get("Referrer-Policy") == "" {
 		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+	}
+	if c.Get("Permissions-Policy") == "" {
+		c.Set("Permissions-Policy", "geolocation=(), microphone=(), camera=(), usb=(), payment=()")
+	}
+	if c.Get("Cross-Origin-Opener-Policy") == "" {
+		c.Set("Cross-Origin-Opener-Policy", "same-origin")
+	}
+	if c.Get("Cross-Origin-Resource-Policy") == "" {
+		c.Set("Cross-Origin-Resource-Policy", "same-origin")
 	}
 	isHTTPS := c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https")
 	if isHTTPS && c.Get("Strict-Transport-Security") == "" {
