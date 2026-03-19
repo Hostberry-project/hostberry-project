@@ -1182,37 +1182,7 @@ func hostapdPageHandler(c *fiber.Ctx) error {
 }
 
 func profilePageHandler(c *fiber.Ctx) error {
-	user, ok := middleware.GetUser(c)
-	if !ok {
-		return c.Redirect("/login")
-	}
-	logs, _, _ := database.GetLogs("all", 10, 0)
-	type activity struct {
-		Action      string
-		Timestamp   string
-		Description string
-		IPAddress   string
-	}
-	var activities []activity
-	for _, l := range logs {
-		activities = append(activities, activity{
-			Action:      l.Source,
-			Timestamp:   l.CreatedAt.Format(time.RFC3339),
-			Description: l.Message,
-			IPAddress:   "-",
-		})
-	}
-
-	configs, _ := database.GetAllConfigs()
-	configsJSON, _ := json.Marshal(configs)
-	return webtemplates.RenderTemplate(c, "profile", fiber.Map{
-		"Title": i18n.T(c, "auth.profile", "Profile"),
-		"user":  user,
-		"recent_activities": activities,
-		"settings":          configs,
-		"settings_json":     string(configsJSON),
-		"last_update":       time.Now().Unix(),
-	})
+	return sys.ProfilePageHandler(c)
 }
 
 func systemPageHandler(c *fiber.Ctx) error {
