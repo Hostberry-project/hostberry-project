@@ -86,8 +86,9 @@ func DynamicCORSWithCredentials() fiber.Handler {
 			port = 8000
 		}
 
+		hostHeader := strings.TrimSpace(c.Get(fiber.HeaderHost))
 		var allowOrigin string
-		if origin != "" && CorsOriginMatchesRequest(c.Host(), port, config.AppConfig.Security.CORSAllowOrigins, origin) {
+		if origin != "" && CorsOriginMatchesRequest(hostHeader, port, config.AppConfig.Security.CORSAllowOrigins, origin) {
 			allowOrigin = origin
 		}
 
