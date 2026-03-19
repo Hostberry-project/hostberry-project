@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/auth"
 	"hostberry/internal/config"
 	"hostberry/internal/constants"
 	"hostberry/internal/database"
@@ -55,7 +56,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	user, token, err := Login(req.Username, req.Password)
+	user, token, err := auth.Login(req.Username, req.Password)
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{
 			"error": translateLoginError(c, err),

@@ -95,7 +95,7 @@ func requireAuth(c *fiber.Ctx) error {
 		}
 	}
 
-	claims, err := ValidateToken(token)
+	claims, err := auth.ValidateToken(token)
 	if err != nil {
 		if strings.HasPrefix(path, "/api/") {
 			return c.Status(401).JSON(fiber.Map{
