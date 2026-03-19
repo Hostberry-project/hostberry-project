@@ -302,6 +302,23 @@ func sanitizeIfaceOrDefault(name, def string) string {
 	return name
 }
 
+// resolvePhyName obtiene el nombre phy (phy0, …) para una interfaz WiFi física.
+func resolvePhyName(phyInterface string) string {
+	phyInterface = sanitizeIfaceOrDefault(phyInterface, "wlan0")
+	if s, err := readPhyNameFromSys(phyInterface); err == nil && s != "" {
+		return s
+	}
+	if info, err := iwDevInfo(phyInterface); err == nil {
+		if w := wiphyFromIwDevInfo(info); w != "" {
+			return w
+		}
+	}
+	if w := firstWiphyFromIwPhy(); w != "" {
+		return w
+	}
+	return "phy0"
+}
+
 func netIfaceExists(iface string) bool {
 	if validators.ValidateIfaceName(iface) != nil {
 		return false
