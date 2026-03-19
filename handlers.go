@@ -19,9 +19,11 @@ import (
 	"hostberry/internal/i18n"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
+	"hostberry/internal/tor"
 	"hostberry/internal/validators"
 	webtemplates "hostberry/internal/templates"
 	"hostberry/internal/wifi"
+	"hostberry/internal/vpn"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
