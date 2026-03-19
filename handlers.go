@@ -388,7 +388,7 @@ func systemShutdownHandler(c *fiber.Ctx) error {
 }
 
 func networkStatusHandler(c *fiber.Ctx) error {
-	result := getNetworkStatus()
+	result := network.GetNetworkStatus()
 	return c.JSON(result)
 }
 
@@ -476,7 +476,7 @@ func networkSpeedtestHandler(c *fiber.Ctx) error {
 }
 
 func networkInterfacesHandler(c *fiber.Ctx) error {
-	result := getNetworkInterfaces()
+	result := network.GetNetworkInterfaces()
 	if result != nil {
 		if interfaces, ok := result["interfaces"]; ok {
 			if interfacesArray, ok := interfaces.([]map[string]interface{}); ok && len(interfacesArray) > 0 {
