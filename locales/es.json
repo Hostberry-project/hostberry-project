@@ -1790,6 +1790,11 @@
     "mb": "MB",
     "gb": "GB"
   },
+  "monitoring": {
+    "http_metrics": "HTTP y servicios",
+    "http_requests": "Peticiones HTTP",
+    "services_status": "Estado de servicios"
+  },
   "logs": {
     "config_load_error": "Error cargando configuración: %v",
     "i18n_init_warning": "⚠️  Advertencia: Error inicializando i18n: %v",
