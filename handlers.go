@@ -1197,9 +1197,7 @@ func updatePageHandler(c *fiber.Ctx) error {
 }
 
 func firstLoginPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "first_login", fiber.Map{
-		"Title": i18n.T(c, "auth.first_login", "First Login"),
-	})
+	return sys.FirstLoginPageHandler(c)
 }
 
 func setupWizardPageHandler(c *fiber.Ctx) error {
