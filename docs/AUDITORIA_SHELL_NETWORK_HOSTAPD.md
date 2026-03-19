@@ -103,3 +103,12 @@ Pendiente (volumen alto): refactor similar en **`internal/hostapd/hostapd.go`**.
 ---
 
 *Documento generado como auditoría estática; no sustituye pruebas de penetración ni revisión de cada endpoint HTTP.*
+
+---
+
+## Remediación aplicada (2026-03)
+
+- **Network / nmcli:** `runSudoNmcli` en `internal/network/nmcli_exec.go` (argumentos separados, sin shell para nombre de conexión).
+- **Interfaces:** `ValidateIfaceName` en bucles de `network.go` y `api_network_interfaces_handler.go`; gateway vía `ip route` valida interfaz antes de `executeCommand`.
+- **HostAPD:** `internal/hostapd/config_validate.go` — validación centralizada del POST de configuración (interfaz, SSID, IPs, país, lease, WPA-PSK, canal). `ValidatePhyName` tras detección de `phy`. `HostapdCreateAp0Handler` usa `sanitizeIfaceOrDefault`. `HostapdToggleHandler` lee interfaz con `ifaceFromHostapdConf` y valida `interface=` del fichero.
+- **Validadores nuevos:** `ValidateWPAPSK`, `ValidateCountryCode`, `ValidateDhcpLeaseTime`, `ValidatePhyName` en `internal/validators/validators.go`.
