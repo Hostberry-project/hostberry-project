@@ -25,19 +25,6 @@ func executeCommand(cmd string) (string, error) { return utils.ExecuteCommand(cm
 
 func filterSudoErrors(output []byte) string { return utils.FilterSudoErrors(output) }
 
-func WifiNetworksHandler(c *fiber.Ctx) error {
-	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
-	result := ScanWiFiNetworks(interfaceName)
-	if networks, ok := result["networks"]; ok {
-		return c.JSON(networks)
-	}
-	return c.JSON([]fiber.Map{})
-}
-
-func WifiClientsHandler(c *fiber.Ctx) error {
-	return c.JSON([]fiber.Map{})
-}
-
 func WifiToggleHandler(c *fiber.Ctx) error {
 	user, ok := middleware.GetUser(c)
 	if !ok {
