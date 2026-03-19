@@ -2,7 +2,6 @@ package server
 
 import (
 	"embed"
-	"fmt"
 	"os"
 	"strings"
 	"time"
