@@ -27,6 +27,7 @@ import (
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	webtemplates "hostberry/internal/templates"
+	"hostberry/internal/wifi"
 )
 
 var templatesFS embed.FS
@@ -83,7 +84,7 @@ func main() {
 
 		if interfaceName != "" {
 			i18n.LogTf("logs.wifi_auto_start", interfaceName)
-			autoConnectToLastNetwork(interfaceName)
+			wifi.AutoConnectToLastNetwork(interfaceName)
 		} else {
 			i18n.LogT("logs.wifi_interface_not_found")
 		}
@@ -585,7 +586,7 @@ func wifiScanHandler(c *fiber.Ctx) error {
 		interfaceName = constants.DefaultWiFiInterface
 	}
 
-	result := scanWiFiNetworks(interfaceName)
+	result := wifi.ScanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(networks)
 	}
