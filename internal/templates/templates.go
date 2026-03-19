@@ -67,6 +67,36 @@ func registerTemplateFuncs(engine *html.Engine) {
 func CreateTemplateEngine(templatesFS embed.FS) *html.Engine {
 	var engine *html.Engine
 
+	// Preferimos primero el FS embebido (si existe) para reducir I/O en SD.
+	// Si falla, hacemos fallback a disco.
+	if tmplFS, err := fs.Sub(templatesFS, "website/templates"); err == nil && tmplFS != nil {
+		criticalTemplates := []string{"dashboard.html", "login.html", "base.html"}
+		allCriticalFound := true
+		for _, tmpl := range criticalTemplates {
+			if testFile, err := tmplFS.Open(tmpl); err == nil {
+				_ = testFile.Close()
+			} else {
+				allCriticalFound = false
+				break
+			}
+		}
+
+		if allCriticalFound {
+			engine = html.NewFileSystem(http.FS(tmplFS), ".html")
+			if engine != nil {
+				registerTemplateFuncs(engine)
+				if loadErr := engine.Load(); loadErr == nil {
+					engine.Reload(!config.AppConfig.Server.Debug)
+					i18n.LogT("logs.templates_loaded_embed_first")
+					return engine
+				} else {
+					i18n.LogTf("logs.templates_embedded_load_error", loadErr)
+					engine = nil
+				}
+			}
+		}
+	}
+
 	paths := []string{
 		"/opt/hostberry/website/templates", // Ruta de instalación estándar
 	}
