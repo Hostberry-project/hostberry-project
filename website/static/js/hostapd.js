@@ -296,7 +296,7 @@
     try {
       const resp = await HostBerry.apiRequest('/api/v1/hostapd/clients');
       if (resp && resp.ok) {
-        const clients = await resp.json();
+        const clients = await resp.json().catch(function () { return []; });
         const countEl = document.getElementById('clients-count');
         if (countEl) countEl.textContent = Array.isArray(clients) ? clients.length : 0;
         
