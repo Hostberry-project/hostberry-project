@@ -66,7 +66,7 @@ func main() {
 				// Verificar que la interfaz realmente existe
 				cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", interfaceName))
 				if err := cmd.Run(); err == nil {
-					LogTf("logs.wifi_interface_detected", interfaceName)
+					i18n.LogTf("logs.wifi_interface_detected", interfaceName)
 					break
 				}
 			}

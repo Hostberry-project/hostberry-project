@@ -70,8 +70,8 @@ func initDatabase() error {
 		return fmt.Errorf("error en auto-migración: %v", err)
 	}
 
-	LogTln("logs.db_initialized")
-	LogTf("logs.db_location", cfg.Database.Path)
+	i18n.LogTln("logs.db_initialized")
+	i18n.LogTf("logs.db_location", cfg.Database.Path)
 	return nil
 }
 
