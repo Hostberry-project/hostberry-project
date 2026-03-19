@@ -418,14 +418,14 @@ func setupRoutes(app *fiber.App) {
 
 		tor := api.Group("/tor", middleware.RequireAuth)
 		{
-			tor.Get("/status", torStatusHandler)
-			tor.Post("/install", middleware.RequireAdmin, torInstallHandler)
-			tor.Post("/configure", middleware.RequireAdmin, torConfigureHandler)
-			tor.Post("/enable", middleware.RequireAdmin, torEnableHandler)
-			tor.Post("/disable", middleware.RequireAdmin, torDisableHandler)
-			tor.Get("/circuit", torCircuitHandler)
-			tor.Post("/iptables-enable", middleware.RequireAdmin, torIptablesEnableHandler)
-			tor.Post("/iptables-disable", middleware.RequireAdmin, torIptablesDisableHandler)
+			tor.Get("/status", torHandlers.TorStatusHandler)
+			tor.Post("/install", middleware.RequireAdmin, torHandlers.TorInstallHandler)
+			tor.Post("/configure", middleware.RequireAdmin, torHandlers.TorConfigureHandler)
+			tor.Post("/enable", middleware.RequireAdmin, torHandlers.TorEnableHandler)
+			tor.Post("/disable", middleware.RequireAdmin, torHandlers.TorDisableHandler)
+			tor.Get("/circuit", torHandlers.TorCircuitHandler)
+			tor.Post("/iptables-enable", middleware.RequireAdmin, torHandlers.TorIptablesEnableHandler)
+			tor.Post("/iptables-disable", middleware.RequireAdmin, torHandlers.TorIptablesDisableHandler)
 		}
 	}
 
