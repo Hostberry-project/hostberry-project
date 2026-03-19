@@ -389,9 +389,9 @@ func setupRoutes(app *fiber.App) {
 			adblock.Post("/enable", middleware.RequireAdmin, adblockEnableHandler)
 			adblock.Post("/disable", middleware.RequireAdmin, adblockDisableHandler)
 			adblock.Post("/update", middleware.RequireAdmin, sys.AdblockUpdateHandler)
-			adblock.Post("/lists/:name/toggle", middleware.RequireAdmin, adblockToggleListHandler)
-			adblock.Post("/domains/:name/toggle", middleware.RequireAdmin, adblockToggleDomainHandler)
-			adblock.Post("/config", middleware.RequireAdmin, adblockConfigHandler)
+			adblock.Post("/lists/:name/toggle", middleware.RequireAdmin, sys.AdblockToggleListHandler)
+			adblock.Post("/domains/:name/toggle", middleware.RequireAdmin, sys.AdblockToggleDomainHandler)
+			adblock.Post("/config", middleware.RequireAdmin, sys.AdblockConfigHandler)
 
 			// DNSCrypt (sub-sección de AdBlock)
 			dnscrypt := adblock.Group("/dnscrypt")
