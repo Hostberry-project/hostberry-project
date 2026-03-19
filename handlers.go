@@ -256,6 +256,10 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		})
 	}
 	cookieExpiry := time.Duration(appConfig.Security.TokenExpiry) * time.Minute
+	secure := false
+	if c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https") {
+		secure = true
+	}
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    newToken,
@@ -263,6 +267,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		SameSite: "Lax",
 		MaxAge:   int(cookieExpiry.Seconds()),
+		Secure:   secure,
 	})
 
 	return c.JSON(fiber.Map{
