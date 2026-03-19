@@ -27,7 +27,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 		CreatedAt: time.Now(),
 	}
 
-	token, err := GenerateToken(u)
+	token, err := auth.GenerateToken(u)
 	if err != nil {
 		t.Fatalf("GenerateToken devolvió error: %v", err)
 	}
@@ -35,7 +35,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 		t.Fatalf("GenerateToken devolvió token vacío")
 	}
 
-	claims, err := ValidateToken(token)
+	claims, err := auth.ValidateToken(token)
 	if err != nil {
 		t.Fatalf("ValidateToken devolvió error: %v", err)
 	}
