@@ -181,9 +181,9 @@ func metricsSummaryHandler(c *fiber.Ctx) error {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
-	req2xx := atomic.LoadUint64(&httpRequests2xx)
-	req4xx := atomic.LoadUint64(&httpRequests4xx)
-	req5xx := atomic.LoadUint64(&httpRequests5xx)
+	req2xx := metrics.Load2xx()
+	req4xx := metrics.Load4xx()
+	req5xx := metrics.Load5xx()
 
 	hostapdUp := serviceIsActive("hostapd")
 	dnsmasqUp := serviceIsActive("dnsmasq")
