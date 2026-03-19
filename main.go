@@ -273,6 +273,10 @@ func createApp() *fiber.App {
 		MaxAge:           3600,
 	}))
 
+	// Middleware de seguridad: cabeceras y, opcionalmente, redirección HTTP→HTTPS.
+	app.Use(securityHeadersMiddleware)
+	app.Use(enforceHTTPSMiddleware)
+
 	app.Use(loggingMiddleware)
 
 	app.Use(LanguageMiddleware)
