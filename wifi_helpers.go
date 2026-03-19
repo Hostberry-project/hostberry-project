@@ -118,7 +118,7 @@ func stopWpaSupplicant(interfaceName string) {
 		}
 		time.Sleep(500 * time.Millisecond)
 		if i == 4 {
-			LogT("logs.wpa_force_kill")
+			i18n.LogT("logs.wpa_force_kill")
 			executeCommand(fmt.Sprintf("sudo pkill -9 -f 'wpa_supplicant.*%s' 2>/dev/null || true", interfaceName))
 			executeCommand("sudo killall -9 wpa_supplicant 2>/dev/null || true")
 		}
@@ -206,7 +206,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 				return fmt.Errorf("wpa_supplicant no se encontró en %s. Instala el paquete wpa_supplicant (apt install wpasupplicant)", wpaSupplicantPath)
 			}
 			if strings.Contains(outStr, "ctrl_iface exists") || strings.Contains(outStr, "cannot override it") {
-				LogT("logs.wpa_socket_in_use")
+				i18n.LogT("logs.wpa_socket_in_use")
 				executeCommand(fmt.Sprintf("sudo rm -f %s/%s 2>/dev/null || true", runDir, interfaceName))
 				startOut, startErr = tryStart(driver)
 				if startErr != nil {
@@ -269,7 +269,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 	}
 
 	if lastErr != nil {
-		LogT("logs.wpa_not_running")
+		i18n.LogT("logs.wpa_not_running")
 		dmesgCmd := exec.Command("sh", "-c", "dmesg | tail -20 | grep -i wpa 2>/dev/null || echo 'No hay mensajes de wpa en dmesg'")
 		if dmesgOut, err := dmesgCmd.Output(); err == nil {
 			i18n.LogTf("logs.wpa_dmesg", string(dmesgOut))

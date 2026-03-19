@@ -101,7 +101,7 @@ func enableAdBlock(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.adblock_enabling", user)
+	i18n.LogTf("logs.adblock_enabling", user)
 
 	dnsmasqCmd := "sudo systemctl start dnsmasq"
 	if _, err := executeCommand(dnsmasqCmd); err != nil {
@@ -113,7 +113,7 @@ func enableAdBlock(user string) map[string]interface{} {
 				result["error"] = strings.TrimSpace(out2)
 			}
 			result["message"] = "Error iniciando servicio AdBlock"
-			LogTf("logs.adblock_enable_error", err2)
+			i18n.LogTf("logs.adblock_enable_error", err2)
 			return result
 		}
 	}
@@ -131,7 +131,7 @@ func disableAdBlock(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.adblock_disabling", user)
+	i18n.LogTf("logs.adblock_disabling", user)
 
 	executeCommand("sudo systemctl stop dnsmasq 2>/dev/null || true")
 	executeCommand("sudo systemctl stop blocky")
@@ -201,7 +201,7 @@ func installDNSCrypt(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.dnscrypt_installing", user)
+	i18n.LogTf("logs.dnscrypt_installing", user)
 
 	// Verificar si ya está instalado
 	checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null")
@@ -217,7 +217,7 @@ func installDNSCrypt(user string) map[string]interface{} {
 	installCmd := "sudo apt-get update && sudo apt-get install -y dnscrypt-proxy"
 	if out, err := executeCommand(installCmd); err != nil {
 		// Si falla, intentar compilar desde fuente o usar otro método
-		LogTf("logs.dnscrypt_install_error", err)
+		i18n.LogTf("logs.dnscrypt_install_error", err)
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error instalando DNSCrypt: %v", err)
 		if out != "" {
@@ -239,7 +239,7 @@ func configureDNSCrypt(serverName string, blockAds bool, user string) map[string
 		user = "unknown"
 	}
 
-	LogTf("logs.dnscrypt_configuring", user)
+	i18n.LogTf("logs.dnscrypt_configuring", user)
 
 	// Verificar si está instalado
 	checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null")
@@ -319,7 +319,7 @@ timeout = 5000
 	if err := cmd.Run(); err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error escribiendo configuración: %v", err)
-		LogTf("logs.dnscrypt_config_error", err)
+		i18n.LogTf("logs.dnscrypt_config_error", err)
 		return result
 	}
 
@@ -359,7 +359,7 @@ func enableDNSCrypt(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.dnscrypt_enabling", user)
+	i18n.LogTf("logs.dnscrypt_enabling", user)
 
 	// Verificar si está instalado
 	checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null")
@@ -392,7 +392,7 @@ func enableDNSCrypt(user string) map[string]interface{} {
 		if out != "" {
 			result["error"] = strings.TrimSpace(out)
 		}
-		LogTf("logs.dnscrypt_start_error", err)
+		i18n.LogTf("logs.dnscrypt_start_error", err)
 		return result
 	}
 
@@ -426,7 +426,7 @@ func enableDNSCrypt(user string) map[string]interface{} {
 	writeCmd := exec.Command("sudo", "sh", "-c", fmt.Sprintf("cat > %s", resolvConf))
 	writeCmd.Stdin = strings.NewReader(newContent)
 	if err := writeCmd.Run(); err != nil {
-		LogTf("logs.dnscrypt_resolv_error", err)
+		i18n.LogTf("logs.dnscrypt_resolv_error", err)
 		// No es crítico, continuar
 	}
 
@@ -446,7 +446,7 @@ func disableDNSCrypt(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.dnscrypt_disabling", user)
+	i18n.LogTf("logs.dnscrypt_disabling", user)
 
 	// Detener servicio
 	executeCommand("sudo systemctl stop dnscrypt-proxy")
@@ -650,7 +650,7 @@ func installBlocky(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.blocky_installing", user)
+	i18n.LogTf("logs.blocky_installing", user)
 
 	if blockyBinaryExists() {
 		result["success"] = true
@@ -706,7 +706,7 @@ func installBlocky(user string) map[string]interface{} {
 	if err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error descargando Blocky: %v", err)
-		LogTf("logs.blocky_install_error", err)
+		i18n.LogTf("logs.blocky_install_error", err)
 		return result
 	}
 	defer resp.Body.Close()
@@ -727,7 +727,7 @@ func installBlocky(user string) map[string]interface{} {
 		os.Remove(tarballPath)
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error guardando descarga: %v", err)
-		LogTf("logs.blocky_install_error", err)
+		i18n.LogTf("logs.blocky_install_error", err)
 		return result
 	}
 	defer os.Remove(tarballPath)
@@ -797,7 +797,7 @@ func configureBlocky(upstreams []string, blockLists []string, user string) map[s
 		user = "unknown"
 	}
 
-	LogTf("logs.blocky_configuring", user)
+	i18n.LogTf("logs.blocky_configuring", user)
 
 	if !blockyBinaryExists() {
 		result["success"] = false
@@ -865,7 +865,7 @@ log:
 		if err := os.WriteFile(blockyConfigPath, []byte(configContent), 0644); err != nil {
 			result["success"] = false
 			result["error"] = fmt.Sprintf("Error escribiendo configuración: %v", err)
-			LogTf("logs.blocky_config_error", err)
+			i18n.LogTf("logs.blocky_config_error", err)
 			return result
 		}
 	} else {
@@ -901,7 +901,7 @@ log:
 			if out == "" {
 				result["error"] = fmt.Sprintf("Error escribiendo configuración: %v", cpErr)
 			}
-			LogTf("logs.blocky_config_error", cpErr)
+			i18n.LogTf("logs.blocky_config_error", cpErr)
 			return result
 		}
 	}
@@ -919,7 +919,7 @@ func enableBlocky(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.blocky_enabling", user)
+	i18n.LogTf("logs.blocky_enabling", user)
 
 	if !blockyBinaryExists() {
 		result["success"] = false
@@ -949,7 +949,7 @@ func enableBlocky(user string) map[string]interface{} {
 		if out != "" {
 			result["error"] = strings.TrimSpace(out)
 		}
-		LogTf("logs.blocky_start_error", err)
+		i18n.LogTf("logs.blocky_start_error", err)
 		return result
 	}
 
@@ -990,7 +990,7 @@ func disableBlocky(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.blocky_disabling", user)
+	i18n.LogTf("logs.blocky_disabling", user)
 
 	executeCommand("sudo systemctl stop blocky")
 	executeCommand("sudo systemctl disable blocky")

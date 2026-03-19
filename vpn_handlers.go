@@ -46,7 +46,7 @@ func saveOpenVPNConfig(config, user string) map[string]interface{} {
 		result["error"] = fmt.Sprintf("Error guardando configuración: %v", err)
 		return result
 	}
-	LogTf("logs.vpn_openvpn_config_saved", user)
+	i18n.LogTf("logs.vpn_openvpn_config_saved", user)
 	result["success"] = true
 	result["message"] = "Configuración OpenVPN guardada"
 	return result
@@ -127,7 +127,7 @@ func connectVPN(config, vpnType, user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.vpn_connecting", vpnType, user)
+	i18n.LogTf("logs.vpn_connecting", vpnType, user)
 
 	if vpnType == "openvpn" {
 		configFile := "/etc/openvpn/client.conf"
@@ -232,14 +232,14 @@ func configureWireGuard(config, user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.vpn_wireguard_config", user)
+	i18n.LogTf("logs.vpn_wireguard_config", user)
 
 	configFile := "/etc/wireguard/wg0.conf"
 	if err := os.WriteFile(configFile, []byte(config), 0600); err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error guardando configuración: %v", err)
 		result["message"] = "Error guardando configuración"
-		LogTf("logs.vpn_wireguard_error", err)
+		i18n.LogTf("logs.vpn_wireguard_error", err)
 		return result
 	}
 
