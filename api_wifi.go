@@ -950,7 +950,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 
 		if disconnectErr == nil {
 			if userID != nil {
-				InsertLog("INFO", fmt.Sprintf("WiFi desconectado: %s (usuario: %s)", connectionName, username), "wifi", userID)
+				InsertLog("INFO", LogMsg("Desconexión WiFi de "+connectionName, username), "wifi", userID)
 			}
 			return c.JSON(fiber.Map{"success": true, "message": "Disconnected from " + connectionName})
 		}
