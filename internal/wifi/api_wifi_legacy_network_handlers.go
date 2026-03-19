@@ -90,6 +90,9 @@ func WifiLegacyScanHandler(c *fiber.Ctx) error {
 	}
 
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
+	if err := validateInterfaceName(interfaceName); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "Nombre de interfaz inválido"})
+	}
 	result := ScanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(fiber.Map{"success": true, "networks": networks})
