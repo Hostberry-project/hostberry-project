@@ -204,17 +204,17 @@
                         </div>
                         
                         <div class="wifi-buttons-group">
-                            <button class="btn btn-warning btn-lg w-100 mb-2" id="unblock-wifi-btn" onclick="unblockWiFi()" style="display: none;">
-                                <i class="bi bi-unlock me-2"></i>
+                            <button class="btn btn-warning btn-lg w-100 mb-2" id="unblock-wifi-btn" data-requires-admin="true" aria-label="{{ call .t "wifi.unblock_wifi" "Unblock WiFi" }}" onclick="unblockWiFi()" style="display: none;">
+                                <i class="bi bi-unlock me-2" aria-hidden="true"></i>
                                 <span>{{ call .t "wifi.unblock_wifi" "Unblock WiFi" }}</span>
                             </button>
                             <div class="wifi-buttons-row">
-                                <button class="btn btn-secondary btn-sm" id="toggle-software-switch-btn" onclick="toggleSoftwareSwitch()">
-                                    <i class="bi bi-toggle-off" id="software-switch-icon"></i>
+                                <button class="btn btn-secondary btn-sm" id="toggle-software-switch-btn" data-requires-admin="true" aria-label="{{ call .t "wifi.software_switch" "Software switch" }}" onclick="toggleSoftwareSwitch()">
+                                    <i class="bi bi-toggle-off" id="software-switch-icon" aria-hidden="true"></i>
                                     <span id="software-switch-text">{{ call .t "wifi.enable_software_switch" "Enable Software Switch" }}</span>
                                 </button>
-                                <button class="btn btn-primary btn-sm" id="toggle-wifi-btn" onclick="toggleWiFi()">
-                                    <i class="bi bi-wifi" id="toggle-wifi-icon"></i>
+                                <button class="btn btn-primary btn-sm" id="toggle-wifi-btn" data-requires-admin="true" aria-label="{{ call .t "wifi.toggle_wifi" "Toggle WiFi" }}" onclick="toggleWiFi()">
+                                    <i class="bi bi-wifi" id="toggle-wifi-icon" aria-hidden="true"></i>
                                     <span id="toggle-wifi-text">{{ call .t "wifi.enable_wifi" "Enable WiFi" }}</span>
                                 </button>
                                 <button class="btn btn-info btn-sm" id="scan-btn" onclick="scanNetworks()">
