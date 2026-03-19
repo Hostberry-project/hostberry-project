@@ -256,7 +256,7 @@ func setupRoutes(app *fiber.App) {
 	web := app.Group("/")
 	{
 		web.Get("/login", loginHandler)
-		web.Get("/first-login", firstLoginPageHandler)
+		web.Get("/first-login", sys.FirstLoginPageHandler)
 		web.Get("/", indexHandler)
 
 		protected := web.Group("/", middleware.RequireAuth)
