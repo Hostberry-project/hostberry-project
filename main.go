@@ -432,7 +432,7 @@ func indexHandler(c *fiber.Ctx) error {
 	token := c.Cookies("access_token")
 
 	if token != "" {
-		claims, err := ValidateToken(token)
+		claims, err := auth.ValidateToken(token)
 		if err == nil {
 			var user models.User
 			if err := database.DB.First(&user, claims.UserID).Error; err == nil && user.IsActive {
