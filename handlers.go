@@ -537,7 +537,7 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 		if ifaceName == "ap0" {
 			i18n.LogTf("logs.handlers_ap0_found", iface["state"])
 			if iface["state"] == "down" || iface["state"] == "unknown" {
-				LogT("logs.handlers_ap0_down")
+				i18n.LogT("logs.handlers_ap0_down")
 				activateCmd := exec.Command("sh", "-c", "sudo ip link set ap0 up 2>/dev/null")
 				if activateErr := activateCmd.Run(); activateErr == nil {
 					time.Sleep(500 * time.Millisecond)
