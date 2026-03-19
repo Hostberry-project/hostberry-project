@@ -22,6 +22,7 @@ import (
 	"hostberry/internal/database"
 	"hostberry/internal/health"
 	"hostberry/internal/i18n"
+	server "hostberry/internal/server"
 	middleware "hostberry/internal/middleware"
 	webtemplates "hostberry/internal/templates"
 	wifiHandlers "hostberry/internal/wifi"
