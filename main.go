@@ -316,7 +316,7 @@ func setupRoutes(app *fiber.App) {
 		network := api.Group("/network", middleware.RequireAuth)
 		{
 			network.Get("/status", netHandlers.NetworkStatusHandler)
-			network.Get("/interfaces", networkInterfacesHandler)
+			network.Get("/interfaces", netHandlers.NetworkInterfacesHandler)
 			network.Get("/routing", netHandlers.NetworkRoutingHandler)
 			network.Post("/firewall/toggle", middleware.RequireAdmin, netHandlers.NetworkFirewallToggleHandler)
 			network.Post("/speedtest", middleware.RequireAdmin, netHandlers.NetworkSpeedtestHandler)
