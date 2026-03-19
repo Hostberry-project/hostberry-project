@@ -850,10 +850,10 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 
 	country := req.Country
 	if country == "" {
-		country = c.Query("country", DefaultCountryCode)
+		country = c.Query("country", constants.DefaultCountryCode)
 	}
 	if country == "" {
-		country = DefaultCountryCode
+		country = constants.DefaultCountryCode
 	}
 	
 	interfaceName := req.Interface
