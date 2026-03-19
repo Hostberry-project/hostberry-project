@@ -19,6 +19,8 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/templates** | Motor de templates y render: `CreateTemplateEngine`, `RenderTemplate`. |
 | **internal/utils** | Utilidades compartidas: ejecución de comandos permitidos (caché/filtrado), parseos seguros y helpers de estado. |
 | **internal/wifi** | Lógica WiFi: `ScanWiFiNetworks`, `ToggleWiFi`, `ConnectWiFi`, `AutoConnectToLastNetwork` y helpers wpa_supplicant. |
+| **internal/vpn** | Lógica VPN: OpenVPN y WireGuard (`GetVPNStatus`, `GetOpenVPNConfig`, `ConnectVPN`, `ConfigureWireGuard`, etc.). |
+| **internal/tor** | Lógica Tor: instalación/configuración/iptables (`GetTorStatus`, `InstallTor`, `ConfigureTor`, `EnableTorIptables`, etc.). |
 
 ## Uso desde `package main`
 
@@ -33,7 +35,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 
 ## Raíz del módulo
 
-En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers) y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`, la lógica WiFi vive en `internal/wifi`.)
+En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers) y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`, la lógica WiFi en `internal/wifi`, VPN en `internal/vpn` y Tor en `internal/tor`.)
 
 Se eliminó `api_compat.go` (estaba vacío; la compatibilidad se cubre en otros módulos).
 
