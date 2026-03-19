@@ -797,7 +797,7 @@ country=%s
 	if appConfig.Server.Debug { log.Printf("Paso 6: Iniciando wpa_supplicant...") }
 	if err := startWpaSupplicant(interfaceName, wpaConfigPath, runDir); err != nil {
 		LogTf("logs.wifi_wpa_start_error2", err)
-		result["error"] = "No se pudo iniciar wpa_supplicant. Verifica la instalación."
+		result["error"] = err.Error()
 		return result
 	}
 
