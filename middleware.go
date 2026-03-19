@@ -156,6 +156,13 @@ func requireAdmin(c *fiber.Ctx) error {
 	}
 	role := strings.ToLower(strings.TrimSpace(user.Role))
 	if role != "admin" {
+		// Registrar intento de acceso sin permisos a rutas solo-admin
+		userID := user.ID
+		InsertLog("WARN",
+			fmt.Sprintf("Acceso denegado a ruta solo-admin %s %s por usuario %s (rol=%s)", c.Method(), c.Path(), user.Username, user.Role),
+			"auth",
+			&userID,
+		)
 		if strings.HasPrefix(c.Path(), "/api/") {
 			return c.Status(403).JSON(fiber.Map{"error": "Permisos insuficientes (se requiere rol admin)"})
 		}
