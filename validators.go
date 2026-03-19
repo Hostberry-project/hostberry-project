@@ -82,6 +82,17 @@ func ValidateIP(ip string) error {
 		if len(part) > 1 && part[0] == '0' {
 			return fiber.NewError(400, "IP inválida: no se permiten ceros a la izquierda")
 		}
+		// Cada octeto debe estar en 0-255
+		var n int
+		for _, c := range part {
+			if c < '0' || c > '9' {
+				return fiber.NewError(400, "Formato de IP inválido")
+			}
+			n = n*10 + int(c-'0')
+		}
+		if n > 255 {
+			return fiber.NewError(400, "IP inválida: octeto fuera de rango (0-255)")
+		}
 	}
 	return nil
 }
