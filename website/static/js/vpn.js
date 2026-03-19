@@ -87,9 +87,9 @@
     }
   }
 
-  async function toggleVPN() {
+  async function toggleVPN(buttonEl) {
     try {
-      const resp = await api('/api/v1/vpn/toggle', { method: 'POST' });
+      const resp = await api('/api/v1/vpn/toggle', { method: 'POST', sourceElement: buttonEl || undefined });
       if (resp && resp.ok) {
         showAlert('success', t('messages.operation_successful', 'Operation successful'));
         setTimeout(() => window.location.reload(), 1000);
@@ -101,9 +101,9 @@
     }
   }
 
-  async function connectVPN() {
+  async function connectVPN(buttonEl) {
     try {
-      const resp = await api('/api/v1/vpn/connect', { method: 'POST' });
+      const resp = await api('/api/v1/vpn/connect', { method: 'POST', sourceElement: buttonEl || undefined });
       if (resp && resp.ok) {
         showAlert('success', t('messages.operation_successful', 'Operation successful'));
         setTimeout(() => window.location.reload(), 1000);
@@ -115,10 +115,10 @@
     }
   }
 
-  async function toggleConnection(name) {
+  async function toggleConnection(name, buttonEl) {
     try {
       const safeName = encodeURIComponent(String(name ?? ''));
-      const resp = await api('/api/v1/vpn/connections/' + safeName + '/toggle', { method: 'POST' });
+      const resp = await api('/api/v1/vpn/connections/' + safeName + '/toggle', { method: 'POST', sourceElement: buttonEl || undefined });
       if (resp && resp.ok) {
         showAlert('success', t('messages.operation_successful', 'Operation successful'));
         setTimeout(loadConnections, 1000);
@@ -130,9 +130,9 @@
     }
   }
 
-  async function generateCertificates() {
+  async function generateCertificates(buttonEl) {
     try {
-      const resp = await api('/api/v1/vpn/certificates/generate', { method: 'POST' });
+      const resp = await api('/api/v1/vpn/certificates/generate', { method: 'POST', sourceElement: buttonEl || undefined });
       if (resp && resp.ok) {
         showAlert('success', t('messages.operation_successful', 'Operation successful'));
       } else {
