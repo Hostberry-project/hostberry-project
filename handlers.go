@@ -1216,21 +1216,15 @@ func profilePageHandler(c *fiber.Ctx) error {
 }
 
 func systemPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "system", fiber.Map{
-		"Title": i18n.T(c, "system.title", "System Manager"),
-	})
+	return sys.SystemPageHandler(c)
 }
 
 func monitoringPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "monitoring", fiber.Map{
-		"Title": i18n.T(c, "monitoring.title", "Monitoring"),
-	})
+	return sys.MonitoringPageHandler(c)
 }
 
 func updatePageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "update", fiber.Map{
-		"Title": i18n.T(c, "update.title", "Updates"),
-	})
+	return sys.UpdatePageHandler(c)
 }
 
 func firstLoginPageHandler(c *fiber.Ctx) error {
@@ -1240,31 +1234,19 @@ func firstLoginPageHandler(c *fiber.Ctx) error {
 }
 
 func setupWizardPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "setup_wizard", fiber.Map{
-		"Title":      i18n.T(c, "setup_wizard.title", "Configuración inicial"),
-		"last_update": time.Now().Unix(),
-	})
+	return sys.SetupWizardPageHandler(c)
 }
 
 func setupWizardVpnPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "setup_wizard_vpn", fiber.Map{
-		"Title":      i18n.T(c, "setup_wizard.security_vpn", "VPN"),
-		"last_update": time.Now().Unix(),
-	})
+	return sys.SetupWizardVpnPageHandler(c)
 }
 
 func setupWizardWireguardPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "setup_wizard_wireguard", fiber.Map{
-		"Title":      i18n.T(c, "setup_wizard.security_wireguard", "WireGuard"),
-		"last_update": time.Now().Unix(),
-	})
+	return sys.SetupWizardWireguardPageHandler(c)
 }
 
 func setupWizardTorPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "setup_wizard_tor", fiber.Map{
-		"Title":      i18n.T(c, "setup_wizard.security_tor", "Tor"),
-		"last_update": time.Now().Unix(),
-	})
+	return sys.SetupWizardTorPageHandler(c)
 }
 
 func systemLogsHandler(c *fiber.Ctx) error {
