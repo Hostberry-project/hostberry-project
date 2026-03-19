@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/config"
 )
 
 func systemConfigHandler(c *fiber.Ctx) error {
@@ -90,7 +91,7 @@ func systemConfigHandler(c *fiber.Ctx) error {
 		
 		if key == "session_timeout" {
 			if timeout, err := strconv.Atoi(valueStr); err == nil && timeout > 0 {
-				appConfig.Security.TokenExpiry = timeout
+				config.AppConfig.Security.TokenExpiry = timeout
 				LogTf("logs.config_session_timeout", timeout)
 			}
 		}
