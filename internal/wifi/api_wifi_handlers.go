@@ -16,7 +16,6 @@ import (
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
 	"hostberry/internal/utils"
-	"os/exec"
 )
 
 // Wrappers para compatibilidad con lógica original desde `package main`.
@@ -28,7 +27,7 @@ func filterSudoErrors(output []byte) string { return utils.FilterSudoErrors(outp
 
 func wifiNetworksHandler(c *fiber.Ctx) error {
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
-	result := wifi.ScanWiFiNetworks(interfaceName)
+	result := ScanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(networks)
 	}
@@ -51,7 +50,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 	rfkillOut, _ := rfkillCheck.Output()
 	isBlocked := strings.Contains(strings.ToLower(string(rfkillOut)), "yes")
 
-	result := wifi.ToggleWiFi(interfaceName, isBlocked)
+	result := ToggleWiFi(interfaceName, isBlocked)
 
 	if success, ok := result["success"].(bool); ok && success {
 		database.InsertLog("INFO", database.LogMsg("WiFi activado o desactivado correctamente", user.Username), "wifi", &userID)
