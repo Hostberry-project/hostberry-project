@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -319,4 +320,68 @@ func errorHandler(c *fiber.Ctx, err error) error {
 		))
 	}
 	return nil
+}
+
+// securityHeadersMiddleware añade cabeceras de seguridad básicas.
+func securityHeadersMiddleware(c *fiber.Ctx) error {
+	if err := c.Next(); err != nil {
+		return err
+	}
+
+	// No sobreescribir si ya existen (por ejemplo, si hay proxy delante que las ponga).
+	if c.Get("X-Content-Type-Options") == "" {
+		c.Set("X-Content-Type-Options", "nosniff")
+	}
+	if c.Get("X-Frame-Options") == "" {
+		c.Set("X-Frame-Options", "SAMEORIGIN")
+	}
+	if c.Get("Referrer-Policy") == "" {
+		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+	}
+
+	// Strict-Transport-Security solo cuando se detecta HTTPS (directo o vía proxy).
+	isHTTPS := c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https")
+	if isHTTPS && c.Get("Strict-Transport-Security") == "" {
+		c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+	}
+
+	// CSP mínima para reducir riesgos sin romper el panel.
+	if c.Get("Content-Security-Policy") == "" {
+		c.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'")
+	}
+
+	return nil
+}
+
+// enforceHTTPSMiddleware redirige HTTP -> HTTPS cuando:
+// - Security.EnforceHTTPS es true
+// - Se detecta que hay TLS directo o un proxy que marca X-Forwarded-Proto=https.
+func enforceHTTPSMiddleware(c *fiber.Ctx) error {
+	if !appConfig.Security.EnforceHTTPS {
+		return c.Next()
+	}
+
+	// Ya es HTTPS: no hacer nada.
+	if c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https") {
+		return c.Next()
+	}
+
+	// No intentes forzar HTTPS en salud/métricas para no romper sondas locales.
+	path := c.Path()
+	if strings.HasPrefix(path, "/health") || path == "/metrics" {
+		return c.Next()
+	}
+
+	// Construir URL HTTPS manteniendo host, path y query.
+	host := c.Hostname()
+	if host == "" {
+		host = fmt.Sprintf("%s:%d", appConfig.Server.Host, appConfig.Server.Port)
+	}
+	u := url.URL{
+		Scheme:   "https",
+		Host:     host,
+		Path:     c.OriginalURL(),
+		RawQuery: c.Context().URI().QueryArgs().String(),
+	}
+	return c.Redirect(u.String(), fiber.StatusPermanentRedirect)
 }
