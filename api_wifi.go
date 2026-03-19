@@ -969,7 +969,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 
 			if deviceDisconnectErr == nil {
 				if userID != nil {
-					InsertLog("INFO", fmt.Sprintf("Dispositivo WiFi desconectado: %s (usuario: %s)", deviceName, username), "wifi", userID)
+					InsertLog("INFO", LogMsg("Dispositivo WiFi desconectado: "+deviceName, username), "wifi", userID)
 				}
 				return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi device " + deviceName})
 			}
@@ -984,7 +984,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	if networkingOffErr != nil {
 		errorMsg := fmt.Sprintf("Error desconectando WiFi: %s", strings.TrimSpace(string(networkingOffOut)))
 		if userID != nil {
-			InsertLog("ERROR", fmt.Sprintf("Error en desconexión WiFi (usuario: %s): %s", username, errorMsg), "wifi", userID)
+			InsertLog("ERROR", LogMsgErr("desconectar WiFi", errorMsg, username), "wifi", userID)
 		}
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
@@ -997,13 +997,13 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	if networkingOnErr != nil {
 		errorMsg := fmt.Sprintf("Error reactivando networking: %s", strings.TrimSpace(string(networkingOnOut)))
 		if userID != nil {
-			InsertLog("ERROR", fmt.Sprintf("Error reactivando networking (usuario: %s): %s", username, errorMsg), "wifi", userID)
+			InsertLog("ERROR", LogMsgErr("reactivar red tras desconexión WiFi", errorMsg, username), "wifi", userID)
 		}
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
 	if userID != nil {
-		InsertLog("INFO", fmt.Sprintf("WiFi desconectado mediante fallback (usuario: %s)", username), "wifi", userID)
+		InsertLog("INFO", LogMsg("Desconexión WiFi (método alternativo)", username), "wifi", userID)
 	}
 	return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi"})
 }
