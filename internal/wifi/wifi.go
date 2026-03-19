@@ -2,6 +2,7 @@ package wifi
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -14,6 +15,30 @@ import (
 	"hostberry/internal/utils"
 )
 
+var interfaceNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,32}$`)
+
+func validateInterfaceName(interfaceName string) error {
+	interfaceName = strings.TrimSpace(interfaceName)
+	if interfaceName == "" {
+		return fmt.Errorf("interfaz WiFi requerida")
+	}
+	if len(interfaceName) > 32 {
+		return fmt.Errorf("nombre de interfaz inválido")
+	}
+	if !interfaceNameRegex.MatchString(interfaceName) {
+		return fmt.Errorf("nombre de interfaz inválido")
+	}
+	return nil
+}
+
+func runSudoSilently(args ...string) error {
+	cmd := exec.Command("sudo", args...)
+	cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
+	return cmd.Run()
+}
+
 // ScanWiFiNetworks escanea redes WiFi con iw y devuelve un mapa con "success", "networks" y "error".
 func ScanWiFiNetworks(interfaceName string) map[string]interface{} {
 	result := make(map[string]interface{})
@@ -22,10 +47,19 @@ func ScanWiFiNetworks(interfaceName string) map[string]interface{} {
 		interfaceName = constants.DefaultWiFiInterface
 	}
 
-	utils.ExecuteCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
+	if err := validateInterfaceName(interfaceName); err != nil {
+		result["success"] = false
+		result["error"] = "Nombre de interfaz inválido"
+		result["networks"] = networks
+		return result
+	}
+
+	_ = runSudoSilently("ip", "link", "set", interfaceName, "up")
 	time.Sleep(1 * time.Second)
 
-	scanCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo iw dev %s scan 2>/dev/null", interfaceName))
+	scanCmd := exec.Command("sudo", "iw", "dev", interfaceName, "scan")
+	scanCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+	scanCmd.Stderr = io.Discard
 	scanOut, err := scanCmd.Output()
 	if err != nil {
 		i18n.LogTf("logs.wifi_scan_error", err)
@@ -135,15 +169,44 @@ func ToggleWiFi(interfaceName string, enable bool) map[string]interface{} {
 		interfaceName = constants.DefaultWiFiInterface
 	}
 
+	if err := validateInterfaceName(interfaceName); err != nil {
+		result["success"] = false
+		result["error"] = "Nombre de interfaz inválido"
+		result["enabled"] = false
+		return result
+	}
+
 	if enable {
-		utils.ExecuteCommand("sudo rfkill unblock wifi 2>/dev/null || true")
-		utils.ExecuteCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
+		if err := runSudoSilently("rfkill", "unblock", "wifi"); err != nil {
+			result["success"] = false
+			result["error"] = "No se pudo desbloquear WiFi (rfkill)"
+			result["enabled"] = false
+			return result
+		}
+		if err := runSudoSilently("ip", "link", "set", interfaceName, "up"); err != nil {
+			result["success"] = false
+			result["error"] = "No se pudo activar la interfaz WiFi (ip link)"
+			result["enabled"] = false
+			return result
+		}
+
 		result["success"] = true
 		result["message"] = "WiFi habilitado"
 		result["enabled"] = true
 	} else {
-		utils.ExecuteCommand("sudo rfkill block wifi 2>/dev/null || true")
-		utils.ExecuteCommand(fmt.Sprintf("sudo ip link set %s down 2>/dev/null || true", interfaceName))
+		if err := runSudoSilently("rfkill", "block", "wifi"); err != nil {
+			result["success"] = false
+			result["error"] = "No se pudo bloquear WiFi (rfkill)"
+			result["enabled"] = false
+			return result
+		}
+		if err := runSudoSilently("ip", "link", "set", interfaceName, "down"); err != nil {
+			result["success"] = false
+			result["error"] = "No se pudo desactivar la interfaz WiFi (ip link)"
+			result["enabled"] = false
+			return result
+		}
+
 		result["success"] = true
 		result["message"] = "WiFi deshabilitado"
 		result["enabled"] = false
@@ -164,8 +227,13 @@ func ConnectWiFi(ssid, password, interfaceName, country, user string) map[string
 		interfaceName = constants.DefaultWiFiInterface
 	}
 
-	utils.ExecuteCommand("sudo rfkill unblock wifi 2>/dev/null || true")
-	utils.ExecuteCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
+	if err := validateInterfaceName(interfaceName); err != nil {
+		result["error"] = "Nombre de interfaz inválido"
+		return result
+	}
+
+	_ = runSudoSilently("rfkill", "unblock", "wifi")
+	_ = runSudoSilently("ip", "link", "set", interfaceName, "up")
 
 	safeSSID := regexp.MustCompile(`[^a-zA-Z0-9_-]`).ReplaceAllString(ssid, "_")
 	wpaConfigPath := fmt.Sprintf("%s/wpa_supplicant-%s.conf", WpaSupplicantConfigDir, safeSSID)
