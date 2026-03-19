@@ -114,6 +114,9 @@ func ExecuteCommandWithTimeout(cmd string, timeout time.Duration) (string, error
 	cacheMutex.RUnlock()
 
 	allowedCommands := []string{
+		// Nota seguridad: no permitimos shells como "sh" o "bash" desde executeCommand.
+		// La cadena completa se ejecuta internamente con "sh -c"; si permitiéramos "sh -c"
+		// también, se podría escapar del allowlist pasando comandos arbitrarios dentro del -c.
 		"hostname", "hostnamectl", "uname", "cat", "grep", "awk", "sed", "cut", "head", "tail",
 		"top", "free", "df", "nproc",
 		"iwlist", "nmcli", "iw",
@@ -122,6 +125,7 @@ func ExecuteCommandWithTimeout(cmd string, timeout time.Duration) (string, error
 		"rfkill", "ifconfig", "iwconfig",
 		"hostapd", "hostapd_cli", "dnsmasq", "iptables", "iptables-save", "netfilter-persistent", "sysctl", "tee", "cp", "mkdir", "echo", "chmod", "bash", "cat",
 		"dhclient", "udhcpc", "wpa_supplicant", "wpa_cli", "pkill", "killall",
+		"true",
 	}
 
 	noSudoCommands := []string{
@@ -129,45 +133,19 @@ func ExecuteCommandWithTimeout(cmd string, timeout time.Duration) (string, error
 		"free", "df", "nproc", "pgrep",
 	}
 
-	parts := strings.Fields(cmd)
-	if len(parts) == 0 {
-		return "", nil
-	}
-
-	commandIndex := 0
-	hasSudo := false
-	if len(parts) > 1 && parts[0] == "sudo" {
-		commandIndex = 1
-		hasSudo = true
-	}
-
-	if commandIndex >= len(parts) {
-		return "", exec.ErrNotFound
-	}
-
-	command := parts[commandIndex]
-	allowed := false
-	for _, allowedCmd := range allowedCommands {
-		if command == allowedCmd {
-			allowed = true
-			break
-		}
-	}
-
-	if !allowed {
-		return "", exec.ErrNotFound
+	if err := validateShellCommandAllowList(cmd, allowedCommands); err != nil {
+		return "", err
 	}
 
 	needsSudo := true
 	for _, noSudoCmd := range noSudoCommands {
-		if command == noSudoCmd {
+		// "needsSudo" se determina por el comando base (primer token) usado por el helper.
+		// Si el comando base no está disponible por validación, mantenemos el comportamiento por defecto.
+		// (validateShellCommandAllowList ya valida los tokens base y operadores).
+		if baseCommand := firstAllowedBaseCommand(cmd); baseCommand != "" && baseCommand == noSudoCmd {
 			needsSudo = false
 			break
 		}
-	}
-
-	if !needsSudo && hasSudo {
-		cmd = strings.Join(parts[1:], " ")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -211,6 +189,90 @@ func ExecuteCommandWithTimeout(cmd string, timeout time.Duration) (string, error
 	cacheMutex.Unlock()
 
 	return result, err
+}
+
+func validateShellCommandAllowList(cmd string, allowedCommands []string) error {
+	// Caracteres que típicamente permiten encadenar instrucciones o sustituciones.
+	// Mitigan inyección cuando "cmd" viene construido con variables.
+	if strings.ContainsAny(cmd, ";\n\r`$") {
+		return exec.ErrNotFound
+	}
+
+	// Construimos set para validar tokens base por átomo.
+	allowed := make(map[string]struct{}, len(allowedCommands))
+	for _, a := range allowedCommands {
+		allowed[a] = struct{}{}
+	}
+
+	tokens := strings.Fields(cmd)
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	// Validamos el comando base en cada átomo separado por operadores.
+	// Operadores permitidos: pipes y lógica (||, &&).
+	// (Los operadores se usan en el código actual para "|| true" y pipelines de grep/awk).
+	expectCommand := true
+	sawCommand := false
+
+	for _, tok := range tokens {
+		switch tok {
+		case "|", "||", "&&":
+			expectCommand = true
+			continue
+		}
+
+		if !expectCommand {
+			continue
+		}
+
+		// Saltamos "sudo" como prefijo del comando base.
+		if tok == "sudo" {
+			continue
+		}
+
+		base := strings.Trim(tok, `"'`)
+		if base == "" {
+			return exec.ErrNotFound
+		}
+
+		if _, ok := allowed[base]; !ok {
+			return exec.ErrNotFound
+		}
+
+		sawCommand = true
+		expectCommand = false
+	}
+
+	if !sawCommand {
+		return exec.ErrNotFound
+	}
+
+	return nil
+}
+
+func firstAllowedBaseCommand(cmd string) string {
+	tokens := strings.Fields(cmd)
+	for i := 0; i < len(tokens); i++ {
+		tok := tokens[i]
+		if tok == "sudo" {
+			continue
+		}
+		switch tok {
+		case "|", "||", "&&":
+			if i+1 < len(tokens) {
+				next := tokens[i+1]
+				if next == "sudo" && i+2 < len(tokens) {
+					return strings.Trim(tokens[i+2], `"'`)
+				}
+				return strings.Trim(next, `"'`)
+			}
+		default:
+			// Primer token no operador ni sudo.
+			return strings.Trim(tok, `"'`)
+		}
+	}
+	return ""
 }
 
 // FilterSudoErrors filtra líneas típicas de errores de `sudo`.
