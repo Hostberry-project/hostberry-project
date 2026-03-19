@@ -275,9 +275,9 @@ func setupRoutes(app *fiber.App) {
 		protected.Get("/setup-wizard/wireguard", setupWizardWireguardPageHandler)
 		protected.Get("/setup-wizard/tor", setupWizardTorPageHandler)
 		protected.Get("/profile", profilePageHandler)
-		protected.Get("/system", systemPageHandler)
-		protected.Get("/monitoring", monitoringPageHandler)
-		protected.Get("/update", updatePageHandler)
+		protected.Get("/system", sys.SystemPageHandler)
+		protected.Get("/monitoring", sys.MonitoringPageHandler)
+		protected.Get("/update", sys.UpdatePageHandler)
 	}
 
 	api := app.Group("/api/v1")
