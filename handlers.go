@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,7 +22,6 @@ import (
 	"hostberry/internal/wifi"
 	"hostberry/internal/vpn"
 	network "hostberry/internal/network"
-	sys "hostberry/internal/system"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
