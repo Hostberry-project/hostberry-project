@@ -20,6 +20,9 @@ func WifiToggleHandler(c *fiber.Ctx) error {
 	userID := user.ID
 
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
+	if err := validateInterfaceName(interfaceName); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "Nombre de interfaz inválido"})
+	}
 	rfkillCheck := exec.Command("sh", "-c", "sudo rfkill list wifi 2>/dev/null | grep -i 'soft blocked'")
 	rfkillOut, _ := rfkillCheck.Output()
 	isBlocked := strings.Contains(strings.ToLower(string(rfkillOut)), "yes")
