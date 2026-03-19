@@ -1092,7 +1092,7 @@ func wireguardConfigHandler(c *fiber.Ctx) error {
 	}
 	config := req.Config
 	return middleware.RunActionWithUser(c, "wireguard", "WireGuard configurado correctamente", "configurar WireGuard", func(user *models.User) map[string]interface{} {
-		return configureWireGuard(config, user.Username)
+		return vpn.ConfigureWireGuard(config, user.Username)
 	})
 }
 
