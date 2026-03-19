@@ -162,7 +162,7 @@ func NetworkInterfacesHandler(c *fiber.Ctx) error {
 			hostnameCmd := exec.Command("sh", "-c", "hostname -I 2>/dev/null | awk '{print $1}'")
 			if hostnameOut, err := hostnameCmd.Output(); err == nil {
 				hostnameIP := strings.TrimSpace(string(hostnameOut))
-				if hostnameIP != "" {
+				if hostnameIP != "" && validators.ValidateIP(hostnameIP) == nil {
 					checkCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep -q '%s' && echo '%s'", ifaceName, hostnameIP, hostnameIP))
 					if checkOut, err := checkCmd.Output(); err == nil {
 						checkIP := strings.TrimSpace(string(checkOut))
