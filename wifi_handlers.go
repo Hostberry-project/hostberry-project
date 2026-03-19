@@ -11,15 +11,16 @@ import (
 	"time"
 )
 
-const WpaSupplicantConfigDir = "/etc/wpa_supplicant"
-const WpaSupplicantAltConfigDir = "/var/lib/hostberry/wpa_supplicant"
+// Constantes y helpers de wpa_supplicant/socket están en wifi_helpers.go
 
-// WpaSocketDirs: directorios donde wpa_supplicant puede crear el socket (evita repetir la lista).
-var WpaSocketDirs = []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"}
+func _placeholderWifiHandlersImportHelpers() {
+	// Referencias a getRunDir, ensureWpaSupplicantDirs, stopWpaSupplicant,
+	// startWpaSupplicant, waitForWpaCliConnection, getLastConnectedNetwork
+	// resueltas desde wifi_helpers.go (mismo package main)
+	_, _ = getRunDir, ensureWpaSupplicantDirs
+}
 
-var activeRunDir string
-
-func getRunDir() string {
+func _removedGetRunDir() string {
 	if activeRunDir != "" {
 		return activeRunDir
 	}
