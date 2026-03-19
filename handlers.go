@@ -1142,31 +1142,15 @@ func networkPageHandler(c *fiber.Ctx) error {
 }
 
 func wifiPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "wifi", fiber.Map{
-		"Title":         i18n.T(c, "wifi.overview", "WiFi Overview"),
-		"wifi_stats":    fiber.Map{},
-		"wifi_status":   fiber.Map{},
-		"wifi_config":   fiber.Map{},
-		"guest_network": fiber.Map{},
-		"last_update":   time.Now().Unix(),
-	})
+	return wifi.WifiPageHandler(c)
 }
 
 func wifiScanPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "wifi_scan", fiber.Map{
-		"Title": i18n.T(c, "wifi.scan", "WiFi Scan"),
-	})
+	return wifi.WifiScanPageHandler(c)
 }
 
 func vpnPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "vpn", fiber.Map{
-		"Title":        i18n.T(c, "vpn.overview", "VPN Overview"),
-		"vpn_stats":    fiber.Map{},
-		"vpn_status":   fiber.Map{},
-		"vpn_config":   fiber.Map{},
-		"vpn_security": fiber.Map{},
-		"last_update":  time.Now().Unix(),
-	})
+	return vpn.VpnPageHandler(c)
 }
 
 func wireguardPageHandler(c *fiber.Ctx) error {
