@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"hostberry/internal/i18n"
 )
 
 func getSystemInfo() map[string]interface{} {

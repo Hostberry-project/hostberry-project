@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"hostberry/internal/constants"
+	"hostberry/internal/i18n"
 )
 
 // scanWiFiNetworks escanea redes WiFi con iw y devuelve un mapa con "success", "networks" y "error".
