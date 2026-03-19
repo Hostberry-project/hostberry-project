@@ -31,7 +31,7 @@ func saveOpenVPNConfig(config, user string) map[string]interface{} {
 		result["error"] = "Configuración requerida"
 		return result
 	}
-	if err := ValidateVPNConfig(config); err != nil {
+	if err := validators.ValidateVPNConfig(config); err != nil {
 		result["success"] = false
 		result["error"] = err.Error()
 		return result
@@ -111,7 +111,7 @@ func connectVPN(config, vpnType, user string) map[string]interface{} {
 			return result
 		}
 	} else {
-		if err := validators.ValidateVPNConfig(config); err != nil {
+		if err := validators.validators.ValidateVPNConfig(config); err != nil {
 			result["success"] = false
 			result["error"] = err.Error()
 			return result
