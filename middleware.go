@@ -323,12 +323,8 @@ func errorHandler(c *fiber.Ctx, err error) error {
 }
 
 // securityHeadersMiddleware añade cabeceras de seguridad básicas.
+// Las cabeceras se fijan antes de c.Next() para que se envíen con la respuesta.
 func securityHeadersMiddleware(c *fiber.Ctx) error {
-	if err := c.Next(); err != nil {
-		return err
-	}
-
-	// No sobreescribir si ya existen (por ejemplo, si hay proxy delante que las ponga).
 	if c.Get("X-Content-Type-Options") == "" {
 		c.Set("X-Content-Type-Options", "nosniff")
 	}
@@ -338,19 +334,14 @@ func securityHeadersMiddleware(c *fiber.Ctx) error {
 	if c.Get("Referrer-Policy") == "" {
 		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 	}
-
-	// Strict-Transport-Security solo cuando se detecta HTTPS (directo o vía proxy).
 	isHTTPS := c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https")
 	if isHTTPS && c.Get("Strict-Transport-Security") == "" {
 		c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	}
-
-	// CSP mínima para reducir riesgos sin romper el panel.
 	if c.Get("Content-Security-Policy") == "" {
 		c.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:; connect-src 'self'")
 	}
-
-	return nil
+	return c.Next()
 }
 
 // enforceHTTPSMiddleware redirige HTTP -> HTTPS cuando:
