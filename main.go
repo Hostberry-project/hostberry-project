@@ -96,7 +96,7 @@ func main() {
 
 	app := createApp()
 
-	setupRoutes(app)
+	server.SetupRoutes(app)
 
 	addr := fmt.Sprintf("%s:%d", config.AppConfig.Server.Host, config.AppConfig.Server.Port)
 	i18n.LogTf("logs.server_starting", addr)
@@ -158,7 +158,7 @@ func createApp() *fiber.App {
 	}
 	i18n.LogTln("logs.template_views_ok")
 
-	setupStaticFiles(app)
+	server.SetupStaticFiles(app, staticFS)
 
 	app.Use(logger.New(logger.Config{
 		Format:     "${time} | ${status} | ${latency} | ${ip} | ${method} | ${path}\n",
