@@ -9,53 +9,16 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+
+	"hostberry/internal/config"
+	"hostberry/internal/models"
+	"hostberry/internal/validators"
 )
 
-// LoginError lleva una clave i18n para que el handler traduzca el mensaje según el idioma.
-type LoginError struct {
-	Key     string        // ej: "auth.invalid_credentials"
-	Default string        // mensaje por defecto (español)
-	Args    []interface{} // argumentos para reemplazar {minutes}, {duration}, etc.
-}
+func GenerateToken(user *models.User) (string, error) {
+	expirationTime := time.Now().Add(time.Duration(config.AppConfig.Security.TokenExpiry) * time.Minute)
 
-func (e *LoginError) Error() string { return e.Default }
-
-type Claims struct {
-	Username string `json:"username"`
-	UserID   int    `json:"user_id"`
-	jwt.RegisteredClaims
-}
-
-type User struct {
-	ID        int    `gorm:"primaryKey"`
-	Username  string `gorm:"unique;not null"`
-	Password  string `gorm:"not null"`
-	Email     string
-	FirstName string
-	LastName  string
-	Role      string `gorm:"default:admin"`
-	Timezone  string `gorm:"default:UTC"`
-
-	LastLogin          *time.Time
-	LoginCount         int       `gorm:"default:0"`
-	FailedAttempts     int       `gorm:"default:0"`
-	LockedUntil        *time.Time // desbloqueo automático tras lockout
-	EmailNotifications bool `gorm:"default:false"`
-	SystemAlerts       bool `gorm:"default:false"`
-	SecurityAlerts     bool `gorm:"default:false"`
-	ShowActivity       bool `gorm:"default:true"`
-	DataCollection     bool `gorm:"default:false"`
-	Analytics          bool `gorm:"default:false"`
-
-	IsActive  bool `gorm:"default:true"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func GenerateToken(user *User) (string, error) {
-	expirationTime := time.Now().Add(time.Duration(appConfig.Security.TokenExpiry) * time.Minute)
-
-	claims := &Claims{
+	claims := &models.Claims{
 		Username: user.Username,
 		UserID:   user.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
