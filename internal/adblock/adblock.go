@@ -1,4 +1,4 @@
-package main
+package adblock
 
 import (
 	"bytes"
@@ -15,9 +15,16 @@ import (
 	"time"
 
 	"hostberry/internal/i18n"
+	"hostberry/internal/utils"
 
 	"gopkg.in/yaml.v3"
 )
+
+// executeCommand delega al helper seguro en internal/utils.
+// Se mantiene el mismo nombre para minimizar cambios mecánicos al mover el módulo.
+func executeCommand(cmd string) (string, error) {
+	return utils.ExecuteCommand(cmd)
+}
 
 func getAdBlockStatus() map[string]interface{} {
 	result := make(map[string]interface{})
