@@ -366,10 +366,10 @@ func setupRoutes(app *fiber.App) {
 
 		help := api.Group("/help", middleware.RequireAuth)
 		{
-			help.Post("/contact", helpContactHandler)
+			help.Post("/contact", sys.HelpContactHandler)
 		}
 
-		api.Get("/translations/:lang", translationsHandler)
+		api.Get("/translations/:lang", i18n.TranslationsHandler)
 
 		wireguard := api.Group("/wireguard", middleware.RequireAuth)
 		{
