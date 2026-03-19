@@ -361,12 +361,12 @@ func systemShutdownHandler(c *fiber.Ctx) error {
 
 	result := systemShutdown(user.Username)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", fmt.Sprintf("Sistema apagado por usuario %s", user.Username), "system", &userID)
+		InsertLog("INFO", LogMsg("Sistema apagado correctamente", user.Username), "system", &userID)
 		return c.JSON(result)
 	}
 
 	if err, ok := result["error"].(string); ok {
-		InsertLog("ERROR", fmt.Sprintf("Error apagando sistema: %s (usuario: %s)", err, user.Username), "system", &userID)
+		InsertLog("ERROR", LogMsgErr("apagar sistema", err, user.Username), "system", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": err})
 	}
 
