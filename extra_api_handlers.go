@@ -263,7 +263,7 @@ func adblockUpdateHandler(c *fiber.Ctx) error {
 	}
 
 	_ = SetConfig("adblock_last_update", time.Now().Format(time.RFC3339))
-	_ = InsertLog("INFO", fmt.Sprintf("Listas AdBlock actualizadas por %s", username), "adblock", userID)
+	_ = InsertLog("INFO", LogMsg("Listas AdBlock actualizadas correctamente", username), "adblock", userID)
 
 	return c.JSON(fiber.Map{
 		"success": true,
