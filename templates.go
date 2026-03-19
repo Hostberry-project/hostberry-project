@@ -184,10 +184,10 @@ func createTemplateEngine() *html.Engine {
 						if engine != nil {
 							registerTemplateFuncs(engine)
 							
-							if err := engine.Load(); err != nil {
-								LogTf("logs.templates_embedded_load_error", err)
+							if loadErr := engine.Load(); loadErr != nil {
+								LogTf("logs.templates_embedded_load_error", loadErr)
 								engine = nil
-								err = err // para el log de abajo
+								err = loadErr
 							} else {
 								engine.Reload(false)
 								LogTf("logs.templates_embedded_loaded", htmlFiles)
