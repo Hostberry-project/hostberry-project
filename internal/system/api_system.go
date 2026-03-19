@@ -1,4 +1,4 @@
-package main
+package system
 
 import (
 	"os"
@@ -37,7 +37,11 @@ func systemActivityHandler(c *fiber.Ctx) error {
 	return c.JSON(activities)
 }
 
-func systemNetworkHandler(c *fiber.Ctx) error {
+func SystemActivityHandler(c *fiber.Ctx) error {
+	return systemActivityHandler(c)
+}
+
+func SystemNetworkHandler(c *fiber.Ctx) error {
 	out, err := os.ReadFile("/proc/net/dev")
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
@@ -45,7 +49,7 @@ func systemNetworkHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"raw": string(out)})
 }
 
-func systemUpdatesHandler(c *fiber.Ctx) error {
+func SystemUpdatesHandler(c *fiber.Ctx) error {
 	commands := []string{
 		"apt list --upgradable 2>/dev/null | tail -n +2 | cut -d/ -f1",
 		"apt-get -s upgrade 2>/dev/null | awk '/^Inst /{print $2}'",
@@ -84,13 +88,13 @@ func systemUpdatesHandler(c *fiber.Ctx) error {
 	})
 }
 
-func systemBackupHandler(c *fiber.Ctx) error {
+func SystemBackupHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": false, "message": "Backup no implementado aún"})
 }
 
 // systemHttpsInfoHandler devuelve información básica sobre el estado HTTP/HTTPS actual.
 // Útil para mostrar en la página System una guía de configuración TLS.
-func systemHttpsInfoHandler(c *fiber.Ctx) error {
+func SystemHttpsInfoHandler(c *fiber.Ctx) error {
 	isHttps := c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https")
 
 	return c.JSON(fiber.Map{
