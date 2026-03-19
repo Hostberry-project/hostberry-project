@@ -250,7 +250,7 @@
     "log_disk_space_low": "Disk space running low on /var",
     "log_user_login": "User admin logged in",
     "log_initialized": "Dashboard initialized",
-    "log_disk_space_high": "Uso de espacio en disco superior al 70%",
+    "log_disk_space_high": "Disk space usage above 70%",
     "no_activity": "No recent activity",
     "openvpn": "OpenVPN"
   },
@@ -1254,7 +1254,7 @@
     "wireguard_status_error": "Error getting WireGuard status",
     "wireguard_stop_error": "Error stopping WireGuard",
     "error_occurred": "An error occurred",
-    "forbidden": "Permisos insuficientes para realizar esta acción.",
+    "forbidden": "Insufficient permissions to perform this action.",
     "not_implemented": "Not implemented",
     "unexpected_response": "Unexpected response from server"
   },
@@ -1497,7 +1497,7 @@
     "config_file_missing": "Critical file {file} does not exist in {path}",
     "config_integrity_ok": "✅ Config directory integrity verified",
     "service_permissions_set": "Service permissions configured for user {user}",
-    "venv_update_skip": "Modo update: saltando configuración del entorno virtual"
+    "venv_update_skip": "Update mode: skipping virtual environment setup"
   },
   "security": {
     "unblock_confirm": "Are you sure you want to unblock IP {ip}?",
@@ -2489,7 +2489,7 @@
     "wifi_connect_session_warning": "If you access the panel over WiFi, your session (or SSH) may drop when connecting to another network. Prefer Ethernet for this step.",
     "error_no_connection": "Error no connection",
     "security_tor": "Tor",
-    "security_tor_desc": "Anonimato por la red Tor.",
+    "security_tor_desc": "Anonymity through the Tor network.",
     "security_vpn": "VPN",
     "security_vpn_desc": "ConexiÃ³n VPN clÃ¡sica.",
     "security_wireguard": "WireGuard",
@@ -2601,9 +2601,9 @@
     "torify_active": "Active",
     "torify_ap_help": "All clients on the Hostberry WiFi will use Tor (Onion Pi style). Interface:",
     "torify_ap_title": "Redirigir trÃ¡fico del AP por Tor",
-    "torify_disable": "Dejar de torificar",
+    "torify_disable": "Stop torifying",
     "torify_disabled": "Redirect disabled",
-    "torify_enable": "Torificar red",
+    "torify_enable": "Torify network",
     "torify_enabled": "Network traffic now goes through Tor",
     "torify_inactive": "Inactivo",
     "trans_port": "TransPort",
