@@ -1217,13 +1217,13 @@ func blockyAPIProxyHandler(c *fiber.Ctx) error {
 
 // Handlers para Tor
 func torStatusHandler(c *fiber.Ctx) error {
-	result := getTorStatus()
+	result := tor.GetTorStatus()
 	return c.JSON(result)
 }
 
 func torInstallHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "tor", "Tor instalado correctamente", "instalar Tor", func(user *models.User) map[string]interface{} {
-		return installTor(user.Username)
+		return tor.InstallTor(user.Username)
 	})
 }
 
@@ -1265,7 +1265,7 @@ func torConfigureHandler(c *fiber.Ctx) error {
 		req.DNSPort = 53
 	}
 
-	opts := TorConfigOptions{
+	opts := tor.TorConfigOptions{
 		User:                  user.Username,
 		EnableSocks:           req.EnableSocks,
 		SocksPort:             req.SocksPort,
@@ -1279,7 +1279,7 @@ func torConfigureHandler(c *fiber.Ctx) error {
 		ClientOnly:            req.ClientOnly,
 		AutomapHostsOnResolve: req.AutomapHostsOnResolve,
 	}
-	result := configureTor(opts)
+	result := tor.ConfigureTor(opts)
 	if success, ok := result["success"].(bool); ok && success {
 		database.InsertLog("INFO", database.LogMsg("Tor configurado correctamente", user.Username), "tor", &userID)
 		return c.JSON(result)
@@ -1295,30 +1295,30 @@ func torConfigureHandler(c *fiber.Ctx) error {
 
 func torEnableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "tor", "Tor habilitado correctamente", "habilitar Tor", func(user *models.User) map[string]interface{} {
-		return enableTor(user.Username)
+		return tor.EnableTor(user.Username)
 	})
 }
 
 func torIptablesEnableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "tor", "Red torificada correctamente", "torificar red", func(user *models.User) map[string]interface{} {
-		return enableTorIptables(user.Username)
+		return tor.EnableTorIptables(user.Username)
 	})
 }
 
 func torIptablesDisableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "tor", "Torificación de red desactivada correctamente", "desactivar torificación de red", func(user *models.User) map[string]interface{} {
-		return disableTorIptables(user.Username)
+		return tor.DisableTorIptables(user.Username)
 	})
 }
 
 func torDisableHandler(c *fiber.Ctx) error {
 	return middleware.RunActionWithUser(c, "tor", "Tor deshabilitado correctamente", "deshabilitar Tor", func(user *models.User) map[string]interface{} {
-		return disableTor(user.Username)
+		return tor.DisableTor(user.Username)
 	})
 }
 
 func torCircuitHandler(c *fiber.Ctx) error {
-	result := getTorCircuitInfo()
+	result := tor.GetTorCircuitInfo()
 	return c.JSON(result)
 }
 
@@ -1369,7 +1369,7 @@ func wireguardPageHandler(c *fiber.Ctx) error {
 func torPageHandler(c *fiber.Ctx) error {
 	return webtemplates.RenderTemplate(c, "tor", fiber.Map{
 		"Title": i18n.T(c, "tor.title", "Tor Configuration"),
-		"tor_status": getTorStatus(),
+		"tor_status": tor.GetTorStatus(),
 	})
 }
 
