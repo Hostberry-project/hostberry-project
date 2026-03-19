@@ -1044,7 +1044,7 @@ func getLastConnectedNetwork(interfaceName string) (string, string, error) {
 	}
 
 	// Primero intentar obtener desde wpa_cli si wpa_supplicant está corriendo
-	socketDirs := []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"}
+	socketDirs := WpaSocketDirs
 	for _, dir := range socketDirs {
 		// Intentar socket de interfaz
 		socketPath := fmt.Sprintf("%s/%s", dir, interfaceName)
