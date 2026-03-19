@@ -13,7 +13,7 @@
     try {
       const resp = await api('/api/v1/vpn/connections');
       if (resp && resp.ok) {
-        const connections = await resp.json();
+        const connections = await resp.json().catch(function () { return []; });
         const tbody = document.getElementById('connectionsTable');
         if (!tbody) return;
         tbody.innerHTML = '';
@@ -44,7 +44,7 @@
     try {
       const resp = await api('/api/v1/vpn/servers');
       if (resp && resp.ok) {
-        const servers = await resp.json();
+        const servers = await resp.json().catch(function () { return []; });
         const tbody = document.getElementById('serversTable');
         if (!tbody) return;
         tbody.innerHTML = '';
