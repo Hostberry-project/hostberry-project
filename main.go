@@ -80,7 +80,7 @@ func main() {
 			i18n.LogTf("logs.wifi_auto_start", interfaceName)
 			autoConnectToLastNetwork(interfaceName)
 		} else {
-			LogT("logs.wifi_interface_not_found")
+			i18n.LogT("logs.wifi_interface_not_found")
 		}
 	}()
 
@@ -131,10 +131,10 @@ func main() {
 func createApp() *fiber.App {
 	engine := createTemplateEngine()
 	if engine == nil {
-		LogTfatal("logs.template_engine_error")
+		i18n.LogTfatal("logs.template_engine_error")
 	}
 
-	LogT("logs.template_engine_created")
+	i18n.LogT("logs.template_engine_created")
 
 	app := fiber.New(fiber.Config{
 		Views:        engine,
@@ -144,7 +144,7 @@ func createApp() *fiber.App {
 	})
 
 	if app.Config().Views == nil {
-		LogTfatal("logs.template_views_error")
+		i18n.LogTfatal("logs.template_views_error")
 	}
 	LogTln("logs.template_views_ok")
 
