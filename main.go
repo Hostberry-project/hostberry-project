@@ -19,6 +19,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"hostberry/internal/config"
+	"hostberry/internal/constants"
 )
 
 var templatesFS embed.FS
@@ -513,7 +514,7 @@ func detectWiFiInterface() string {
 		}
 	}
 
-	return DefaultWiFiInterface
+	return constants.DefaultWiFiInterface
 }
 
 func wifiInterfacesHandler(c *fiber.Ctx) error {
