@@ -638,37 +638,18 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 		networkBlock = fmt.Sprintf("network={\n\tssid=\"%s\"\n\tkey_mgmt=NONE\n}", ssid)
 	}
 
+	// Usar el directorio de socket estándar para que "wpa_cli -i wlan0" lo encuentre
+	// (evita "Failed to connect to non-global ctrl_ifname" tras conectar).
 	activeRunDir = ""
-	runDir := getRunDir()
-	LogTf("logs.wifi_socket_dir_writable", runDir)
-	
-	if err := os.MkdirAll(runDir, 0755); err != nil {
-		LogTf("logs.wifi_socket_dir_create_warning", runDir, err)
-		runDir = "/tmp/wpa_supplicant"
-		if err := os.MkdirAll(runDir, 0755); err != nil {
-			LogTf("logs.wifi_socket_dir_tmp_error", err)
-			result["error"] = "No se pudo crear directorio de socket para wpa_supplicant"
-			return result
-		}
-		activeRunDir = runDir
-		LogTf("logs.wifi_socket_dir_alt", runDir)
+	runDir := "/var/run/wpa_supplicant"
+	if _, err := os.Stat("/var/run/wpa_supplicant"); os.IsNotExist(err) {
+		runDir = "/run/wpa_supplicant"
 	}
-	
-	testFile := fmt.Sprintf("%s/.test_write", runDir)
-	if err := os.WriteFile(testFile, []byte("test"), 0644); err != nil {
-		LogTf("logs.wifi_socket_dir_not_writable", runDir, err)
-		runDir = "/tmp/wpa_supplicant"
-		os.MkdirAll(runDir, 0755)
-		activeRunDir = runDir
-		LogTf("logs.wifi_socket_dir_switching", runDir)
-	} else {
-		os.Remove(testFile)
-		LogTf("logs.wifi_socket_dir_verified", runDir)
-	}
-
 	executeCommand(fmt.Sprintf("sudo mkdir -p %s 2>/dev/null || true", runDir))
 	executeCommand(fmt.Sprintf("sudo chmod 775 %s 2>/dev/null || true", runDir))
 	executeCommand(fmt.Sprintf("sudo chown root:netdev %s 2>/dev/null || true", runDir))
+	activeRunDir = runDir
+	LogTf("logs.wifi_socket_dir_writable", runDir)
 	
 	configContent := fmt.Sprintf(`ctrl_interface=DIR=%s GROUP=netdev
 ctrl_interface_group=netdev
