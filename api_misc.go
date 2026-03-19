@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/database"
 )
 
 func helpContactHandler(c *fiber.Ctx) error {

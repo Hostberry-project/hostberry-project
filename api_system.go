@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/database"
 )
 
 func systemActivityHandler(c *fiber.Ctx) error {
