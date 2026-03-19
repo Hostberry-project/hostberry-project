@@ -297,3 +297,31 @@ func clearCommandCache() {
 	defer cacheMutex.Unlock()
 	commandCache = make(map[string]*cachedResult)
 }
+
+// strconvAtoiSafe parsea un string como entero sin signo (solo dígitos), sin usar strconv.Atoi.
+func strconvAtoiSafe(s string) (int, error) {
+	n := 0
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return 0, fmt.Errorf("invalid int")
+		}
+		n = n*10 + int(r-'0')
+	}
+	return n, nil
+}
+
+func mapActiveStatus(status string) string {
+	status = strings.ToLower(strings.TrimSpace(status))
+	if status == "active" {
+		return "connected"
+	}
+	return "disconnected"
+}
+
+func mapBoolStatus(v string) string {
+	v = strings.ToLower(strings.TrimSpace(v))
+	if v == "true" || v == "1" || v == "yes" {
+		return "connected"
+	}
+	return "disconnected"
+}
