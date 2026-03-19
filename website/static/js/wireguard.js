@@ -79,9 +79,9 @@
     }
   }
 
-  async function toggleWireGuard() {
+  async function toggleWireGuard(buttonEl) {
     try {
-      const resp = await api('/api/v1/wireguard/toggle', { method: 'POST' });
+      const resp = await api('/api/v1/wireguard/toggle', { method: 'POST', sourceElement: buttonEl || undefined });
       if (resp && resp.ok) {
         showAlert('success', t('messages.operation_successful', 'Operation successful'));
         setTimeout(() => window.location.reload(), 1000);
@@ -93,9 +93,9 @@
     }
   }
 
-  async function restartWireGuard() {
+  async function restartWireGuard(buttonEl) {
     try {
-      const resp = await api('/api/v1/wireguard/restart', { method: 'POST' });
+      const resp = await api('/api/v1/wireguard/restart', { method: 'POST', sourceElement: buttonEl || undefined });
       if (resp && resp.ok) {
         showAlert('success', t('messages.operation_successful', 'Operation successful'));
         setTimeout(() => window.location.reload(), 2000);
