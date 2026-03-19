@@ -258,7 +258,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 			"error": "Error generando sesión",
 		})
 	}
-	cookieExpiry := time.Duration(appConfig.Security.TokenExpiry) * time.Minute
+	cookieExpiry := time.Duration(config.AppConfig.Security.TokenExpiry) * time.Minute
 	secure := false
 	if c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https") {
 		secure = true
