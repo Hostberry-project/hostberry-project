@@ -269,7 +269,7 @@ func setupRoutes(app *fiber.App) {
 		protected.Get("/wireguard", vpnHandlers.WireguardPageHandler)
 		protected.Get("/adblock", adblockHandlers.AdblockPageHandler)
 		protected.Get("/tor", torHandlers.TorPageHandler)
-		protected.Get("/hostapd", hostapdPageHandler)
+		protected.Get("/hostapd", hostapdHandlers.HostapdPageHandler)
 		protected.Get("/setup-wizard", setupWizardPageHandler)
 		protected.Get("/setup-wizard/vpn", setupWizardVpnPageHandler)
 		protected.Get("/setup-wizard/wireguard", setupWizardWireguardPageHandler)
