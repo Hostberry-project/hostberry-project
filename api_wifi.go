@@ -293,14 +293,14 @@ func wifiConfigHandler(c *fiber.Ctx) error {
 				verifyOutput := strings.TrimSpace(string(verifyOut))
 
 				if strings.Contains(verifyOutput, req.Region) || output == "" {
-					InsertLog("INFO", fmt.Sprintf("Región WiFi cambiada a %s usando iw (usuario: %s)", req.Region, user.Username), "wifi", &userID)
+					InsertLog("INFO", LogMsg("Región WiFi cambiada a "+req.Region, user.Username), "wifi", &userID)
 					return c.JSON(fiber.Map{"success": true, "message": "Región WiFi cambiada exitosamente a " + req.Region})
 				}
 			}
 
 			crdaCmd := exec.Command("sh", "-c", fmt.Sprintf("echo 'REGDOMAIN=%s' | sudo tee /etc/default/crda >/dev/null 2>&1", req.Region))
 			if crdaCmd.Run() == nil {
-				InsertLog("INFO", fmt.Sprintf("Región WiFi configurada a %s en crda (usuario: %s)", req.Region, user.Username), "wifi", &userID)
+				InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (crda)", user.Username), "wifi", &userID)
 				exec.Command("sh", "-c", "sudo nmcli radio wifi off 2>/dev/null").Run()
 				time.Sleep(1 * time.Second)
 				exec.Command("sh", "-c", "sudo nmcli radio wifi on 2>/dev/null").Run()
@@ -309,19 +309,19 @@ func wifiConfigHandler(c *fiber.Ctx) error {
 
 			regdomCmd := exec.Command("sh", "-c", fmt.Sprintf("echo '%s' | sudo tee /etc/conf.d/wireless-regdom >/dev/null 2>&1", req.Region))
 			if regdomCmd.Run() == nil {
-				InsertLog("INFO", fmt.Sprintf("Región WiFi configurada a %s en wireless-regdom (usuario: %s)", req.Region, user.Username), "wifi", &userID)
+				InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (wireless-regdom)", user.Username), "wifi", &userID)
 				return c.JSON(fiber.Map{"success": true, "message": "Región WiFi configurada. Reinicia WiFi o el sistema para aplicar cambios."})
 			}
 		}
 
 		crdaCmd2 := exec.Command("sh", "-c", fmt.Sprintf("echo 'REGDOMAIN=%s' | sudo tee /etc/default/crda >/dev/null 2>&1", req.Region))
 		if crdaCmd2.Run() == nil {
-			InsertLog("INFO", fmt.Sprintf("Región WiFi configurada a %s (usuario: %s)", req.Region, user.Username), "wifi", &userID)
+			InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": "Región WiFi configurada. Reinicia WiFi para aplicar cambios."})
 		}
 
 		errorMsg := fmt.Sprintf("No se pudo cambiar la región WiFi automáticamente. Verifica que 'iw' esté instalado (sudo apt-get install iw) y que tengas permisos sudo configurados. Puedes configurarlo manualmente ejecutando: sudo iw reg set %s", req.Region)
-		InsertLog("ERROR", fmt.Sprintf("Error cambiando región WiFi a %s (usuario: %s): %s", req.Region, user.Username, errorMsg), "wifi", &userID)
+			InsertLog("ERROR", LogMsgErr("cambiar región WiFi a "+req.Region, errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
 	}
 
