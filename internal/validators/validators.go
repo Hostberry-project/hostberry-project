@@ -102,6 +102,24 @@ func ValidateSSID(ssid string) error {
 	return nil
 }
 
+// ifaceNameRegex: nombres de interfaz Linux habituales (IFNAMSIZ ≤ 16, sin espacios ni metacaracteres de shell).
+var ifaceNameRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._@-]{0,14}$`)
+
+// ValidateIfaceName comprueba un nombre de interfaz antes de pasarlo a comandos del sistema.
+func ValidateIfaceName(iface string) error {
+	iface = strings.TrimSpace(iface)
+	if iface == "" {
+		return fiber.NewError(400, "Nombre de interfaz vacío")
+	}
+	if len(iface) > 15 {
+		return fiber.NewError(400, "Nombre de interfaz demasiado largo")
+	}
+	if !ifaceNameRegex.MatchString(iface) {
+		return fiber.NewError(400, "Nombre de interfaz inválido")
+	}
+	return nil
+}
+
 const maxConfigSize = 64 * 1024 // 64 KB
 
 func ValidateWireGuardConfig(config string) error {
