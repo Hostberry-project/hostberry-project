@@ -176,82 +176,107 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 		return fmt.Errorf("wpa_supplicant no es ejecutable en %s", wpaSupplicantPath)
 	}
 	
-	args := []string{wpaSupplicantPath, "-B", "-i", interfaceName, "-c", configPath, "-D", "nl80211,wext"}
-	if runDir != "" {
-		args = append(args, "-C", runDir)
+	tryStart := func(driver string) (out []byte, runErr error) {
+		args := []string{wpaSupplicantPath, "-B", "-i", interfaceName, "-c", configPath}
+		if driver != "" {
+			args = append(args, "-D", driver)
+		}
+		if runDir != "" {
+			args = append(args, "-C", runDir)
+		}
+		cmd := exec.Command("sudo", args...)
+		cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+		out, runErr = cmd.CombinedOutput()
+		return out, runErr
 	}
-	startCmd := exec.Command("sudo", args...)
-	startCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
-	startOut, startErr := startCmd.CombinedOutput()
-	if startErr != nil {
+
+	tryDrivers := []string{"nl80211,wext", "wext", "nl80211", ""}
+	var lastErr error
+	var lastOut string
+
+	for _, driver := range tryDrivers {
+		executeCommand(fmt.Sprintf("sudo rm -f %s/%s 2>/dev/null || true", runDir, interfaceName))
+		startOut, startErr := tryStart(driver)
 		outStr := string(startOut)
-		LogTf("logs.wpa_start_error", startErr, outStr)
-		if strings.Contains(outStr, "not found") || strings.Contains(outStr, "No such file") {
-			return fmt.Errorf("wpa_supplicant no se encontró en %s. Verifica la instalación", wpaSupplicantPath)
-		}
-		if strings.Contains(outStr, "ctrl_iface exists") || strings.Contains(outStr, "cannot override it") {
-			LogT("logs.wpa_socket_in_use")
-			executeCommand(fmt.Sprintf("sudo rm -f %s/%s 2>/dev/null || true", runDir, interfaceName))
-			retryCmd := exec.Command("sudo", args...)
-			retryCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
-			retryOut, retryErr := retryCmd.CombinedOutput()
-			if retryErr != nil {
-				return fmt.Errorf("error iniciando wpa_supplicant tras limpiar socket: %v, output: %s", retryErr, string(retryOut))
+		if startErr != nil {
+			lastOut = outStr
+			lastErr = startErr
+			LogTf("logs.wpa_start_error", startErr, outStr)
+			if strings.Contains(outStr, "not found") || strings.Contains(outStr, "No such file") {
+				return fmt.Errorf("wpa_supplicant no se encontró en %s. Instala el paquete wpa_supplicant (apt install wpasupplicant)", wpaSupplicantPath)
 			}
-		} else {
-			return fmt.Errorf("error iniciando wpa_supplicant: %v, output: %s", startErr, outStr)
+			if strings.Contains(outStr, "ctrl_iface exists") || strings.Contains(outStr, "cannot override it") {
+				executeCommand(fmt.Sprintf("sudo rm -f %s/%s 2>/dev/null || true", runDir, interfaceName))
+				startOut, startErr = tryStart(driver)
+				if startErr != nil {
+					lastOut = string(startOut)
+					lastErr = fmt.Errorf("error iniciando wpa_supplicant tras limpiar socket: %v, output: %s", startErr, string(startOut))
+					continue
+				}
+				outStr = string(startOut)
+			} else {
+				// Error de driver u otro: probar siguiente driver antes de devolver error
+				driverHint := ""
+				if driver != "" {
+					driverHint = " (driver " + driver + ")"
+				}
+				lastErr = fmt.Errorf("error iniciando wpa_supplicant%v: %v. %s", driverHint, startErr, strings.TrimSpace(outStr))
+				if strings.Contains(strings.ToLower(outStr), "driver") || strings.Contains(strings.ToLower(outStr), "nl80211") || strings.Contains(strings.ToLower(outStr), "wext") || strings.Contains(outStr, "Could not configure") {
+					continue
+				}
+				return lastErr
+			}
 		}
-	}
+		LogTf("logs.wpa_command_executed", strings.TrimSpace(outStr))
+		time.Sleep(2 * time.Second)
 
-	LogTf("logs.wpa_command_executed", strings.TrimSpace(string(startOut)))
-
-	time.Sleep(2 * time.Second)
-
-	pidFound := false
-	var pid string
-	
-	pidCmd := exec.Command("sh", "-c", fmt.Sprintf("pgrep -f 'wpa_supplicant.*%s'", interfaceName))
-	if pidOut, err := pidCmd.Output(); err == nil {
-		pid = strings.TrimSpace(string(pidOut))
-		if pid != "" {
-			pidFound = true
-			LogTf("logs.wpa_found_pgrep", pid)
-		}
-	}
-	
-	if !pidFound {
-		pidCmd2 := exec.Command("sh", "-c", fmt.Sprintf("pgrep -f '%s.*%s'", wpaSupplicantPath, interfaceName))
-		if pidOut2, err2 := pidCmd2.Output(); err2 == nil {
-			pid = strings.TrimSpace(string(pidOut2))
+		pidFound := false
+		var pid string
+		pidCmd := exec.Command("sh", "-c", fmt.Sprintf("pgrep -f 'wpa_supplicant.*%s'", interfaceName))
+		if pidOut, err := pidCmd.Output(); err == nil {
+			pid = strings.TrimSpace(string(pidOut))
 			if pid != "" {
 				pidFound = true
-				LogTf("logs.wpa_found_pgrep2", pid)
 			}
 		}
-	}
-	
-	if !pidFound {
-		psCmd := exec.Command("sh", "-c", fmt.Sprintf("ps aux | grep '[w]pa_supplicant.*%s' | awk '{print $2}' | head -1", interfaceName))
-		if psOut, err := psCmd.Output(); err == nil {
-			pid = strings.TrimSpace(string(psOut))
-			if pid != "" {
-				pidFound = true
-				LogTf("logs.wpa_found_ps", pid)
+		if !pidFound {
+			pidCmd2 := exec.Command("sh", "-c", fmt.Sprintf("pgrep -f '%s.*%s'", wpaSupplicantPath, interfaceName))
+			if pidOut2, err2 := pidCmd2.Output(); err2 == nil {
+				pid = strings.TrimSpace(string(pidOut2))
+				if pid != "" {
+					pidFound = true
+				}
 			}
 		}
+		if !pidFound {
+			psCmd := exec.Command("sh", "-c", fmt.Sprintf("ps aux | grep '[w]pa_supplicant.*%s' | awk '{print $2}' | head -1", interfaceName))
+			if psOut, err := psCmd.Output(); err == nil {
+				pid = strings.TrimSpace(string(psOut))
+				if pid != "" {
+					pidFound = true
+				}
+			}
+		}
+		if pidFound {
+			LogTf("logs.wpa_running", pid)
+			return nil
+		}
+		executeCommand(fmt.Sprintf("sudo pkill -f 'wpa_supplicant.*%s' 2>/dev/null || true", interfaceName))
+		lastErr = fmt.Errorf("wpa_supplicant se ejecutó pero se detuvo de inmediato. Comprueba la interfaz %s y los logs (journalctl -u hostberry)", interfaceName)
+		lastOut = outStr
 	}
-	
-	if !pidFound {
+
+	if lastErr != nil {
 		LogT("logs.wpa_not_running")
-		LogT("logs.wpa_checking_logs")
-		dmesgCmd := exec.Command("sh", "-c", "dmesg | tail -20 | grep -i wpa || echo 'No hay mensajes de wpa en dmesg'")
+		dmesgCmd := exec.Command("sh", "-c", "dmesg | tail -20 | grep -i wpa 2>/dev/null || echo 'No hay mensajes de wpa en dmesg'")
 		if dmesgOut, err := dmesgCmd.Output(); err == nil {
 			LogTf("logs.wpa_dmesg", string(dmesgOut))
 		}
-		return fmt.Errorf("wpa_supplicant no se inició correctamente o se detuvo inmediatamente")
+		if lastOut != "" {
+			return fmt.Errorf("%v. Salida: %s", lastErr, strings.TrimSpace(lastOut))
+		}
+		return lastErr
 	}
-
-	LogTf("logs.wpa_running", pid)
 	return nil
 }
 
