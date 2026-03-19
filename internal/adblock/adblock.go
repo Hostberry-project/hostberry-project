@@ -1076,3 +1076,28 @@ func blockyAPIProxy(method, path string, body []byte) (int, []byte) {
 	data, _ := io.ReadAll(resp.Body)
 	return resp.StatusCode, data
 }
+
+// ---- Exportados para el paquete principal ----
+
+func GetAdBlockStatus() map[string]interface{}                     { return getAdBlockStatus() }
+func EnableAdBlock(user string) map[string]interface{}            { return enableAdBlock(user) }
+func DisableAdBlock(user string) map[string]interface{}           { return disableAdBlock(user) }
+func GetDNSCryptStatus() map[string]interface{}                   { return getDNSCryptStatus() }
+func InstallDNSCrypt(user string) map[string]interface{}          { return installDNSCrypt(user) }
+func ConfigureDNSCrypt(serverName string, blockAds bool, user string) map[string]interface{} {
+	return configureDNSCrypt(serverName, blockAds, user)
+}
+func EnableDNSCrypt(user string) map[string]interface{}  { return enableDNSCrypt(user) }
+func DisableDNSCrypt(user string) map[string]interface{} { return disableDNSCrypt(user) }
+
+func GetBlockyStatus() map[string]interface{}                    { return getBlockyStatus() }
+func GetBlockyConfig() map[string]interface{}                    { return getBlockyConfig() }
+func InstallBlocky(user string) map[string]interface{}           { return installBlocky(user) }
+func ConfigureBlocky(upstreams []string, blockLists []string, user string) map[string]interface{} {
+	return configureBlocky(upstreams, blockLists, user)
+}
+func EnableBlocky(user string) map[string]interface{}  { return enableBlocky(user) }
+func DisableBlocky(user string) map[string]interface{} { return disableBlocky(user) }
+func BlockyAPIProxy(method, path string, body []byte) (int, []byte) {
+	return blockyAPIProxy(method, path, body)
+}
