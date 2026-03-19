@@ -59,6 +59,16 @@ func isSameOriginForCookieAuth(c *fiber.Ctx) bool {
 	return true
 }
 
+func isWifiSetupAPIPath(path string) bool {
+	n := strings.TrimSuffix(path, "/")
+	switch n {
+	case "/api/v1/wifi/status", "/api/v1/wifi/scan", "/api/v1/wifi/connect", "/api/v1/wifi/disconnect":
+		return true
+	default:
+		return false
+	}
+}
+
 // RequireAuth protege rutas: valida token/JWT y carga el usuario en Locals.
 func RequireAuth(c *fiber.Ctx) error {
 	if c.Method() == fiber.MethodOptions {
@@ -79,14 +89,6 @@ func RequireAuth(c *fiber.Ctx) error {
 		"/api/v1/auth/login/":    true,
 		"/api/v1/translations":   true,
 		"/api/v1/translations/":  true,
-		"/api/v1/wifi/status":   true,
-		"/api/v1/wifi/status/": true,
-		"/api/v1/wifi/scan":     true,
-		"/api/v1/wifi/scan/":    true,
-		"/api/v1/wifi/connect":   true,
-		"/api/v1/wifi/connect/": true,
-		"/api/v1/wifi/disconnect":   true,
-		"/api/v1/wifi/disconnect/": true,
 		"/health":                 true,
 		"/health/":                true,
 		"/health/ready":           true,
