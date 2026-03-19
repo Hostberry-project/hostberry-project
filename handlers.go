@@ -1282,7 +1282,7 @@ func torConfigureHandler(c *fiber.Ctx) error {
 }
 
 func torEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Tor habilitado por usuario %s", "Error habilitando Tor: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Tor habilitado correctamente", "habilitar Tor", func(user *User) map[string]interface{} {
 		return enableTor(user.Username)
 	})
 }
