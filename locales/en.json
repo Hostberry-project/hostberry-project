@@ -1763,6 +1763,11 @@
     "mb": "MB",
     "gb": "GB"
   },
+  "monitoring": {
+    "http_metrics": "HTTP & services",
+    "http_requests": "HTTP requests",
+    "services_status": "Services status"
+  },
   "logs": {
     "config_load_error": "Error loading configuration: %v",
     "i18n_init_warning": "⚠️  Warning: Error initializing i18n: %v",
