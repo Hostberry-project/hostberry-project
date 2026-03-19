@@ -41,7 +41,7 @@ func currentUserInfo(c *fiber.Ctx) (string, *int) {
 
 func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
 	username, userID := currentUserInfo(c)
-	_ = InsertLog("INFO", fmt.Sprintf("Actualización de sistema iniciada por %s", username), "system", userID)
+	_ = InsertLog("INFO", LogMsg("Actualización del sistema iniciada", username), "system", userID)
 
 	go func(user string, uid *int) {
 		ctx, cancel := context.WithTimeout(context.Background(), 45*time.Minute)
@@ -52,7 +52,7 @@ func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
 		output := strings.TrimSpace(filterSudoErrors(out))
 
 		if ctx.Err() == context.DeadlineExceeded {
-			_ = InsertLog("ERROR", "Actualización del sistema cancelada por timeout", "system", uid)
+			_ = InsertLog("ERROR", LogMsgErr("actualizar sistema", "operación cancelada por tiempo de espera agotado", ""), "system", uid)
 			return
 		}
 		if err != nil {
