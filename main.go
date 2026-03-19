@@ -282,15 +282,15 @@ func setupRoutes(app *fiber.App) {
 
 	api := app.Group("/api/v1")
 	{
-		auth := api.Group("/auth")
+		authRoutes := api.Group("/auth")
 		{
-			auth.Post("/login", auth.LoginAPIHandler)
-			auth.Post("/logout", middleware.RequireAuth, auth.LogoutAPIHandler)
-			auth.Get("/me", middleware.RequireAuth, auth.MeHandler)
-			auth.Post("/change-password", middleware.RequireAuth, auth.ChangePasswordAPIHandler)
-			auth.Post("/first-login/change", auth.FirstLoginChangeAPIHandler)
-			auth.Post("/profile", middleware.RequireAuth, auth.UpdateProfileAPIHandler)
-			auth.Post("/preferences", middleware.RequireAuth, auth.UpdatePreferencesAPIHandler)
+			authRoutes.Post("/login", auth.LoginAPIHandler)
+			authRoutes.Post("/logout", middleware.RequireAuth, auth.LogoutAPIHandler)
+			authRoutes.Get("/me", middleware.RequireAuth, auth.MeHandler)
+			authRoutes.Post("/change-password", middleware.RequireAuth, auth.ChangePasswordAPIHandler)
+			authRoutes.Post("/first-login/change", auth.FirstLoginChangeAPIHandler)
+			authRoutes.Post("/profile", middleware.RequireAuth, auth.UpdateProfileAPIHandler)
+			authRoutes.Post("/preferences", middleware.RequireAuth, auth.UpdatePreferencesAPIHandler)
 		}
 
 		system := api.Group("/system", middleware.RequireAuth)
