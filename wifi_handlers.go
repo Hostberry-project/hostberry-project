@@ -152,6 +152,11 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 	if interfaceName == "" {
 		interfaceName = DefaultWiFiInterface
 	}
+
+	// Asegurar que la interfaz está levantada y el WiFi desbloqueado antes de iniciar wpa_supplicant.
+	executeCommand("sudo rfkill unblock wifi 2>/dev/null || true")
+	executeCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
+
 	safeSSID := regexp.MustCompile(`[^a-zA-Z0-9_-]`).ReplaceAllString(ssid, "_")
 	wpaConfigPath := fmt.Sprintf("%s/wpa_supplicant-%s.conf", WpaSupplicantConfigDir, safeSSID)
 
