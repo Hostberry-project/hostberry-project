@@ -176,7 +176,7 @@
     }, 5000);
   }
 
-  // Fetch wrapper with JSON and token
+  // Fetch wrapper with JSON y detección básica de 401/403
   async function apiRequest(url, options){
     const opts = Object.assign({ method: 'GET', headers: {} }, options || {});
     // Importante: incluir cookies en peticiones al mismo origen (para auth por cookie HTTPOnly).
@@ -199,8 +199,13 @@
     }
     
     opts.headers = headers;
+    // Permitir pasar un elemento origen para manejo de errores (por ejemplo, desactivar/reaccionar ante 403)
+    const sourceElement = opts.sourceElement || null;
+    if(sourceElement){
+      delete opts.sourceElement;
+    }
     try {
-    const resp = await fetch(url, opts);
+      const resp = await fetch(url, opts);
       if(resp.status === 401 && !url.includes('/auth/login')){
         // Auto logout on unauthorized
         // Pero NO redirigir inmediatamente si es una operación que puede causar pérdida temporal de conexión
@@ -244,7 +249,31 @@
           }
         }
       }
-    return resp;
+
+      // Manejo genérico de 403 (permisos insuficientes)
+      if (resp.status === 403) {
+        let msg = t('errors.forbidden', 'Permisos insuficientes para realizar esta acción.');
+        try{
+          const data = await resp.clone().json().catch(() => ({}));
+          if(data && typeof data.error === 'string' && data.error.trim() !== ''){
+            msg = data.error;
+          }
+        }catch(_e){}
+
+        if (HostBerry.showAlert) {
+          HostBerry.showAlert('warning', msg);
+        }
+
+        // Si disponemos de un elemento origen, añadir un indicador visual
+        if (sourceElement) {
+          try{
+            sourceElement.classList.add('disabled');
+            sourceElement.setAttribute('aria-disabled', 'true');
+          }catch(_e){}
+        }
+      }
+
+      return resp;
     } catch (e) {
       console.error('API Request failed:', e);
       // No cerrar sesión por errores de red - podría ser temporal
