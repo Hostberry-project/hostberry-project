@@ -23,7 +23,7 @@ func strconvAtoiSafe(s string) (int, error) {
 	return utils.StrconvAtoiSafe(s)
 }
 
-func hostapdAccessPointsHandler(c *fiber.Ctx) error {
+func HostapdAccessPointsHandler(c *fiber.Ctx) error {
 	var aps []fiber.Map
 
 	hostapdActive := false
@@ -166,7 +166,7 @@ func hostapdAccessPointsHandler(c *fiber.Ctx) error {
 	return c.JSON(aps)
 }
 
-func hostapdClientsHandler(c *fiber.Ctx) error {
+func HostapdClientsHandler(c *fiber.Ctx) error {
 	var clients []fiber.Map
 
 	hostapdOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null || pgrep hostapd > /dev/null && echo active || echo inactive").CombinedOutput()
@@ -194,7 +194,7 @@ func hostapdClientsHandler(c *fiber.Ctx) error {
 	return c.JSON(clients)
 }
 
-func hostapdCreateAp0Handler(c *fiber.Ctx) error {
+func HostapdCreateAp0Handler(c *fiber.Ctx) error {
 	phyInterface := "wlan0"
 
 	interfacesResp, _ := executeCommand("ip link show | grep -E '^[0-9]+: wlan' | awk -F: '{print $2}' | awk '{print $1}' | head -1")
@@ -324,7 +324,7 @@ func hostapdCreateAp0Handler(c *fiber.Ctx) error {
 	})
 }
 
-func hostapdToggleHandler(c *fiber.Ctx) error {
+func HostapdToggleHandler(c *fiber.Ctx) error {
 	log.Printf("HostAPD toggle request received")
 
 	hostapdOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null || pgrep hostapd > /dev/null && echo active || echo inactive").CombinedOutput()
@@ -651,7 +651,7 @@ func hostapdToggleHandler(c *fiber.Ctx) error {
 	})
 }
 
-func hostapdRestartHandler(c *fiber.Ctx) error {
+func HostapdRestartHandler(c *fiber.Ctx) error {
 	out1, err1 := executeCommand("sudo systemctl stop hostapd")
 
 	time.Sleep(500 * time.Millisecond)
@@ -675,7 +675,7 @@ func hostapdRestartHandler(c *fiber.Ctx) error {
 	})
 }
 
-func hostapdDiagnosticsHandler(c *fiber.Ctx) error {
+func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	diagnostics := make(map[string]interface{})
 
 	systemctlOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null").CombinedOutput()
@@ -766,7 +766,7 @@ func hostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	return c.JSON(diagnostics)
 }
 
-func hostapdGetConfigHandler(c *fiber.Ctx) error {
+func HostapdGetConfigHandler(c *fiber.Ctx) error {
 	configPath := "/etc/hostapd/hostapd.conf"
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
@@ -877,7 +877,7 @@ func hostapdGetConfigHandler(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-func hostapdConfigHandler(c *fiber.Ctx) error {
+func HostapdConfigHandler(c *fiber.Ctx) error {
 	var req struct {
 		Interface      string `json:"interface"`
 		SSID           string `json:"ssid"`
