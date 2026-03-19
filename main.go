@@ -239,11 +239,11 @@ func setupStaticFiles(app *fiber.App) {
 }
 
 func setupRoutes(app *fiber.App) {
-	app.Get("/health", healthCheckHandler)
-	app.Get("/health/ready", readinessCheckHandler)
-	app.Get("/health/live", livenessCheckHandler)
+	app.Get("/health", health.HealthCheckHandler)
+	app.Get("/health/ready", health.ReadinessCheckHandler)
+	app.Get("/health/live", health.LivenessCheckHandler)
 	// Métricas: endpoint público pero sin información sensible (para Prometheus/monitorización).
-	app.Get("/metrics", metricsHandler)
+	app.Get("/metrics", health.MetricsHandler)
 
 	web := app.Group("/")
 	{
@@ -295,7 +295,7 @@ func setupRoutes(app *fiber.App) {
 			system.Get("/network", systemNetworkHandler)
 			system.Get("/updates", systemUpdatesHandler)
 			system.Get("/services", systemServicesHandler)
-			system.Get("/metrics", metricsSummaryHandler)
+			system.Get("/metrics", health.MetricsSummaryHandler)
 			system.Post("/backup", requireAdmin, systemBackupHandler)
 			system.Post("/config", requireAdmin, systemConfigHandler)
 			system.Post("/updates/execute", requireAdmin, systemUpdatesExecuteHandler)
