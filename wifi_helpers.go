@@ -30,10 +30,10 @@ func getRunDir() string {
 			if err := os.WriteFile(testFile, []byte("test"), 0644); err == nil {
 				os.Remove(testFile)
 				activeRunDir = dir
-				LogTf("logs.socket_dir_selected", activeRunDir)
+				i18n.LogTf("logs.socket_dir_selected", activeRunDir)
 				return activeRunDir
 			} else {
-				LogTf("logs.socket_dir_not_writable", dir, err)
+				i18n.LogTf("logs.socket_dir_not_writable", dir, err)
 			}
 		} else {
 			if err := os.MkdirAll(dir, 0755); err == nil {
@@ -41,7 +41,7 @@ func getRunDir() string {
 				if err := os.WriteFile(testFile, []byte("test"), 0644); err == nil {
 					os.Remove(testFile)
 					activeRunDir = dir
-					LogTf("logs.socket_dir_created", activeRunDir)
+					i18n.LogTf("logs.socket_dir_created", activeRunDir)
 					return activeRunDir
 				}
 			}
@@ -49,16 +49,16 @@ func getRunDir() string {
 	}
 	activeRunDir = "/tmp/wpa_supplicant"
 	os.MkdirAll(activeRunDir, 0755)
-	LogTf("logs.socket_dir_default", activeRunDir)
+	i18n.LogTf("logs.socket_dir_default", activeRunDir)
 	return activeRunDir
 }
 
 func ensureWpaSupplicantDirs() error {
 	if _, err := os.Stat(WpaSupplicantConfigDir); os.IsNotExist(err) {
-		LogTf("logs.wpa_config_dir_creating", WpaSupplicantConfigDir)
+		i18n.LogTf("logs.wpa_config_dir_creating", WpaSupplicantConfigDir)
 		cmd := exec.Command("sudo", "mkdir", "-p", WpaSupplicantConfigDir)
 		if out, err := cmd.CombinedOutput(); err != nil {
-			LogTf("logs.wpa_config_dir_error", WpaSupplicantConfigDir, err, string(out))
+			i18n.LogTf("logs.wpa_config_dir_error", WpaSupplicantConfigDir, err, string(out))
 		}
 	}
 	exec.Command("sudo", "chmod", "755", WpaSupplicantConfigDir).Run()
@@ -69,20 +69,20 @@ func ensureWpaSupplicantDirs() error {
 
 	for _, dir := range runDirCandidates {
 		if fi, err := os.Stat(dir); err == nil && fi.IsDir() {
-			LogTf("logs.socket_dir_exists", dir)
+			i18n.LogTf("logs.socket_dir_exists", dir)
 			createdDir = dir
 			break
 		}
 
-		LogTf("logs.socket_dir_creating", dir)
+		i18n.LogTf("logs.socket_dir_creating", dir)
 		cmd := exec.Command("sudo", "mkdir", "-p", dir)
 		if out, err := cmd.CombinedOutput(); err != nil {
-			LogTf("logs.socket_dir_create_error", dir, err, string(out))
+			i18n.LogTf("logs.socket_dir_create_error", dir, err, string(out))
 			continue
 		}
 
 		if _, err := os.Stat(dir); err == nil {
-			LogTf("logs.socket_dir_created_ok", dir)
+			i18n.LogTf("logs.socket_dir_created_ok", dir)
 			createdDir = dir
 			break
 		}
@@ -91,20 +91,20 @@ func ensureWpaSupplicantDirs() error {
 	if createdDir == "" {
 		createdDir = "/tmp/wpa_supplicant"
 		os.MkdirAll(createdDir, 0775)
-		LogTf("logs.socket_dir_temp", createdDir)
+		i18n.LogTf("logs.socket_dir_temp", createdDir)
 	}
 
 	exec.Command("sudo", "chmod", "775", createdDir).Run()
 	exec.Command("sudo", "chown", "root:netdev", createdDir).Run()
 
 	activeRunDir = createdDir
-	LogTf("logs.socket_dir_active", activeRunDir)
+	i18n.LogTf("logs.socket_dir_active", activeRunDir)
 
 	return nil
 }
 
 func stopWpaSupplicant(interfaceName string) {
-	LogTf("logs.wpa_stopping", interfaceName)
+	i18n.LogTf("logs.wpa_stopping", interfaceName)
 
 	executeCommand(fmt.Sprintf("sudo pkill -f 'wpa_supplicant.*-i.*%s' 2>/dev/null || true", interfaceName))
 	executeCommand(fmt.Sprintf("sudo pkill -f 'wpa_supplicant.*%s' 2>/dev/null || true", interfaceName))
@@ -133,7 +133,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 	if runDir == "" {
 		runDir = "/run/wpa_supplicant"
 	}
-	LogTf("logs.wpa_starting", interfaceName, configPath, runDir)
+	i18n.LogTf("logs.wpa_starting", interfaceName, configPath, runDir)
 
 	executeCommand(fmt.Sprintf("sudo mkdir -p %s 2>/dev/null || true", runDir))
 	executeCommand(fmt.Sprintf("sudo chmod 775 %s 2>/dev/null || true", runDir))
@@ -170,7 +170,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 		return fmt.Errorf("wpa_supplicant no se encontró en el sistema. Instala el paquete wpa_supplicant")
 	}
 	
-	LogTf("logs.wpa_path", wpaSupplicantPath)
+	i18n.LogTf("logs.wpa_path", wpaSupplicantPath)
 	
 	if fi, err := os.Stat(wpaSupplicantPath); err != nil || fi.Mode()&0111 == 0 {
 		return fmt.Errorf("wpa_supplicant no es ejecutable en %s", wpaSupplicantPath)
@@ -201,7 +201,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 		if startErr != nil {
 			lastOut = outStr
 			lastErr = startErr
-			LogTf("logs.wpa_start_error", startErr, outStr)
+			i18n.LogTf("logs.wpa_start_error", startErr, outStr)
 			if strings.Contains(outStr, "not found") || strings.Contains(outStr, "No such file") {
 				return fmt.Errorf("wpa_supplicant no se encontró en %s. Instala el paquete wpa_supplicant (apt install wpasupplicant)", wpaSupplicantPath)
 			}
@@ -229,7 +229,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 				return lastErr
 			}
 		}
-		LogTf("logs.wpa_command_executed", strings.TrimSpace(outStr))
+		i18n.LogTf("logs.wpa_command_executed", strings.TrimSpace(outStr))
 		time.Sleep(2 * time.Second)
 
 		pidFound := false
@@ -260,7 +260,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 			}
 		}
 		if pidFound {
-			LogTf("logs.wpa_running", pid)
+			i18n.LogTf("logs.wpa_running", pid)
 			return nil
 		}
 		executeCommand(fmt.Sprintf("sudo pkill -f 'wpa_supplicant.*%s' 2>/dev/null || true", interfaceName))
@@ -272,7 +272,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 		LogT("logs.wpa_not_running")
 		dmesgCmd := exec.Command("sh", "-c", "dmesg | tail -20 | grep -i wpa 2>/dev/null || echo 'No hay mensajes de wpa en dmesg'")
 		if dmesgOut, err := dmesgCmd.Output(); err == nil {
-			LogTf("logs.wpa_dmesg", string(dmesgOut))
+			i18n.LogTf("logs.wpa_dmesg", string(dmesgOut))
 		}
 		if lastOut != "" {
 			return fmt.Errorf("%v. Salida: %s", lastErr, strings.TrimSpace(lastOut))
@@ -283,7 +283,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 }
 
 func waitForWpaCliConnection(interfaceName string, maxAttempts int) (string, error) {
-	LogTf("logs.wpa_cli_waiting", interfaceName)
+	i18n.LogTf("logs.wpa_cli_waiting", interfaceName)
 
 	socketDirs := []string{}
 	if activeRunDir != "" {
@@ -316,7 +316,7 @@ func waitForWpaCliConnection(interfaceName string, maxAttempts int) (string, err
 		for _, dir := range uniqueDirs {
 			socketPath := fmt.Sprintf("%s/%s", dir, interfaceName)
 			if _, err := os.Stat(socketPath); err == nil {
-				LogTf("logs.wpa_socket_found", socketPath)
+				i18n.LogTf("logs.wpa_socket_found", socketPath)
 				workingSocketDir = dir
 				executeCommand(fmt.Sprintf("sudo chmod 660 %s 2>/dev/null || true", socketPath))
 				executeCommand(fmt.Sprintf("sudo chown root:netdev %s 2>/dev/null || true", socketPath))
@@ -326,13 +326,13 @@ func waitForWpaCliConnection(interfaceName string, maxAttempts int) (string, err
 			lastPingOutput = pingOut
 			lastPingErr = pingErr
 			if lastPingOutput != "" {
-				LogTf("logs.wpa_cli_ping", dir, lastPingOutput)
+				i18n.LogTf("logs.wpa_cli_ping", dir, lastPingOutput)
 			}
 			if pingErr != nil && lastPingOutput != "" {
-				LogTf("logs.wpa_cli_ping_error", dir, pingErr)
+				i18n.LogTf("logs.wpa_cli_ping_error", dir, pingErr)
 			}
 			if strings.Contains(lastPingOutput, "PONG") {
-				LogTf("logs.wpa_cli_responded", dir)
+				i18n.LogTf("logs.wpa_cli_responded", dir)
 				return dir, nil
 			}
 
@@ -340,13 +340,13 @@ func waitForWpaCliConnection(interfaceName string, maxAttempts int) (string, err
 			lastStatusOutput = statusOut
 			lastStatusErr = statusErr
 			if lastStatusOutput != "" {
-				LogTf("logs.wpa_cli_status", dir, lastStatusOutput)
+				i18n.LogTf("logs.wpa_cli_status", dir, lastStatusOutput)
 			}
 			if statusErr != nil && lastStatusOutput != "" {
-				LogTf("logs.wpa_cli_status_error", dir, statusErr)
+				i18n.LogTf("logs.wpa_cli_status_error", dir, statusErr)
 			}
 			if strings.Contains(lastStatusOutput, "wpa_state=") {
-				LogTf("logs.wpa_cli_status_valid", dir)
+				i18n.LogTf("logs.wpa_cli_status_valid", dir)
 				return dir, nil
 			}
 
@@ -354,27 +354,27 @@ func waitForWpaCliConnection(interfaceName string, maxAttempts int) (string, err
 			if _, err := os.Stat(globalSocket); err == nil {
 				globalPingOut, globalPingErr := runWpaCli("wpa_cli", "-g", dir, "-i", interfaceName, "ping")
 				if strings.TrimSpace(globalPingOut) != "" {
-					LogTf("logs.wpa_cli_global_ping", dir, strings.TrimSpace(globalPingOut))
+					i18n.LogTf("logs.wpa_cli_global_ping", dir, strings.TrimSpace(globalPingOut))
 				}
 				if globalPingErr == nil && strings.Contains(globalPingOut, "PONG") {
-					LogTf("logs.wpa_cli_global_responded", dir)
+					i18n.LogTf("logs.wpa_cli_global_responded", dir)
 					return dir, nil
 				}
 				globalStatusOut, globalStatusErr := runWpaCli("wpa_cli", "-g", dir, "-i", interfaceName, "status")
 				if strings.TrimSpace(globalStatusOut) != "" {
-					LogTf("logs.wpa_cli_global_status", dir, strings.TrimSpace(globalStatusOut))
+					i18n.LogTf("logs.wpa_cli_global_status", dir, strings.TrimSpace(globalStatusOut))
 				}
 				if globalStatusErr == nil && strings.Contains(globalStatusOut, "wpa_state=") {
-					LogTf("logs.wpa_cli_global_status_valid", dir)
+					i18n.LogTf("logs.wpa_cli_global_status_valid", dir)
 					return dir, nil
 				}
 			}
 		}
 
 		if workingSocketDir != "" {
-			LogTf("logs.wpa_cli_attempt", attempt+1, maxAttempts, workingSocketDir)
+			i18n.LogTf("logs.wpa_cli_attempt", attempt+1, maxAttempts, workingSocketDir)
 		} else {
-			LogTf("logs.wpa_cli_socket_not_found", attempt+1, maxAttempts)
+			i18n.LogTf("logs.wpa_cli_socket_not_found", attempt+1, maxAttempts)
 		}
 
 		time.Sleep(1 * time.Second)
@@ -433,7 +433,7 @@ func getLastConnectedNetwork(interfaceName string) (string, string, error) {
 						if len(fields) >= 2 {
 							ssid := strings.Trim(fields[1], "\"")
 							if ssid != "" && ssid != "--" {
-								LogTf("logs.wifi_first_network_cli", ssid)
+								i18n.LogTf("logs.wifi_first_network_cli", ssid)
 								return ssid, "", nil
 							}
 						}
@@ -466,7 +466,7 @@ func getLastConnectedNetwork(interfaceName string) (string, string, error) {
 							ssid := strings.Trim(fields[1], "\"")
 							if ssid != "" && ssid != "--" {
 								if len(fields) >= 4 && (fields[3] == "[CURRENT]" || fields[2] == "[ENABLED]") {
-									LogTf("logs.wifi_network_found_global", ssid)
+									i18n.LogTf("logs.wifi_network_found_global", ssid)
 									return ssid, "", nil
 								}
 							}
@@ -479,7 +479,7 @@ func getLastConnectedNetwork(interfaceName string) (string, string, error) {
 						if len(fields) >= 2 {
 							ssid := strings.Trim(fields[1], "\"")
 							if ssid != "" && ssid != "--" {
-								LogTf("logs.wifi_first_network_global", ssid)
+								i18n.LogTf("logs.wifi_first_network_global", ssid)
 								return ssid, "", nil
 							}
 						}
@@ -548,7 +548,7 @@ func getLastConnectedNetwork(interfaceName string) (string, string, error) {
 		return "", "", fmt.Errorf("no se pudo extraer SSID del archivo de configuración")
 	}
 
-	LogTf("logs.wifi_ssid_found_config", ssid)
+	i18n.LogTf("logs.wifi_ssid_found_config", ssid)
 	// No retornamos password porque no podemos obtenerla del archivo (está hasheada)
 	// La contraseña ya está en el archivo de configuración, solo necesitamos el SSID
 	return ssid, "", nil

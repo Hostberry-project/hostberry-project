@@ -126,7 +126,7 @@ func installTor(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.tor_installing", user)
+	i18n.LogTf("logs.tor_installing", user)
 
 	// Verificar si ya está instalado
 	if isTorInstalled() {
@@ -141,7 +141,7 @@ func installTor(user string) map[string]interface{} {
 	installCmd := "sudo apt-get update && sudo apt-get install -y tor"
 	if out, err := executeCommand(installCmd); err != nil {
 		// Si falla, intentar con otros métodos
-		LogTf("logs.tor_install_error", err)
+		i18n.LogTf("logs.tor_install_error", err)
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error instalando Tor: %v", err)
 		if out != "" {
@@ -152,7 +152,7 @@ func installTor(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "Tor instalado correctamente"
-	LogT("logs.tor_installed")
+	i18n.LogT("logs.tor_installed")
 	return result
 }
 
@@ -163,7 +163,7 @@ func configureTor(opts TorConfigOptions) map[string]interface{} {
 		opts.User = "unknown"
 	}
 
-	LogTf("logs.tor_configuring", opts.User)
+	i18n.LogTf("logs.tor_configuring", opts.User)
 
 	// Verificar si está instalado
 	if !isTorInstalled() {
@@ -270,7 +270,7 @@ AvoidDiskWrites 0
 	if err := cmd.Run(); err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error escribiendo configuración: %v", err)
-		LogTf("logs.tor_config_error", err)
+		i18n.LogTf("logs.tor_config_error", err)
 		return result
 	}
 
@@ -281,7 +281,7 @@ AvoidDiskWrites 0
 
 	result["success"] = true
 	result["message"] = "Tor configurado correctamente"
-	LogT("logs.tor_configured")
+	i18n.LogT("logs.tor_configured")
 	return result
 }
 
@@ -292,7 +292,7 @@ func enableTor(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.tor_enabling", user)
+	i18n.LogTf("logs.tor_enabling", user)
 
 	// Verificar si está instalado
 	if !isTorInstalled() {
@@ -336,7 +336,7 @@ func enableTor(user string) map[string]interface{} {
 		if out != "" {
 			result["error"] = strings.TrimSpace(out)
 		}
-		LogTf("logs.tor_start_error", err)
+		i18n.LogTf("logs.tor_start_error", err)
 		return result
 	}
 
@@ -348,7 +348,7 @@ func enableTor(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "Tor habilitado correctamente"
-	LogT("logs.tor_enabled")
+	i18n.LogT("logs.tor_enabled")
 	return result
 }
 
@@ -359,7 +359,7 @@ func disableTor(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.tor_disabling", user)
+	i18n.LogTf("logs.tor_disabling", user)
 
 	// Detener servicio
 	executeCommand("sudo systemctl stop tor")
@@ -367,7 +367,7 @@ func disableTor(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "Tor deshabilitado correctamente"
-	LogT("logs.tor_disabled")
+	i18n.LogT("logs.tor_disabled")
 	return result
 }
 
@@ -497,7 +497,7 @@ func enableTorIptables(user string) map[string]interface{} {
 	if out, err := executeCommand(addDNS); err != nil {
 		result["success"] = false
 		result["error"] = "Error añadiendo regla DNS: " + strings.TrimSpace(out)
-		LogTf("logs.tor_iptables_error", out)
+		i18n.LogTf("logs.tor_iptables_error", out)
 		return result
 	}
 	// TCP (SYN -> TransPort)
@@ -516,7 +516,7 @@ func enableTorIptables(user string) map[string]interface{} {
 	result["success"] = true
 	result["message"] = fmt.Sprintf("Tráfico de la red Hostberry (%s) redirigido a Tor. Los clientes WiFi usarán Tor.", iface)
 	result["interface"] = iface
-	LogTf("logs.tor_iptables_enabled", user)
+	i18n.LogTf("logs.tor_iptables_enabled", user)
 	return result
 }
 
@@ -561,6 +561,6 @@ func disableTorIptables(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "Redirección de la red Hostberry a Tor desactivada."
-	LogTf("logs.tor_iptables_disabled", user)
+	i18n.LogTf("logs.tor_iptables_disabled", user)
 	return result
 }

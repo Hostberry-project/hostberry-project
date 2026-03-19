@@ -45,7 +45,7 @@ func systemConfigHandler(c *fiber.Ctx) error {
 		}
 		
 		if err := SetConfig(key, valueStr); err != nil {
-			LogTf("logs.config_save_error", key, err)
+			i18n.LogTf("logs.config_save_error", key, err)
 			errors = append(errors, fmt.Sprintf("Error guardando %s", key))
 		}
 		
@@ -71,7 +71,7 @@ func systemConfigHandler(c *fiber.Ctx) error {
 			output, err := cmd.CombinedOutput()
 			if err != nil {
 				combined := strings.TrimSpace(string(output))
-				LogTf("logs.config_timezone_error", err, combined)
+				i18n.LogTf("logs.config_timezone_error", err, combined)
 				
 				baseMsg := "No se pudo aplicar la zona horaria al sistema"
 				if combined != "" {
@@ -85,27 +85,27 @@ func systemConfigHandler(c *fiber.Ctx) error {
 					errors = append(errors, fmt.Sprintf("%s (rc=%v)", baseMsg, err))
 				}
 			} else {
-				LogTf("logs.config_timezone_success", tz)
+				i18n.LogTf("logs.config_timezone_success", tz)
 			}
 		}
 		
 		if key == "session_timeout" {
 			if timeout, err := strconv.Atoi(valueStr); err == nil && timeout > 0 {
 				config.AppConfig.Security.TokenExpiry = timeout
-				LogTf("logs.config_session_timeout", timeout)
+				i18n.LogTf("logs.config_session_timeout", timeout)
 			}
 		}
 		
 		if key == "max_login_attempts" {
-			LogTf("logs.config_max_login", valueStr)
+			i18n.LogTf("logs.config_max_login", valueStr)
 		}
 		
 		if key == "cache_enabled" {
-			LogTf("logs.config_cache_enabled", valueStr)
+			i18n.LogTf("logs.config_cache_enabled", valueStr)
 		}
 		
 		if key == "compression_enabled" {
-			LogTf("logs.config_compression", valueStr)
+			i18n.LogTf("logs.config_compression", valueStr)
 		}
 		
 		updatedKeys = append(updatedKeys, key)
