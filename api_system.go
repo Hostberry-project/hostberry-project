@@ -19,7 +19,7 @@ func systemActivityHandler(c *fiber.Ctx) error {
 		limit = v
 	}
 
-	logs, _, err := GetLogs("all", limit, 0)
+	logs, _, err := database.GetLogs("all", limit, 0)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/constants"
+	"hostberry/internal/database"
 	"hostberry/internal/models"
 )
 
@@ -43,12 +44,12 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 	result := toggleWiFi(interfaceName, isBlocked)
 
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente", user.Username), "wifi", &userID)
+		database.InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente", user.Username), "wifi", &userID)
 		return c.JSON(result)
 	}
 
 	if errorMsg, ok := result["error"].(string); ok && errorMsg != "" {
-		InsertLog("ERROR", LogMsgErr("cambiar estado WiFi", errorMsg, user.Username), "wifi", &userID)
+		database.InsertLog("ERROR", database.LogMsgErr("cambiar estado WiFi", errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
@@ -82,7 +83,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 					}
 				}
 			}
-			InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente (rfkill)", user.Username), "wifi", &userID)
+			database.InsertLog("INFO", LogMsg("WiFi activado o desactivado correctamente (rfkill)", user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": "WiFi toggle exitoso"})
 		}
 	}
@@ -109,18 +110,18 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 			execCommand(fmt.Sprintf("ip link set %s up 2>/dev/null", iface)).Run()
 			execCommand(fmt.Sprintf("ifconfig %s up 2>/dev/null", iface)).Run()
 			time.Sleep(1 * time.Second)
-			InsertLog("INFO", LogMsg("WiFi activado en interfaz "+iface, user.Username), "wifi", &userID)
+			database.InsertLog("INFO", LogMsg("WiFi activado en interfaz "+iface, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": fmt.Sprintf("WiFi activado en interfaz %s", iface)})
 		} else {
 			iwCmd := fmt.Sprintf("ifconfig %s down", iface)
 			execCommand(iwCmd + " 2>/dev/null").Run()
-			InsertLog("INFO", LogMsg("WiFi desactivado en interfaz "+iface, user.Username), "wifi", &userID)
+			database.InsertLog("INFO", LogMsg("WiFi desactivado en interfaz "+iface, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": fmt.Sprintf("WiFi desactivado en interfaz %s", iface)})
 		}
 	}
 
 	errorMsg := "No se pudo cambiar el estado de WiFi. Verifica que tengas permisos sudo configurados (NOPASSWD) o que rfkill/ip estén disponibles. Para configurar sudo sin contraseña, ejecuta: sudo visudo y agrega: usuario ALL=(ALL) NOPASSWD: /usr/sbin/rfkill, /sbin/ip, /sbin/ifconfig"
-	InsertLog("ERROR", LogMsgErr("cambiar estado WiFi", errorMsg, user.Username), "wifi", &userID)
+	database.InsertLog("ERROR", database.LogMsgErr("cambiar estado WiFi", errorMsg, user.Username), "wifi", &userID)
 	return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 }
 
@@ -176,7 +177,7 @@ func wifiUnblockHandler(c *fiber.Ctx) error {
 	if success {
 		time.Sleep(1 * time.Second)
 
-		InsertLog("INFO", LogMsg("WiFi desbloqueado correctamente", user.Username), "wifi", &userID)
+		database.InsertLog("INFO", LogMsg("WiFi desbloqueado correctamente", user.Username), "wifi", &userID)
 		return c.JSON(fiber.Map{"success": true, "message": "WiFi desbloqueado exitosamente"})
 	}
 
@@ -199,7 +200,7 @@ func wifiUnblockHandler(c *fiber.Ctx) error {
 		errorDetails += fmt.Sprintf(" Comandos disponibles: %s. Verifica permisos sudo (NOPASSWD) ejecutando: sudo fix_wifi_permissions.sh", strings.Join(availableCmds, ", "))
 	}
 
-	InsertLog("ERROR", LogMsgErr("desbloquear WiFi", errorDetails, user.Username), "wifi", &userID)
+	database.InsertLog("ERROR", database.LogMsgErr("desbloquear WiFi", errorDetails, user.Username), "wifi", &userID)
 	return c.Status(500).JSON(fiber.Map{"error": errorDetails})
 }
 
@@ -213,7 +214,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	rfkillCheck := exec.Command("sh", "-c", "command -v rfkill 2>/dev/null")
 	if rfkillCheck.Run() != nil {
 		errorMsg := "rfkill no está disponible en el sistema"
-		InsertLog("ERROR", LogMsgErr("cambiar conmutador de software WiFi", errorMsg, user.Username), "wifi", &userID)
+		database.InsertLog("ERROR", database.LogMsgErr("cambiar conmutador de software WiFi", errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
@@ -234,7 +235,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	output, err := execCommand(cmd + " 2>&1").CombinedOutput()
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error ejecutando rfkill: %s", string(output))
-		InsertLog("ERROR", LogMsgErr("cambiar conmutador de software WiFi", errorMsg, user.Username), "wifi", &userID)
+		database.InsertLog("ERROR", database.LogMsgErr("cambiar conmutador de software WiFi", errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
@@ -246,12 +247,12 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 
 	if isBlocked == newIsBlocked {
 		errorMsg := "El switch de software no cambió de estado"
-		InsertLog("WARN", LogMsgWarn("el conmutador de software WiFi no cambió: "+errorMsg, user.Username), "wifi", &userID)
+		database.InsertLog("WARN", LogMsgWarn("el conmutador de software WiFi no cambió: "+errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
 	message := fmt.Sprintf("Switch de software %s exitosamente", action)
-	InsertLog("INFO", LogMsg("Conmutador de software WiFi "+action+" correctamente", user.Username), "wifi", &userID)
+	database.InsertLog("INFO", LogMsg("Conmutador de software WiFi "+action+" correctamente", user.Username), "wifi", &userID)
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": message,
@@ -295,14 +296,14 @@ func wifiConfigHandler(c *fiber.Ctx) error {
 				verifyOutput := strings.TrimSpace(string(verifyOut))
 
 				if strings.Contains(verifyOutput, req.Region) || output == "" {
-					InsertLog("INFO", LogMsg("Región WiFi cambiada a "+req.Region, user.Username), "wifi", &userID)
+					database.InsertLog("INFO", LogMsg("Región WiFi cambiada a "+req.Region, user.Username), "wifi", &userID)
 					return c.JSON(fiber.Map{"success": true, "message": "Región WiFi cambiada exitosamente a " + req.Region})
 				}
 			}
 
 			crdaCmd := exec.Command("sh", "-c", fmt.Sprintf("echo 'REGDOMAIN=%s' | sudo tee /etc/default/crda >/dev/null 2>&1", req.Region))
 			if crdaCmd.Run() == nil {
-				InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (crda)", user.Username), "wifi", &userID)
+				database.InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (crda)", user.Username), "wifi", &userID)
 				exec.Command("sh", "-c", "sudo nmcli radio wifi off 2>/dev/null").Run()
 				time.Sleep(1 * time.Second)
 				exec.Command("sh", "-c", "sudo nmcli radio wifi on 2>/dev/null").Run()
@@ -311,19 +312,19 @@ func wifiConfigHandler(c *fiber.Ctx) error {
 
 			regdomCmd := exec.Command("sh", "-c", fmt.Sprintf("echo '%s' | sudo tee /etc/conf.d/wireless-regdom >/dev/null 2>&1", req.Region))
 			if regdomCmd.Run() == nil {
-				InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (wireless-regdom)", user.Username), "wifi", &userID)
+				database.InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region+" (wireless-regdom)", user.Username), "wifi", &userID)
 				return c.JSON(fiber.Map{"success": true, "message": "Región WiFi configurada. Reinicia WiFi o el sistema para aplicar cambios."})
 			}
 		}
 
 		crdaCmd2 := exec.Command("sh", "-c", fmt.Sprintf("echo 'REGDOMAIN=%s' | sudo tee /etc/default/crda >/dev/null 2>&1", req.Region))
 		if crdaCmd2.Run() == nil {
-			InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region, user.Username), "wifi", &userID)
+			database.InsertLog("INFO", LogMsg("Región WiFi configurada a "+req.Region, user.Username), "wifi", &userID)
 			return c.JSON(fiber.Map{"success": true, "message": "Región WiFi configurada. Reinicia WiFi para aplicar cambios."})
 		}
 
 		errorMsg := fmt.Sprintf("No se pudo cambiar la región WiFi automáticamente. Verifica que 'iw' esté instalado (sudo apt-get install iw) y que tengas permisos sudo configurados. Puedes configurarlo manualmente ejecutando: sudo iw reg set %s", req.Region)
-			InsertLog("ERROR", LogMsgErr("cambiar región WiFi a "+req.Region, errorMsg, user.Username), "wifi", &userID)
+			database.InsertLog("ERROR", database.LogMsgErr("cambiar región WiFi a "+req.Region, errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
 	}
 
@@ -959,7 +960,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 
 		if disconnectErr == nil {
 			if userID != nil {
-				InsertLog("INFO", LogMsg("Desconexión WiFi de "+connectionName, username), "wifi", userID)
+				database.InsertLog("INFO", LogMsg("Desconexión WiFi de "+connectionName, username), "wifi", userID)
 			}
 			return c.JSON(fiber.Map{"success": true, "message": "Disconnected from " + connectionName})
 		}
@@ -978,7 +979,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 
 			if deviceDisconnectErr == nil {
 				if userID != nil {
-					InsertLog("INFO", LogMsg("Dispositivo WiFi desconectado: "+deviceName, username), "wifi", userID)
+					database.InsertLog("INFO", LogMsg("Dispositivo WiFi desconectado: "+deviceName, username), "wifi", userID)
 				}
 				return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi device " + deviceName})
 			}
@@ -993,7 +994,7 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	if networkingOffErr != nil {
 		errorMsg := fmt.Sprintf("Error desconectando WiFi: %s", strings.TrimSpace(string(networkingOffOut)))
 		if userID != nil {
-			InsertLog("ERROR", LogMsgErr("desconectar WiFi", errorMsg, username), "wifi", userID)
+			database.InsertLog("ERROR", database.LogMsgErr("desconectar WiFi", errorMsg, username), "wifi", userID)
 		}
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
@@ -1006,13 +1007,13 @@ func wifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	if networkingOnErr != nil {
 		errorMsg := fmt.Sprintf("Error reactivando networking: %s", strings.TrimSpace(string(networkingOnOut)))
 		if userID != nil {
-			InsertLog("ERROR", LogMsgErr("reactivar red tras desconexión WiFi", errorMsg, username), "wifi", userID)
+			database.InsertLog("ERROR", database.LogMsgErr("reactivar red tras desconexión WiFi", errorMsg, username), "wifi", userID)
 		}
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
 	if userID != nil {
-		InsertLog("INFO", LogMsg("Desconexión WiFi (método alternativo)", username), "wifi", userID)
+		database.InsertLog("INFO", LogMsg("Desconexión WiFi (método alternativo)", username), "wifi", userID)
 	}
 	return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi"})
 }

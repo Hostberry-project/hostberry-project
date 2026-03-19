@@ -16,7 +16,7 @@ func helpContactHandler(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
 	userID := user.ID
-	InsertLog("INFO", LogMsg("Solicitud de contacto o ayuda recibida", user.Username), "help", &userID)
+	database.InsertLog("INFO", database.LogMsg("Solicitud de contacto o ayuda recibida", user.Username), "help", &userID)
 	return c.JSON(fiber.Map{"success": true})
 }
 

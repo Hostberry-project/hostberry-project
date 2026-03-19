@@ -353,13 +353,13 @@ func adblockConfigHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "cache_size fuera de rango (1-100000)"})
 	}
 
-	if err := SetConfig("adblock_update_interval", req.UpdateInterval); err != nil {
+	if err := database.SetConfig("adblock_update_interval", req.UpdateInterval); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "No se pudo guardar update_interval"})
 	}
-	if err := SetConfig("adblock_max_lists", strconv.Itoa(req.MaxLists)); err != nil {
+	if err := database.SetConfig("adblock_max_lists", strconv.Itoa(req.MaxLists)); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "No se pudo guardar max_lists"})
 	}
-	if err := SetConfig("adblock_cache_size", strconv.Itoa(req.CacheSize)); err != nil {
+	if err := database.SetConfig("adblock_cache_size", strconv.Itoa(req.CacheSize)); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "No se pudo guardar cache_size"})
 	}
 
@@ -392,7 +392,7 @@ func saveDisabledAdblockLists(disabled map[string]bool) error {
 		}
 	}
 	sort.Strings(entries)
-	return SetConfig("adblock_disabled_lists", strings.Join(entries, ","))
+	return database.SetConfig("adblock_disabled_lists", strings.Join(entries, ","))
 }
 
 func getAdblockDomainOverrides() map[string]bool {
@@ -410,7 +410,7 @@ func saveAdblockDomainOverrides(overrides map[string]bool) error {
 	if err != nil {
 		return err
 	}
-	return SetConfig("adblock_domain_overrides", string(data))
+	return database.SetConfig("adblock_domain_overrides", string(data))
 }
 
 func readBlockedDomainsFromHosts(limit int) map[string]bool {
