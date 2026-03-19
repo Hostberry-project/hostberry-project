@@ -162,9 +162,13 @@ func GetCurrentLanguage(c *fiber.Ctx) string {
 	}
 	if lang := c.Query("lang"); lang != "" {
 		if isLanguageSupported(lang) {
+			secure := false
+			if c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https") {
+				secure = true
+			}
 			c.Cookie(&fiber.Cookie{
 				Name: "lang", Value: lang, Path: "/",
-				MaxAge: 365 * 24 * 60 * 60, HTTPOnly: false, SameSite: "Lax",
+				MaxAge: 365 * 24 * 60 * 60, HTTPOnly: false, SameSite: "Lax", Secure: secure,
 			})
 			return lang
 		}
