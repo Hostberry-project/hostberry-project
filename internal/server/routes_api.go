@@ -24,6 +24,7 @@ func setupApiRoutes(app *fiber.App) {
 		{
 			authRoutes.Post("/login", authHandlers.LoginAPIHandler)
 			authRoutes.Post("/logout", middleware.RequireAuth, authHandlers.LogoutAPIHandler)
+			authRoutes.Post("/logout-all", middleware.RequireAuth, authHandlers.LogoutAllSessionsAPIHandler)
 			authRoutes.Get("/me", middleware.RequireAuth, authHandlers.MeHandler)
 			authRoutes.Post("/change-password", middleware.RequireAuth, authHandlers.ChangePasswordAPIHandler)
 			authRoutes.Post("/first-login/change", authHandlers.FirstLoginChangeAPIHandler)
