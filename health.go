@@ -5,11 +5,11 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/constants"
+	"hostberry/internal/metrics"
 )
 
 type HealthCheckResponse struct {
@@ -106,10 +106,10 @@ func metricsHandler(c *fiber.Ctx) error {
 	// NOTA: no exponemos información sensible (ni usuarios, ni tokens, etc.).
 	now := time.Now().Unix()
 
-	// Lectura atomica de contadores HTTP
-	req2xx := atomic.LoadUint64(&httpRequests2xx)
-	req4xx := atomic.LoadUint64(&httpRequests4xx)
-	req5xx := atomic.LoadUint64(&httpRequests5xx)
+	// Lectura atómica de contadores HTTP
+	req2xx := metrics.Load2xx()
+	req4xx := metrics.Load4xx()
+	req5xx := metrics.Load5xx()
 
 	// Estado de servicios del sistema (hostapd/dnsmasq) y WiFi
 	hostapdUp := serviceIsActive("hostapd")
