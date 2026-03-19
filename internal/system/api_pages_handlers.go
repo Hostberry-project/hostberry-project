@@ -8,7 +8,6 @@ import (
 	"hostberry/internal/i18n"
 	"hostberry/internal/database"
 	middleware "hostberry/internal/middleware"
-	"hostberry/internal/models"
 	webtemplates "hostberry/internal/templates"
 )
 
@@ -85,9 +84,6 @@ func ProfilePageHandler(c *fiber.Ctx) error {
 	// settings para render de la página.
 	configs, _ := database.GetAllConfigs()
 	configsJSON, _ := json.Marshal(configs)
-
-	// user model no se usa directamente en la lógica, pero se pasa al template.
-	_ = models.User{}
 
 	return webtemplates.RenderTemplate(c, "profile", fiber.Map{
 		"Title":              i18n.T(c, "auth.profile", "Profile"),
