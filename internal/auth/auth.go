@@ -18,10 +18,15 @@ import (
 
 // GenerateToken genera un JWT para el usuario.
 func GenerateToken(user *models.User) (string, error) {
+	tokenVersion := user.TokenVersion
+	if tokenVersion <= 0 {
+		tokenVersion = 1
+	}
 	expirationTime := time.Now().Add(time.Duration(config.AppConfig.Security.TokenExpiry) * time.Minute)
 	claims := &models.Claims{
-		Username: user.Username,
-		UserID:   user.ID,
+		Username:     user.Username,
+		UserID:       user.ID,
+		TokenVersion: tokenVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -63,6 +68,20 @@ func ValidateToken(tokenString string) (*models.Claims, error) {
 	}
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
 		return nil, errors.New("token expirado")
+	}
+	var user models.User
+	if err := database.DB.Select("id", "is_active", "token_version").First(&user, claims.UserID).Error; err != nil {
+		return nil, errors.New("usuario no encontrado")
+	}
+	if !user.IsActive {
+		return nil, errors.New("usuario inactivo")
+	}
+	if user.TokenVersion <= 0 {
+		user.TokenVersion = 1
+		_ = database.DB.Model(&user).Update("token_version", user.TokenVersion).Error
+	}
+	if claims.TokenVersion != user.TokenVersion {
+		return nil, errors.New("token revocado")
 	}
 	return claims, nil
 }
@@ -165,6 +184,9 @@ func Login(username, password string) (*models.User, string, error) {
 	user.LockedUntil = nil
 	user.LastLogin = &now
 	user.LoginCount++
+	if user.TokenVersion <= 0 {
+		user.TokenVersion = 1
+	}
 	_ = database.DB.Save(&user).Error
 
 	token, err := GenerateToken(&user)
@@ -201,7 +223,7 @@ func Register(username, password, email string) (*models.User, error) {
 	}
 	user := models.User{
 		Username: username, Password: hashedPassword, Email: email,
-		Role: "admin", Timezone: "UTC", IsActive: true,
+		Role: "admin", Timezone: "UTC", IsActive: true, TokenVersion: 1,
 	}
 	if err := database.DB.Create(&user).Error; err != nil {
 		return nil, fmt.Errorf("error creando usuario en BD: %v", err)
@@ -227,7 +249,7 @@ func RegisterBootstrap(username, password, email string) (*models.User, error) {
 	}
 	user := models.User{
 		Username: username, Password: hashedPassword, Email: email,
-		Role: "admin", Timezone: "UTC", IsActive: true,
+		Role: "admin", Timezone: "UTC", IsActive: true, TokenVersion: 1,
 	}
 	if err := database.DB.Create(&user).Error; err != nil {
 		return nil, fmt.Errorf("error creando usuario en BD: %v", err)
