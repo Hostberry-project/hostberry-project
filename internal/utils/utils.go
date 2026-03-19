@@ -183,7 +183,7 @@ func ExecuteCommandWithTimeout(cmd string, timeout time.Duration) (string, error
 	)
 
 	out, err := cmdObj.CombinedOutput()
-	outputStr := filterSudoErrorString(string(out))
+	outputStr := FilterSudoErrorString(string(out))
 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
