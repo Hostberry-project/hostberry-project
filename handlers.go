@@ -1177,13 +1177,7 @@ func adblockPageHandler(c *fiber.Ctx) error {
 }
 
 func hostapdPageHandler(c *fiber.Ctx) error {
-	return webtemplates.RenderTemplate(c, "hostapd", fiber.Map{
-		"Title":          i18n.T(c, "hostapd.overview", "Hotspot Overview"),
-		"hostapd_stats":  fiber.Map{},
-		"hostapd_status": fiber.Map{},
-		"hostapd_config": fiber.Map{},
-		"last_update":    time.Now().Unix(),
-	})
+	return hostapd.HostapdPageHandler(c)
 }
 
 func profilePageHandler(c *fiber.Ctx) error {
