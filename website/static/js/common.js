@@ -29,7 +29,7 @@
     try{
       await HostBerry.apiRequest('/api/v1/auth/logout-all', { method: 'POST' });
       if(HostBerry.showAlert){
-        HostBerry.showAlert('info', HostBerry.t ? HostBerry.t('auth.logout_success', 'Logout successful') : 'Logout successful');
+        HostBerry.showAlert('info', HostBerry.t ? HostBerry.t('auth.logout_all_success', 'Logged out from all devices') : 'Logged out from all devices');
       }
     }catch(_e){
       // ignore errors to ensure client-side logout proceeds
