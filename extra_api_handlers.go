@@ -187,7 +187,7 @@ func systemNotificationsTestEmailHandler(c *fiber.Ctx) error {
 
 	if err := smtp.SendMail(address, auth, smtpFrom, []string{req.To}, []byte(message)); err != nil {
 		username, userID := currentUserInfo(c)
-		_ = InsertLog("ERROR", fmt.Sprintf("Error enviando email de prueba por %s: %v", username, err), "system", userID)
+		_ = InsertLog("ERROR", LogMsgErr("enviar email de prueba", fmt.Sprint(err), username), "system", userID)
 		return c.Status(500).JSON(fiber.Map{
 			"error":   "No se pudo enviar el email de prueba",
 			"detail":  "Revisa la configuración SMTP y vuelve a intentarlo",
@@ -196,7 +196,7 @@ func systemNotificationsTestEmailHandler(c *fiber.Ctx) error {
 	}
 
 	username, userID := currentUserInfo(c)
-	_ = InsertLog("INFO", fmt.Sprintf("Email de prueba enviado por %s a %s", username, req.To), "system", userID)
+	_ = InsertLog("INFO", LogMsg("Email de prueba enviado a "+req.To, username), "system", userID)
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Email de prueba enviado.",
@@ -256,7 +256,7 @@ func adblockUpdateHandler(c *fiber.Ctx) error {
 	username, userID := currentUserInfo(c)
 
 	if _, err := executeCommand("sudo systemctl reload dnsmasq 2>/dev/null || sudo systemctl restart dnsmasq 2>/dev/null || true"); err != nil {
-		_ = InsertLog("ERROR", fmt.Sprintf("Error actualizando listas AdBlock (%s): %v", username, err), "adblock", userID)
+		_ = InsertLog("ERROR", LogMsgErr("actualizar listas AdBlock", fmt.Sprint(err), username), "adblock", userID)
 		return c.Status(500).JSON(fiber.Map{
 			"error": "No se pudieron actualizar las listas de AdBlock",
 		})
