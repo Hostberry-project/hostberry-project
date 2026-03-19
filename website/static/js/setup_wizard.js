@@ -341,15 +341,18 @@
         document.getElementById('wizard-go-config').disabled = false;
       });
     });
-    document.getElementById('wizard-go-config').addEventListener('click', function() {
+    var goConfig = document.getElementById('wizard-go-config');
+    if (goConfig) goConfig.addEventListener('click', function() {
       if (selectedSecurityOption) window.location.href = '/setup-wizard/' + selectedSecurityOption;
     });
 
     setupPasswordToggle('wizard-wifi-password', 'wizard-wifi-toggle-pwd');
     setupPasswordToggle('wizard-ap-password', 'wizard-ap-toggle-pwd');
 
-    document.getElementById('wizard-ap-open').addEventListener('change', function() {
-      document.getElementById('wizard-ap-password-box').classList.toggle('d-none', this.checked);
+    var apOpen = document.getElementById('wizard-ap-open');
+    if (apOpen) apOpen.addEventListener('change', function() {
+      var box = document.getElementById('wizard-ap-password-box');
+      if (box) box.classList.toggle('d-none', this.checked);
     });
 
     var params = new URLSearchParams(window.location.search || '');
