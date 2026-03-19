@@ -63,17 +63,8 @@ func CreateApp(templatesFS embed.FS, staticFS embed.FS) *fiber.App {
 	}))
 	app.Use(compress.New())
 
-	corsOrigins := "*"
-	if !config.AppConfig.Server.Debug {
-		corsOrigins = "http://localhost:" + fmt.Sprintf("%d", config.AppConfig.Server.Port) + ",http://127.0.0.1:" + fmt.Sprintf("%d", config.AppConfig.Server.Port)
-	}
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     corsOrigins,
-		AllowCredentials: true,
-		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders:     "Content-Type,Authorization,X-HostBerry-WiFi-Setup-Token",
-		MaxAge:           3600,
-	}))
+	// CORS: nunca "*" con credenciales; reflejar Origin solo si coincide con Host o cors_allow_origins.
+	app.Use(middleware.DynamicCORSWithCredentials())
 
 	// Middleware de seguridad: cabeceras y, opcionalmente, redirección HTTP→HTTPS.
 	app.Use(middleware.SecurityHeadersMiddleware)
