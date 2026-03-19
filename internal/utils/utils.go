@@ -121,31 +121,15 @@ func ExecuteCommandWithTimeout(cmd string, timeout time.Duration) (string, error
 		"top", "free", "df", "nproc",
 		"iwlist", "nmcli", "iw",
 		"ip", "wg", "wg-quick", "systemctl", "pgrep",
-		"sudo", "sh", "reboot", "shutdown", "poweroff",
+		"reboot", "shutdown", "poweroff",
 		"rfkill", "ifconfig", "iwconfig",
-		"hostapd", "hostapd_cli", "dnsmasq", "iptables", "iptables-save", "netfilter-persistent", "sysctl", "tee", "cp", "mkdir", "echo", "chmod", "bash", "cat",
+		"hostapd", "hostapd_cli", "dnsmasq", "iptables", "iptables-save", "netfilter-persistent", "sysctl", "tee", "cp", "mkdir", "echo", "chmod",
 		"dhclient", "udhcpc", "wpa_supplicant", "wpa_cli", "pkill", "killall",
 		"true",
 	}
 
-	noSudoCommands := []string{
-		"hostname", "uname", "cat", "grep", "awk", "sed", "cut", "head", "tail",
-		"free", "df", "nproc", "pgrep",
-	}
-
 	if err := validateShellCommandAllowList(cmd, allowedCommands); err != nil {
 		return "", err
-	}
-
-	needsSudo := true
-	for _, noSudoCmd := range noSudoCommands {
-		// "needsSudo" se determina por el comando base (primer token) usado por el helper.
-		// Si el comando base no está disponible por validación, mantenemos el comportamiento por defecto.
-		// (validateShellCommandAllowList ya valida los tokens base y operadores).
-		if baseCommand := firstAllowedBaseCommand(cmd); baseCommand != "" && baseCommand == noSudoCmd {
-			needsSudo = false
-			break
-		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
