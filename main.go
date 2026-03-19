@@ -30,6 +30,7 @@ import (
 	"hostberry/internal/wifi"
 	sys "hostberry/internal/system"
 	hostapdHandlers "hostberry/internal/hostapd"
+	netHandlers "hostberry/internal/network"
 )
 
 var templatesFS embed.FS
