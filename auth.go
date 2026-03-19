@@ -171,7 +171,7 @@ func Login(username, password string) (*models.User, string, error) {
 	user.LockedUntil = nil
 	user.LastLogin = &now
 	user.LoginCount++
-	_ = db.Save(&user).Error
+	_ = database.DB.Save(&user).Error
 
 	token, err := GenerateToken(&user)
 	if err != nil {
@@ -200,7 +200,7 @@ func Register(username, password, email string) (*models.User, error) {
 	}
 
 	var existingUser models.User
-	if err := db.Where("username = ?", username).First(&existingUser).Error; err == nil {
+	if err := database.DB.Where("username = ?", username).First(&existingUser).Error; err == nil {
 		return nil, errors.New("el usuario ya existe")
 	}
 
@@ -234,7 +234,7 @@ func RegisterBootstrap(username, password, email string) (*models.User, error) {
 		return nil, err
 	}
 	var existingUser models.User
-	if err := db.Where("username = ?", username).First(&existingUser).Error; err == nil {
+	if err := database.DB.Where("username = ?", username).First(&existingUser).Error; err == nil {
 		return nil, errors.New("el usuario ya existe")
 	}
 	hashedPassword, err := HashPassword(password)
