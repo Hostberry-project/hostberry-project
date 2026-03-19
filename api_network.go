@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/config"
 )
 
 func networkRoutingHandler(c *fiber.Ctx) error {
