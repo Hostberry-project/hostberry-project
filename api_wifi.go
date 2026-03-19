@@ -1,16 +1,16 @@
 package main
 
 import (
-"encoding/json"
-"fmt"
-"log"
-"os/exec"
-"regexp"
-"strconv"
-"strings"
-"time"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 
-\t"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 )
 
 func wifiNetworksHandler(c *fiber.Ctx) error {

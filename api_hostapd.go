@@ -1,14 +1,14 @@
 package main
 
 import (
-"fmt"
-"log"
-"os"
-"os/exec"
-"strings"
-"time"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
 
-\t"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 )
 
 func hostapdAccessPointsHandler(c *fiber.Ctx) error {
