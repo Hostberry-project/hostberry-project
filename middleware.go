@@ -240,7 +240,7 @@ func loggingMiddleware(c *fiber.Ctx) error {
 		durationStr = fmt.Sprintf("%.2fs", duration.Seconds())
 	}
 
-	if appConfig.Server.Debug || status >= 400 {
+	if config.AppConfig.Server.Debug || status >= 400 {
 		go func() {
 			// Mensaje de log más legible:
 			// Ejemplo: "✅ GET /wifi/status desde 192.168.1.10 en 12.3ms (HTTP 200)"
@@ -293,14 +293,14 @@ func errorHandler(c *fiber.Ctx, err error) error {
 			"path":    c.Path(),
 			"method":  c.Method(),
 		}
-		if appConfig.Server.Debug {
+		if config.AppConfig.Server.Debug {
 			resp["details"] = err.Error()
 		}
 		return c.Status(code).JSON(resp)
 	}
 
 	renderDetails := ""
-	if appConfig.Server.Debug {
+	if config.AppConfig.Server.Debug {
 		renderDetails = err.Error()
 	}
 	if renderErr := renderTemplate(c, "error", fiber.Map{
@@ -344,7 +344,7 @@ func securityHeadersMiddleware(c *fiber.Ctx) error {
 // - Security.EnforceHTTPS es true
 // - Se detecta que hay TLS directo o un proxy que marca X-Forwarded-Proto=https.
 func enforceHTTPSMiddleware(c *fiber.Ctx) error {
-	if !appConfig.Security.EnforceHTTPS {
+	if !config.AppConfig.Security.EnforceHTTPS {
 		return c.Next()
 	}
 
@@ -362,7 +362,7 @@ func enforceHTTPSMiddleware(c *fiber.Ctx) error {
 	// Construir URL HTTPS manteniendo host, path y query.
 	host := c.Hostname()
 	if host == "" {
-		host = fmt.Sprintf("%s:%d", appConfig.Server.Host, appConfig.Server.Port)
+		host = fmt.Sprintf("%s:%d", config.AppConfig.Server.Host, config.AppConfig.Server.Port)
 	}
 	u := url.URL{
 		Scheme:   "https",
