@@ -9,14 +9,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/metrics"
 	"hostberry/internal/models"
-)
-
-// Contadores simples de peticiones HTTP por clase de estado.
-var (
-	httpRequests2xx uint64
-	httpRequests4xx uint64
-	httpRequests5xx uint64
 )
 
 func requireAuth(c *fiber.Ctx) error {
@@ -209,11 +203,11 @@ func loggingMiddleware(c *fiber.Ctx) error {
 
 	// Actualizar contadores de métricas HTTP por clase de código.
 	if status >= 200 && status < 300 {
-		atomic.AddUint64(&httpRequests2xx, 1)
+		metrics.Add2xx()
 	} else if status >= 400 && status < 500 {
-		atomic.AddUint64(&httpRequests4xx, 1)
+		metrics.Add4xx()
 	} else if status >= 500 {
-		atomic.AddUint64(&httpRequests5xx, 1)
+		metrics.Add5xx()
 	}
 
 	userID := c.Locals("user_id")
