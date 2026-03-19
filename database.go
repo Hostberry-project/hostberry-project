@@ -165,7 +165,7 @@ func GetLogs(level string, limit, offset int) ([]models.SystemLog, int64, error)
 }
 
 func InsertStatistic(statType string, value float64) error {
-	stat := SystemStatistic{
+	stat := models.SystemStatistic{
 		Type:      statType,
 		Value:     value,
 		Timestamp: time.Now(),
