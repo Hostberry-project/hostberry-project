@@ -282,7 +282,8 @@
     }
     if (saveBtn) {
       saveBtn.disabled = true;
-      saveBtn.querySelector('.btn-text').textContent = t('common.saving', d('Saving...', 'Guardando...'));
+      var btnText = saveBtn.querySelector('.btn-text');
+      if (btnText) btnText.textContent = t('common.saving', d('Saving...', 'Guardando...'));
     }
     const payload = {
       interface: 'wlan0',
