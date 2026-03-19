@@ -60,12 +60,12 @@ func systemUpdatesExecuteHandler(c *fiber.Ctx) error {
 			if output != "" {
 				msg = msg + " | " + output
 			}
-			_ = InsertLog("ERROR", msg, "system", uid)
+			_ = InsertLog("ERROR", LogMsgErr("actualizar sistema", msg, ""), "system", uid)
 			return
 		}
 
 		_ = SetConfig("system_last_update", time.Now().Format(time.RFC3339))
-		_ = InsertLog("INFO", fmt.Sprintf("Actualización del sistema completada por %s", user), "system", uid)
+		_ = InsertLog("INFO", LogMsg("Actualización del sistema completada correctamente", user), "system", uid)
 	}(username, userID)
 
 	return c.JSON(fiber.Map{
@@ -84,7 +84,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Este despliegue no está en un repositorio git"})
 	}
 
-	_ = InsertLog("INFO", fmt.Sprintf("Actualización del proyecto iniciada por %s", username), "system", userID)
+	_ = InsertLog("INFO", LogMsg("Actualización del proyecto iniciada", username), "system", userID)
 
 	go func(user string, uid *int, path string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -95,7 +95,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 		output := strings.TrimSpace(string(out))
 
 		if ctx.Err() == context.DeadlineExceeded {
-			_ = InsertLog("ERROR", "Actualización del proyecto cancelada por timeout", "system", uid)
+			_ = InsertLog("ERROR", LogMsgErr("actualizar proyecto", "operación cancelada por tiempo de espera agotado", ""), "system", uid)
 			return
 		}
 		if err != nil {
@@ -103,7 +103,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 			if output != "" {
 				msg = msg + " | " + output
 			}
-			_ = InsertLog("ERROR", msg, "system", uid)
+			_ = InsertLog("ERROR", LogMsgErr("actualizar sistema", msg, ""), "system", uid)
 			return
 		}
 
