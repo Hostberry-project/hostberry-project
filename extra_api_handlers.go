@@ -103,7 +103,7 @@ func systemUpdatesProjectHandler(c *fiber.Ctx) error {
 			if output != "" {
 				msg = msg + " | " + output
 			}
-			_ = InsertLog("ERROR", LogMsgErr("actualizar sistema", msg, ""), "system", uid)
+			_ = InsertLog("ERROR", LogMsgErr("actualizar proyecto", msg, ""), "system", uid)
 			return
 		}
 
