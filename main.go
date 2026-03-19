@@ -587,7 +587,7 @@ func systemRestartHandler(c *fiber.Ctx) error {
 	}
 
 	if err, ok := result["error"].(string); ok {
-		InsertLog("ERROR", fmt.Sprintf("Error reiniciando sistema: %s (usuario: %s)", err, user.Username), "system", &userID)
+		InsertLog("ERROR", LogMsgErr("reiniciar sistema", err, user.Username), "system", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": err})
 	}
 

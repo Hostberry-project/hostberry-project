@@ -159,11 +159,7 @@ func requireAdmin(c *fiber.Ctx) error {
 	if role != "admin" {
 		// Registrar intento de acceso sin permisos a rutas solo-admin
 		userID := user.ID
-		InsertLog("WARN",
-			fmt.Sprintf("Acceso denegado a ruta solo-admin %s %s por usuario %s (rol=%s)", c.Method(), c.Path(), user.Username, user.Role),
-			"auth",
-			&userID,
-		)
+		InsertLog("WARN", LogMsgWarn("acceso denegado a función de administrador (ruta "+c.Method()+" "+c.Path()+", rol actual: "+user.Role+")", user.Username), "auth", &userID)
 		if strings.HasPrefix(c.Path(), "/api/") {
 			return c.Status(403).JSON(fiber.Map{"error": "Permisos insuficientes (se requiere rol admin)"})
 		}
@@ -285,12 +281,7 @@ func errorHandler(c *fiber.Ctx, err error) error {
 			LogTf("logs.middleware_error", method, path, err)
 		}
 		go func() {
-			InsertLog(
-				"ERROR",
-				"Error en "+path+": "+errMsg,
-				"http",
-				userIDPtr,
-			)
+			InsertLog("ERROR", LogMsgErr("procesar petición "+path, errMsg, ""), "http", userIDPtr)
 		}()
 	}
 
