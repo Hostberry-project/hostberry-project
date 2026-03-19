@@ -39,6 +39,9 @@ type ServerConfig struct {
 	Debug        bool   `yaml:"debug"`
 	ReadTimeout  int    `yaml:"read_timeout"`
 	WriteTimeout int    `yaml:"write_timeout"`
+	// TLS opcional integrado (para quien no use proxy inverso)
+	TLSCertFile  string `yaml:"tls_cert_file"`
+	TLSKeyFile   string `yaml:"tls_key_file"`
 }
 
 type DatabaseConfig struct {
@@ -149,6 +152,20 @@ func main() {
 	}()
 
 	LogTf("logs.server_ready", addr)
+
+	// Si hay TLS configurado y los ficheros existen, levantar en HTTPS directamente.
+	if appConfig.Server.TLSCertFile != "" && appConfig.Server.TLSKeyFile != "" {
+		if _, err := os.Stat(appConfig.Server.TLSCertFile); err == nil {
+			if _, err := os.Stat(appConfig.Server.TLSKeyFile); err == nil {
+				if err := app.ListenTLS(addr, appConfig.Server.TLSCertFile, appConfig.Server.TLSKeyFile); err != nil {
+					LogTfatal("logs.server_start_error", err)
+				}
+				return
+			}
+		}
+	}
+
+	// Fallback: HTTP normal (útil detrás de proxy inverso tipo nginx/traefik)
 	if err := app.Listen(addr); err != nil {
 		LogTfatal("logs.server_start_error", err)
 	}
