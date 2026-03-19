@@ -15,6 +15,7 @@ import (
 	"hostberry/internal/database"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
+	"hostberry/internal/validators"
 	"hostberry/internal/utils"
 )
 
@@ -338,16 +339,42 @@ func WifiConfigHandler(c *fiber.Ctx) error {
 	}
 
 	if req.SSID != "" {
-		c.Request().Header.SetContentType(fiber.MIMEApplicationJSON)
-		body, _ := json.Marshal(fiber.Map{"ssid": req.SSID, "password": req.Password})
-		c.Request().SetBody(body)
-		return wifiConnectHandler(c)
+		if err := validators.ValidateSSID(req.SSID); err != nil {
+			return err
+		}
+		if len(req.Password) > 128 {
+			return c.Status(400).JSON(fiber.Map{
+				"error": "La contraseña no puede tener más de 128 caracteres",
+			})
+		}
+
+		country := req.Region
+		if country == "" {
+			country = constants.DefaultCountryCode
+		}
+
+		result := ConnectWiFi(req.SSID, req.Password, constants.DefaultWiFiInterface, country, user.Username)
+		if success, ok := result["success"].(bool); ok && success {
+			database.InsertLog("INFO", database.LogMsg("Conexión WiFi a "+req.SSID+" correcta", user.Username), "wifi", &userID)
+			return c.JSON(result)
+		}
+
+		errorMsg := "Error desconocido"
+		if errorMsgVal, ok := result["error"].(string); ok && errorMsgVal != "" {
+			errorMsg = errorMsgVal
+		}
+		database.InsertLog("ERROR", database.LogMsgErr("conectar WiFi a "+req.SSID, errorMsg, user.Username), "wifi", &userID)
+		return c.Status(500).JSON(fiber.Map{
+			"success": false,
+			"error":   errorMsg,
+			"message": fmt.Sprintf("Error conectando a %s", req.SSID),
+		})
 	}
 
 	return c.Status(400).JSON(fiber.Map{"error": "Se requiere ssid o region"})
 }
 func WifiStatusHandler(c *fiber.Ctx) error {
-	return wifiLegacyStatusHandler(c)
+	return WifiLegacyStatusHandler(c)
 }
 
 func WifiLegacyStatusHandler(c *fiber.Ctx) error {
