@@ -350,10 +350,8 @@
     const btn = document.getElementById('toggle-wifi-btn');
     const icon = document.getElementById('toggle-wifi-icon');
     const text = document.getElementById('toggle-wifi-text');
-    
-    if (!btn || btn.disabled) return;
-    
-      btn.disabled = true;
+    if (!btn || btn.disabled || !text) return;
+    btn.disabled = true;
     const originalText = text.textContent;
     text.textContent = t('wifi.enabling', 'Enabling...');
       
