@@ -87,7 +87,7 @@ func main() {
 
 		if interfaceName != "" {
 			i18n.LogTf("logs.wifi_auto_start", interfaceName)
-			wifi.AutoConnectToLastNetwork(interfaceName)
+			wifiHandlers.AutoConnectToLastNetwork(interfaceName)
 		} else {
 			i18n.LogT("logs.wifi_interface_not_found")
 		}
@@ -323,18 +323,18 @@ func setupRoutes(app *fiber.App) {
 
 		wifi := api.Group("/wifi", middleware.RequireAuth)
 		{
-			wifi.Get("/status", wifiStatusHandler)
+			wifi.Get("/status", wifiHandlers.WifiStatusHandler)
 			wifi.Get("/scan", wifiScanHandler)
 			wifi.Post("/scan", wifiScanHandler)
 			wifi.Get("/interfaces", wifiInterfacesHandler)
 			wifi.Post("/connect", wifiConnectHandler)
-			wifi.Post("/disconnect", wifiLegacyDisconnectHandler)
-			wifi.Get("/networks", wifiNetworksHandler)
-			wifi.Get("/clients", wifiClientsHandler)
-			wifi.Post("/toggle", middleware.RequireAdmin, wifiToggleHandler)
-			wifi.Post("/unblock", middleware.RequireAdmin, wifiUnblockHandler)
-			wifi.Post("/software-switch", middleware.RequireAdmin, wifiSoftwareSwitchHandler)
-			wifi.Post("/config", middleware.RequireAdmin, wifiConfigHandler)
+			wifi.Post("/disconnect", wifiHandlers.WifiLegacyDisconnectHandler)
+			wifi.Get("/networks", wifiHandlers.WifiNetworksHandler)
+			wifi.Get("/clients", wifiHandlers.WifiClientsHandler)
+			wifi.Post("/toggle", middleware.RequireAdmin, wifiHandlers.WifiToggleHandler)
+			wifi.Post("/unblock", middleware.RequireAdmin, wifiHandlers.WifiUnblockHandler)
+			wifi.Post("/software-switch", middleware.RequireAdmin, wifiHandlers.WifiSoftwareSwitchHandler)
+			wifi.Post("/config", middleware.RequireAdmin, wifiHandlers.WifiConfigHandler)
 		}
 
 		vpn := api.Group("/vpn", middleware.RequireAuth)
@@ -589,7 +589,7 @@ func wifiScanHandler(c *fiber.Ctx) error {
 		interfaceName = constants.DefaultWiFiInterface
 	}
 
-	result := wifi.ScanWiFiNetworks(interfaceName)
+	result := wifiHandlers.ScanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(networks)
 	}
