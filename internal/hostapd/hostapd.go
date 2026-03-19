@@ -113,25 +113,25 @@ func HostapdAccessPointsHandler(c *fiber.Ctx) error {
 func HostapdClientsHandler(c *fiber.Ctx) error {
 	var clients []fiber.Map
 
-	hostapdOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null || pgrep hostapd > /dev/null && echo active || echo inactive").CombinedOutput()
-	hostapdStatus := strings.TrimSpace(string(hostapdOut))
+	if !hostapdProcessOrUnitActive() {
+		return c.JSON(clients)
+	}
 
-	if hostapdStatus == "active" {
-		cliOut, err := exec.Command("hostapd_cli", "-i", "wlan0", "all_sta").CombinedOutput()
-		if err == nil && len(cliOut) > 0 {
-			lines := strings.Split(strings.TrimSpace(string(cliOut)), "\n")
-			for _, line := range lines {
-				line = strings.TrimSpace(line)
-				if line != "" && strings.HasPrefix(line, "sta=") {
-					mac := strings.TrimPrefix(line, "sta=")
-					clients = append(clients, fiber.Map{
-						"mac_address": mac,
-						"ip_address":  "-",
-						"signal":      "-",
-						"uptime":      "-",
-					})
-				}
-			}
+	iface := ifaceFromHostapdConf("/etc/hostapd/hostapd.conf", "ap0")
+	out, err := hostapdCli(iface, "all_sta")
+	if err != nil || strings.TrimSpace(out) == "" {
+		return c.JSON(clients)
+	}
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" && strings.HasPrefix(line, "sta=") {
+			mac := strings.TrimPrefix(line, "sta=")
+			clients = append(clients, fiber.Map{
+				"mac_address": mac,
+				"ip_address":  "-",
+				"signal":      "-",
+				"uptime":      "-",
+			})
 		}
 	}
 
