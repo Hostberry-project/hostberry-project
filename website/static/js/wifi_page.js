@@ -356,7 +356,7 @@
     text.textContent = t('wifi.enabling', 'Enabling...');
       
       try {
-        const resp = await apiRequest('/api/v1/wifi/toggle', { method: 'POST' });
+      const resp = await apiRequest('/api/v1/wifi/toggle', { method: 'POST', sourceElement: btn });
         const data = await resp.json().catch(function () { return {}; });
         if (resp.ok && data.success) {
           showAlert('success', t('wifi.wifi_toggled', 'WiFi state changed successfully'));
@@ -396,7 +396,7 @@
     const originalText = spanEl.textContent;
     spanEl.textContent = t('wifi.unblocking', 'Unblocking...');
     try {
-      const resp = await apiRequest('/api/v1/wifi/unblock', { method: 'POST' });
+      const resp = await apiRequest('/api/v1/wifi/unblock', { method: 'POST', sourceElement: btn });
       const data = await resp.json().catch(function () { return {}; });
       if (resp.ok && data.success) {
         showAlert('success', t('wifi.wifi_unblocked', 'WiFi unblocked successfully'));
@@ -425,7 +425,7 @@
     btn.disabled = true;
     
     try {
-      const resp = await apiRequest('/api/v1/wifi/software-switch', { method: 'POST' });
+      const resp = await apiRequest('/api/v1/wifi/software-switch', { method: 'POST', sourceElement: btn });
       const data = await resp.json().catch(function () { return {}; });
       if (resp.ok && data.success) {
         showAlert('success', t('wifi.software_switch_toggled', 'Software switch toggled successfully'));
