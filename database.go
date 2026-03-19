@@ -31,31 +31,31 @@ func initDatabase() error {
 			return fmt.Errorf("error creando directorio de BD: %v", err)
 		}
 
-		dialector = sqlite.Open(appConfig.Database.Path)
+		dialector = sqlite.Open(cfg.Database.Path)
 	case "postgres":
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-			appConfig.Database.Host,
-			appConfig.Database.User,
-			appConfig.Database.Password,
-			appConfig.Database.Database,
-			appConfig.Database.Port,
+			cfg.Database.Host,
+			cfg.Database.User,
+			cfg.Database.Password,
+			cfg.Database.Database,
+			cfg.Database.Port,
 		)
 		dialector = postgres.Open(dsn)
 	case "mysql":
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			appConfig.Database.User,
-			appConfig.Database.Password,
-			appConfig.Database.Host,
-			appConfig.Database.Port,
-			appConfig.Database.Database,
+			cfg.Database.User,
+			cfg.Database.Password,
+			cfg.Database.Host,
+			cfg.Database.Port,
+			cfg.Database.Database,
 		)
 		dialector = mysql.Open(dsn)
 	default:
-		return fmt.Errorf("tipo de base de datos no soportado: %s", appConfig.Database.Type)
+		return fmt.Errorf("tipo de base de datos no soportado: %s", cfg.Database.Type)
 	}
 
 	gormLogger := logger.Default
-	if !appConfig.Server.Debug {
+	if !cfg.Server.Debug {
 		gormLogger = logger.Default.LogMode(logger.Silent)
 	}
 
