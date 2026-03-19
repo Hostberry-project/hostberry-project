@@ -63,6 +63,12 @@ func loginAPIHandler(c *fiber.Ctx) error {
 	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && CheckPassword("admin", user.Password))
 
 	cookieExpiry := time.Duration(appConfig.Security.TokenExpiry) * time.Minute
+	secure := false
+	// Si la petición ya viene por HTTPS (cabeceras estándar reverse proxy),
+	// marcar la cookie como Secure para evitar envío por HTTP plano.
+	if c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https") {
+		secure = true
+	}
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    token,
@@ -70,6 +76,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		SameSite: "Lax",
 		MaxAge:   int(cookieExpiry.Seconds()), // Expira al mismo tiempo que el token
+		Secure:   secure,
 	})
 
 	return c.JSON(fiber.Map{
