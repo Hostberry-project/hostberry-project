@@ -326,3 +326,28 @@ func netIfaceExists(iface string) bool {
 	_, err := os.Stat(filepath.Join("/sys/class/net", iface))
 	return err == nil
 }
+
+// firstWlanIfaceFromIP elige la primera interfaz cuyo nombre empieza por «wlan» desde `ip link`.
+func firstWlanIfaceFromIP() string {
+	out, err := runIP("link", "show")
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		idx := strings.Index(line, ":")
+		if idx < 0 {
+			continue
+		}
+		rest := line[idx+1:]
+		idx2 := strings.Index(rest, ":")
+		if idx2 < 0 {
+			continue
+		}
+		name := strings.TrimSpace(rest[:idx2])
+		if strings.HasPrefix(name, "wlan") && validators.ValidateIfaceName(name) == nil {
+			return name
+		}
+	}
+	return ""
+}
