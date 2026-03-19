@@ -19,6 +19,27 @@
     }
   }
 
+  async function performLogoutAll(event){
+    if(event){ event.preventDefault(); }
+    const confirmMsg = HostBerry.t
+      ? HostBerry.t('auth.logout_all_confirm', 'Are you sure you want to close all active sessions on all devices?')
+      : 'Are you sure you want to close all active sessions on all devices?';
+    if(!confirm(confirmMsg)) return;
+
+    try{
+      await HostBerry.apiRequest('/api/v1/auth/logout-all', { method: 'POST' });
+      if(HostBerry.showAlert){
+        HostBerry.showAlert('info', HostBerry.t ? HostBerry.t('auth.logout_success', 'Logout successful') : 'Logout successful');
+      }
+    }catch(_e){
+      // ignore errors to ensure client-side logout proceeds
+    }finally{
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user_info');
+      window.location.href = '/login';
+    }
+  }
+
   async function performRestart(event){
     if(event){ event.preventDefault(); }
     const confirmMsg = HostBerry.t ? HostBerry.t('system.restart_confirm', 'Are you sure you want to restart the system? This will disconnect all users.') : 'Are you sure you want to restart the system? This will disconnect all users.';
@@ -516,6 +537,9 @@
     document.querySelectorAll('[data-action="logout"]').forEach(function(btn){
       btn.addEventListener('click', performLogout);
     });
+    document.querySelectorAll('[data-action="logout-all"]').forEach(function(btn){
+      btn.addEventListener('click', performLogoutAll);
+    });
     
     document.querySelectorAll('[data-action="restart"]').forEach(function(btn){
       btn.addEventListener('click', performRestart);
@@ -529,6 +553,7 @@
   // Compat: many views use showAlert() directly
   if(!window.showAlert){ window.showAlert = showAlert; }
   HostBerry.performLogout = performLogout;
+  HostBerry.performLogoutAll = performLogoutAll;
   HostBerry.performRestart = performRestart;
   HostBerry.performShutdown = performShutdown;
   window.HostBerry = HostBerry;
