@@ -16,12 +16,12 @@ import (
 func networkRoutingHandler(c *fiber.Ctx) error {
 	out, err := exec.Command("sh", "-c", "ip route 2>/dev/null").CombinedOutput()
 	if err != nil {
-		LogTf("logs.api_route_error", err, string(out))
+		i18n.LogTf("logs.api_route_error", err, string(out))
 		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
 	}
 	var routes []fiber.Map
 	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	LogTf("logs.api_processing_routes", len(lines))
+	i18n.LogTf("logs.api_processing_routes", len(lines))
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -62,7 +62,7 @@ func networkRoutingHandler(c *fiber.Ctx) error {
 		routes = append(routes, route)
 	}
 
-	LogTf("logs.api_returning_routes", len(routes))
+	i18n.LogTf("logs.api_returning_routes", len(routes))
 	return c.JSON(routes)
 }
 
@@ -192,20 +192,20 @@ func networkConfigHandler(c *fiber.Ctx) error {
 							currentHostname := strings.TrimSpace(string(verifyOut))
 							if currentHostname == req.Hostname {
 								hostnameApplied = true
-								LogTf("logs.api_hostname_set", req.Hostname)
+								i18n.LogTf("logs.api_hostname_set", req.Hostname)
 								_ = out
 							} else {
-								LogTf("logs.api_hostname_verify_failed", req.Hostname, currentHostname)
+								i18n.LogTf("logs.api_hostname_verify_failed", req.Hostname, currentHostname)
 								lastError = fmt.Errorf("verification failed: got %s", currentHostname)
 								lastOutput = out
 							}
 						} else {
-							LogTf("logs.api_hostname_verify_error", err)
+							i18n.LogTf("logs.api_hostname_verify_error", err)
 							lastError = err
 							lastOutput = out
 						}
 					} else {
-						LogTf("logs.api_hostnamectl_failed", err, out)
+						i18n.LogTf("logs.api_hostnamectl_failed", err, out)
 						lastError = err
 						lastOutput = out
 					}
@@ -230,31 +230,31 @@ func networkConfigHandler(c *fiber.Ctx) error {
 											currentHostname := strings.TrimSpace(string(verifyOut))
 											if currentHostname == req.Hostname {
 												hostnameApplied = true
-												LogTf("logs.api_hostname_file_set", req.Hostname)
+												i18n.LogTf("logs.api_hostname_file_set", req.Hostname)
 												_ = applyOut
 											} else {
-												LogTf("logs.api_hostname_file_verify_failed", req.Hostname, currentHostname)
+												i18n.LogTf("logs.api_hostname_file_verify_failed", req.Hostname, currentHostname)
 												lastError = fmt.Errorf("verification failed: got %s", currentHostname)
 												lastOutput = applyOut
 											}
 										}
 									} else {
-										LogTf("logs.api_hostname_apply_failed", applyErr, applyOut)
+										i18n.LogTf("logs.api_hostname_apply_failed", applyErr, applyOut)
 										lastError = applyErr
 										lastOutput = applyOut
 									}
 								} else {
-									LogTf("logs.api_hostname_write_mismatch", req.Hostname, writtenHostname)
+									i18n.LogTf("logs.api_hostname_write_mismatch", req.Hostname, writtenHostname)
 									lastError = fmt.Errorf("written hostname mismatch")
 									lastOutput = out
 								}
 							} else {
-								LogTf("logs.api_hostname_read_failed", err)
+								i18n.LogTf("logs.api_hostname_read_failed", err)
 								lastError = err
 								lastOutput = out
 							}
 						} else {
-							LogTf("logs.api_hostname_write_failed", cpErr, out)
+							i18n.LogTf("logs.api_hostname_write_failed", cpErr, out)
 							lastError = cpErr
 							lastOutput = out
 						}
@@ -270,20 +270,20 @@ func networkConfigHandler(c *fiber.Ctx) error {
 							currentHostname := strings.TrimSpace(string(verifyOut))
 							if currentHostname == req.Hostname {
 								hostnameApplied = true
-								LogTf("logs.api_hostname_temp_set", req.Hostname)
+								i18n.LogTf("logs.api_hostname_temp_set", req.Hostname)
 								_ = out
 							} else {
-								LogTf("logs.api_hostname_temp_verify_failed", req.Hostname, currentHostname)
+								i18n.LogTf("logs.api_hostname_temp_verify_failed", req.Hostname, currentHostname)
 								lastError = fmt.Errorf("verification failed: got %s", currentHostname)
 								lastOutput = out
 							}
 						} else {
-							LogTf("logs.api_hostname_verify_error2", err)
+							i18n.LogTf("logs.api_hostname_verify_error2", err)
 							lastError = err
 							lastOutput = out
 						}
 					} else {
-						LogTf("logs.api_hostname_cmd_failed", err, out)
+						i18n.LogTf("logs.api_hostname_cmd_failed", err, out)
 						lastError = err
 						lastOutput = out
 					}
@@ -293,7 +293,7 @@ func networkConfigHandler(c *fiber.Ctx) error {
 					hostsFile := "/etc/hosts"
 					tmpFile := "/tmp/hosts_hostberry_" + fmt.Sprintf("%d", time.Now().Unix())
 
-					LogTf("logs.api_hosts_creating", req.Hostname)
+					i18n.LogTf("logs.api_hosts_creating", req.Hostname)
 
 					newContent := "# See `man hosts` for details.\n"
 					newContent += "#\n"
@@ -309,7 +309,7 @@ func networkConfigHandler(c *fiber.Ctx) error {
 					newContent += "::1\t\tlocalhost\n"
 
 					if err := os.WriteFile(tmpFile, []byte(newContent), 0644); err != nil {
-						LogTf("logs.api_hosts_temp_error", err)
+						i18n.LogTf("logs.api_hosts_temp_error", err)
 					} else {
 						log.Printf("Created new hosts file in /tmp: %s", tmpFile)
 						log.Printf("File content:\n%s", newContent)

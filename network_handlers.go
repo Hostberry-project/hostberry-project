@@ -14,7 +14,7 @@ func getNetworkInterfaces() map[string]interface{} {
 	cmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}'")
 	output, err := cmd.Output()
 	if err != nil {
-		LogTf("logs.network_interfaces_error", err)
+		i18n.LogTf("logs.network_interfaces_error", err)
 		result["interfaces"] = interfaces
 		result["success"] = true
 		result["count"] = 0
@@ -22,7 +22,7 @@ func getNetworkInterfaces() map[string]interface{} {
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	LogTf("logs.network_interfaces_found", lines)
+	i18n.LogTf("logs.network_interfaces_found", lines)
 
 	for _, ifaceName := range lines {
 		ifaceName = strings.TrimSpace(ifaceName)
@@ -32,11 +32,11 @@ func getNetworkInterfaces() map[string]interface{} {
 
 		ifaceCheckCmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", ifaceName))
 		if ifaceCheckErr := ifaceCheckCmd.Run(); ifaceCheckErr != nil {
-			LogTf("logs.network_interface_skip", ifaceName)
+			i18n.LogTf("logs.network_interface_skip", ifaceName)
 			continue
 		}
 
-		LogTf("logs.network_interface_processing", ifaceName)
+		i18n.LogTf("logs.network_interface_processing", ifaceName)
 
 		iface := map[string]interface{}{
 			"name":  ifaceName,
@@ -61,9 +61,9 @@ func getNetworkInterfaces() map[string]interface{} {
 		}
 
 		if ifaceName == "ap0" {
-			LogTf("logs.network_ap0_found", iface["state"])
+			i18n.LogTf("logs.network_ap0_found", iface["state"])
 			if iface["state"] == "down" || iface["state"] == "unknown" {
-				LogT("logs.network_ap0_down")
+				i18n.LogT("logs.network_ap0_down")
 				activateCmd := exec.Command("sh", "-c", "sudo ip link set ap0 up 2>/dev/null")
 				if activateErr := activateCmd.Run(); activateErr == nil {
 					time.Sleep(500 * time.Millisecond)
@@ -72,7 +72,7 @@ func getNetworkInterfaces() map[string]interface{} {
 						newState := strings.TrimSpace(string(stateOut2))
 						if newState != "" {
 							iface["state"] = newState
-							LogTf("logs.network_ap0_activated", newState)
+							i18n.LogTf("logs.network_ap0_activated", newState)
 						}
 					}
 				}
