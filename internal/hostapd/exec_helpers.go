@@ -194,7 +194,7 @@ func systemctlStatusHostapd(head int) string {
 }
 
 func systemctlIsEnabled(unit string) string {
-	out, err := exec.Command("systemctl", "is-enabled", unit).CombinedOutput()
+	out, _ := exec.Command("systemctl", "is-enabled", unit).CombinedOutput()
 	return strings.TrimSpace(string(out))
 }
 
