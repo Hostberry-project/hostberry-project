@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/constants"
+	"hostberry/internal/database"
 	"hostberry/internal/i18n"
 	"hostberry/internal/metrics"
 )
@@ -28,8 +29,8 @@ func healthCheckHandler(c *fiber.Ctx) error {
 		Services:  make(map[string]string),
 	}
 
-	if db != nil {
-		sqlDB, err := db.DB()
+	if database.DB != nil {
+		sqlDB, err := database.DB.DB()
 		if err == nil {
 			if err := sqlDB.Ping(); err == nil {
 				response.Services["database"] = "healthy"

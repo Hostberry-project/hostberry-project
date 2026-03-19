@@ -240,7 +240,7 @@ func loggingMiddleware(c *fiber.Ctx) error {
 			// Mensaje de log más legible:
 			// Ejemplo: "✅ GET /wifi/status desde 192.168.1.10 en 12.3ms (HTTP 200)"
 			msg := fmt.Sprintf("%s %s %s desde %s en %s (HTTP %d)", statusEmoji, method, path, ip, durationStr, status)
-			InsertLog(
+			database.InsertLog(
 				"INFO",
 				msg,
 				"http",
