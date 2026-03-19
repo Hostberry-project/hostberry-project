@@ -2195,10 +2195,10 @@
       "stat_cached": "Stat cached",
       "stat_disabled_groups": "Stat disabled groups",
       "stat_none": "Stat none",
-      "stat_service": "Stat service",
+      "stat_service": "Service status",
       "stat_total_queries": "Stat total queries",
       "statistics": "Statistics",
-      "title": "Title",
+      "title": "Blocky",
       "upstreams": "Upstreams"
     },
     "blocky_config_error": "Blocky config error",
@@ -2240,7 +2240,7 @@
       "server_name": "Server name",
       "server_quad9": "Server quad9",
       "status": "Status",
-      "title": "Title"
+      "title": "DNSCrypt"
     },
     "dnscrypt_config_error": "Dnscrypt config error",
     "dnscrypt_configured": "Dnscrypt configured",
@@ -2316,7 +2316,7 @@
       "user": "User",
       "user_logged_in": "User logged in",
       "user_logged_out": "User logged out",
-      "wifi_connected": "Wifi connected",
+      "wifi_connected": "WiFi connected",
       "wifi_error": "Wifi error",
       "wireguard_configured": "Wireguard configured"
     },
@@ -2374,8 +2374,8 @@
       "socks_port": "Socks port",
       "status": "Status",
       "stopped": "Stopped",
-      "subtitle": "Subtitle",
-      "title": "Title",
+      "subtitle": "Tor network",
+      "title": "Tor",
       "tor_ip": "Tor ip",
       "torify_active": "Torify active",
       "torify_ap_help": "Torify ap help",
@@ -2410,9 +2410,9 @@
       "default_server_name": "Default server name",
       "disconnected": "Disconnected",
       "openvpn_config_help": "Openvpn config help",
-      "openvpn_config_title": "Openvpn config title",
+      "openvpn_config_title": "OpenVPN configuration",
       "paste_config": "Paste config",
-      "subtitle": "Subtitle",
+      "subtitle": "VPN connections",
       "upload_file": "Upload file"
     },
     "vpn_openvpn_config_saved": "Vpn openvpn config saved",
@@ -2428,7 +2428,7 @@
       "default_traffic": "Default traffic",
       "disconnected": "Disconnected",
       "paste_config": "Paste config",
-      "subtitle": "Subtitle",
+      "subtitle": "WireGuard connections",
       "upload_file": "Upload file"
     }
   },
