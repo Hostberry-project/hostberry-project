@@ -295,7 +295,7 @@ func setupRoutes(app *fiber.App) {
 
 		system := api.Group("/system", middleware.RequireAuth)
 		{
-			system.Get("/stats", systemStatsHandler)
+			system.Get("/stats", sys.SystemStatsHandler)
 			system.Get("/info", sys.SystemInfoHandler)
 			system.Get("/https-info", sys.SystemHttpsInfoHandler)
 			system.Get("/logs", sys.SystemLogsHandler)
