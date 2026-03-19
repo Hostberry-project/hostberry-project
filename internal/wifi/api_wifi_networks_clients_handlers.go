@@ -7,7 +7,17 @@ import (
 
 func WifiNetworksHandler(c *fiber.Ctx) error {
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
+	if err := validateInterfaceName(interfaceName); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "error": "Nombre de interfaz inválido"})
+	}
 	result := ScanWiFiNetworks(interfaceName)
+	if success, ok := result["success"].(bool); ok && !success {
+		if errMsg, ok := result["error"].(string); ok && errMsg != "" {
+			return c.Status(500).JSON(fiber.Map{"success": false, "error": errMsg})
+		}
+		return c.Status(500).JSON(fiber.Map{"success": false, "error": "Error escaneando redes"})
+	}
+
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(networks)
 	}
