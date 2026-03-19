@@ -374,13 +374,13 @@ func setupRoutes(app *fiber.App) {
 
 		wireguard := api.Group("/wireguard", middleware.RequireAuth)
 		{
-			wireguard.Get("/status", wireguardStatusHandler)
-			wireguard.Get("/interfaces", wireguardInterfacesHandler)
-			wireguard.Get("/peers", wireguardPeersHandler)
-			wireguard.Get("/config", wireguardGetConfigHandler)
-			wireguard.Post("/config", middleware.RequireAdmin, wireguardConfigHandler)
-			wireguard.Post("/toggle", middleware.RequireAdmin, wireguardToggleHandler)
-			wireguard.Post("/restart", middleware.RequireAdmin, wireguardRestartHandler)
+			wireguard.Get("/status", vpnHandlers.WireGuardStatusHandler)
+			wireguard.Get("/interfaces", vpnHandlers.WireGuardInterfacesHandler)
+			wireguard.Get("/peers", vpnHandlers.WireGuardPeersHandler)
+			wireguard.Get("/config", vpnHandlers.WireGuardGetConfigHandler)
+			wireguard.Post("/config", middleware.RequireAdmin, vpnHandlers.WireGuardConfigHandler)
+			wireguard.Post("/toggle", middleware.RequireAdmin, vpnHandlers.WireGuardToggleHandler)
+			wireguard.Post("/restart", middleware.RequireAdmin, vpnHandlers.WireGuardRestartHandler)
 		}
 
 		adblock := api.Group("/adblock", middleware.RequireAuth)
