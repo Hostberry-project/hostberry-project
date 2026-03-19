@@ -10,7 +10,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/config"
 	"hostberry/internal/database"
+	"hostberry/internal/utils"
 )
+
+// strconvAtoiSafe wrapper para mantener el comportamiento anterior.
+func strconvAtoiSafe(s string) (int, error) {
+	return utils.StrconvAtoiSafe(s)
+}
 
 func systemActivityHandler(c *fiber.Ctx) error {
 	limitStr := c.Query("limit", "10")
