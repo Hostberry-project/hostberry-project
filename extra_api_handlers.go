@@ -140,7 +140,7 @@ func systemNotificationsTestEmailHandler(c *fiber.Ctx) error {
 			"message": "El destinatario es obligatorio",
 		})
 	}
-	if err := ValidateEmail(req.To); err != nil {
+	if err := validators.ValidateEmail(req.To); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"error":   err.Error(),
 			"message": err.Error(),
