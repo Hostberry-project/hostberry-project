@@ -85,12 +85,12 @@ func main() {
 
 	setupRoutes(app)
 
-	addr := fmt.Sprintf("%s:%d", appConfig.Server.Host, appConfig.Server.Port)
+	addr := fmt.Sprintf("%s:%d", config.AppConfig.Server.Host, config.AppConfig.Server.Port)
 	LogTf("logs.server_starting", addr)
 	LogTf("logs.server_config",
-		appConfig.Server.Debug,
-		appConfig.Server.ReadTimeout,
-		appConfig.Server.WriteTimeout)
+		config.AppConfig.Server.Debug,
+		config.AppConfig.Server.ReadTimeout,
+		config.AppConfig.Server.WriteTimeout)
 
 	go func() {
 		sigint := make(chan os.Signal, 1)
