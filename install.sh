@@ -709,6 +709,46 @@ security:
 EOF
         fi
     fi
+
+    # Secretos (sólo en instalación inicial)
+    if [ "$MODE" = "install" ] && [ -f "$CONFIG_FILE" ]; then
+        # JWT secret aleatorio si está el placeholder por defecto
+        if grep -q 'jwt_secret:' "$CONFIG_FILE"; then
+            if grep -q 'cambiar-este-secreto-en-produccion-usar-secretos-seguros' "$CONFIG_FILE"; then
+                GENERATED_JWT_SECRET="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 64 || echo "hostberry$(date +%s)")"
+                sed -i "s|jwt_secret: \".*\"|jwt_secret: \"${GENERATED_JWT_SECRET}\"|" "$CONFIG_FILE"
+            fi
+        else
+            GENERATED_JWT_SECRET="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 64 || echo "hostberry$(date +%s)")"
+            {
+                echo ""
+                echo "security:"
+                echo "  jwt_secret: \"${GENERATED_JWT_SECRET}\""
+                echo "  token_expiry: 60"
+                echo "  bcrypt_cost: 10"
+                echo "  rate_limit_rps: 10"
+            } >> "$CONFIG_FILE"
+        fi
+
+        # Password aleatoria para usuario admin por defecto (se inyecta vía systemd)
+        GENERATED_ADMIN_PASSWORD="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 || echo "HostBerry1234")"
+
+        # Guardar credenciales iniciales en un fichero sólo-lectura root/hostberry
+        local cred_file="${INSTALL_DIR}/INSTALL_CREDENTIALS.txt"
+        {
+            echo "HostBerry - credenciales iniciales generadas automáticamente"
+            echo ""
+            echo "Usuario admin: admin"
+            echo "Contraseña inicial admin: ${GENERATED_ADMIN_PASSWORD}"
+            if [ -n "$GENERATED_JWT_SECRET" ]; then
+                echo "JWT secret (security.jwt_secret en config.yaml): ${GENERATED_JWT_SECRET}"
+            fi
+            echo ""
+            echo "Guarda este archivo en lugar seguro y cámbiala tras el primer acceso."
+        } > "$cred_file"
+        chmod 600 "$cred_file"
+        chown "$USER_NAME:$GROUP_NAME" "$cred_file"
+    fi
     
     # Permisos
     chown -R "$USER_NAME:$GROUP_NAME" "$INSTALL_DIR"
