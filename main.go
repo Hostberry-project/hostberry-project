@@ -25,6 +25,7 @@ func main() {
 		i18n.LogTfatal("logs.config_load_error", err)
 	}
 	config.Normalize(i18n.LogTf)
+	wifisetup.Init()
 
 	if err := i18n.Init("locales"); err != nil {
 		i18n.LogTf("logs.i18n_init_warning", err)
