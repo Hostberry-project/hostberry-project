@@ -211,7 +211,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	rfkillCheck := exec.Command("sh", "-c", "command -v rfkill 2>/dev/null")
 	if rfkillCheck.Run() != nil {
 		errorMsg := "rfkill no está disponible en el sistema"
-		InsertLog("ERROR", fmt.Sprintf("Error en software switch (usuario: %s): %s", user.Username, errorMsg), "wifi", &userID)
+		InsertLog("ERROR", LogMsgErr("cambiar conmutador de software WiFi", errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
@@ -232,7 +232,7 @@ func wifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	output, err := execCommand(cmd + " 2>&1").CombinedOutput()
 	if err != nil {
 		errorMsg := fmt.Sprintf("Error ejecutando rfkill: %s", string(output))
-		InsertLog("ERROR", fmt.Sprintf("Error en software switch (usuario: %s): %s", user.Username, errorMsg), "wifi", &userID)
+		InsertLog("ERROR", LogMsgErr("cambiar conmutador de software WiFi", errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
 	}
 
