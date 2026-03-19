@@ -278,7 +278,7 @@ func errorHandler(c *fiber.Ctx, err error) error {
 			i18n.LogTf("logs.middleware_error", method, path, err)
 		}
 		go func() {
-			InsertLog("ERROR", LogMsgErr("procesar petición "+path, errMsg, ""), "http", userIDPtr)
+			database.InsertLog("ERROR", database.LogMsgErr("procesar petición "+path, errMsg, ""), "http", userIDPtr)
 		}()
 	}
 
