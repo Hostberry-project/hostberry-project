@@ -434,7 +434,7 @@ func indexHandler(c *fiber.Ctx) error {
 		claims, err := ValidateToken(token)
 		if err == nil {
 			var user models.User
-			if err := db.First(&user, claims.UserID).Error; err == nil && user.IsActive {
+			if err := database.DB.First(&user, claims.UserID).Error; err == nil && user.IsActive {
 				return c.Redirect("/dashboard")
 			}
 		}
@@ -457,7 +457,7 @@ func loginHandler(c *fiber.Ctx) error {
 }
 
 func settingsHandler(c *fiber.Ctx) error {
-	configs, _ := GetAllConfigs()
+	configs, _ := database.GetAllConfigs()
 
 	if _, exists := configs["max_login_attempts"]; !exists || configs["max_login_attempts"] == "" {
 		configs["max_login_attempts"] = "3"
@@ -500,7 +500,7 @@ func systemRestartHandler(c *fiber.Ctx) error {
 	}
 
 	if errMsg, ok := result["error"].(string); ok {
-		InsertLog("ERROR", LogMsgErr("reiniciar sistema", errMsg, user.Username), "system", &userID)
+		database.InsertLog("ERROR", database.LogMsgErr("reiniciar sistema", errMsg, user.Username), "system", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errMsg})
 	}
 
