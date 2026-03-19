@@ -231,7 +231,7 @@ func systemRestart(user string) map[string]interface{} {
 					result["success"] = true
 					result["message"] = "Sistema se reiniciará en 1 minuto"
 					result["output"] = strings.TrimSpace(out2)
-					LogT("logs.system_restart_success")
+					i18n.LogT("logs.system_restart_success")
 					return result
 				}
 				found = true
@@ -262,7 +262,7 @@ func systemRestart(user string) map[string]interface{} {
 	result["success"] = true
 	result["message"] = "Sistema se reiniciará en breve"
 	result["output"] = ""
-	LogT("logs.system_restart_success")
+	i18n.LogT("logs.system_restart_success")
 	return result
 }
 
@@ -288,7 +288,7 @@ func systemShutdown(user string) map[string]interface{} {
 					result["success"] = true
 					result["message"] = "Sistema se apagará en 1 minuto"
 					result["output"] = strings.TrimSpace(out2)
-					LogT("logs.system_shutdown_success")
+					i18n.LogT("logs.system_shutdown_success")
 					return result
 				}
 				found = true
@@ -319,6 +319,6 @@ func systemShutdown(user string) map[string]interface{} {
 	result["success"] = true
 	result["message"] = "Sistema se apagará en breve"
 	result["output"] = ""
-	LogT("logs.system_shutdown_success")
+	i18n.LogT("logs.system_shutdown_success")
 	return result
 }

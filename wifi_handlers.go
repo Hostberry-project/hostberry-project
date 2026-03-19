@@ -317,13 +317,13 @@ func autoConnectToLastNetwork(interfaceName string) {
 	}
 
 	// Paso 1: Activar software switch y WiFi en paralelo (más rápido)
-	LogT("logs.wifi_activating")
+	i18n.LogT("logs.wifi_activating")
 	executeCommand("sudo rfkill unblock wifi 2>/dev/null || true")
 	executeCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
 	time.Sleep(1 * time.Second) // Reducido de 3 a 1 segundo
 
 	// Paso 3: Intentar obtener la última red desde wpa_cli (más confiable)
-	LogT("logs.wifi_searching_network")
+	i18n.LogT("logs.wifi_searching_network")
 	
 	// Primero intentar con wpa_cli si wpa_supplicant está corriendo
 	socketDirs := WpaSocketDirs
@@ -355,7 +355,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 
 	if workingSocketDir != "" {
 		// wpa_supplicant está corriendo, intentar reconectar a la red activa (método más rápido)
-		LogT("logs.wifi_wpa_running")
+		i18n.LogT("logs.wifi_wpa_running")
 		runWpaCli := func(args ...string) (string, error) {
 			var base []string
 			if useGlobalSocket {
@@ -373,7 +373,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 		if err == nil {
 			// Verificar si ya está conectado (verificación inmediata)
 			if strings.Contains(statusOut, "wpa_state=COMPLETED") {
-				LogT("logs.wifi_already_connected")
+				i18n.LogT("logs.wifi_already_connected")
 				// Iniciar DHCP en segundo plano si no tiene IP
 				go func() {
 					ipCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 | head -1", interfaceName))
@@ -418,7 +418,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 							time.Sleep(1 * time.Second) // Reducido de 2 a 1 segundo
 							statusOut2, _ := runWpaCli("status")
 							if strings.Contains(statusOut2, "wpa_state=COMPLETED") {
-								LogT("logs.wifi_reconnected")
+								i18n.LogT("logs.wifi_reconnected")
 								// Iniciar DHCP en segundo plano
 								go func() {
 									executeCommand(fmt.Sprintf("sudo dhclient -v %s 2>&1 || sudo udhcpc -i %s -q -n 2>&1 || true", interfaceName, interfaceName))
@@ -426,7 +426,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 								return
 							}
 						}
-						LogT("logs.wifi_reconnect_started")
+						i18n.LogT("logs.wifi_reconnect_started")
 					}
 				}
 			}
@@ -434,16 +434,16 @@ func autoConnectToLastNetwork(interfaceName string) {
 			// Error obteniendo estado - no traducir, es debug interno
 		}
 	} else {
-		LogT("logs.wifi_wpa_not_running")
+		i18n.LogT("logs.wifi_wpa_not_running")
 	}
 
 	// Paso 4: Si no hay wpa_supplicant corriendo o no se pudo reconectar,
 	// buscar el último archivo de configuración y conectarse usando connectWiFi
-	LogT("logs.wifi_searching_config")
+	i18n.LogT("logs.wifi_searching_config")
 	ssid, _, err := getLastConnectedNetwork(interfaceName)
 	if err != nil {
 		i18n.LogTf("logs.wifi_config_not_found", err)
-		LogT("logs.wifi_trying_other_way")
+		i18n.LogT("logs.wifi_trying_other_way")
 		
 		// Último intento: buscar cualquier archivo de configuración reciente
 		configDirs := []string{WpaSupplicantConfigDir, WpaSupplicantAltConfigDir}
@@ -489,7 +489,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 		}
 		
 		if ssid == "" {
-			LogT("logs.wifi_no_network_found")
+			i18n.LogT("logs.wifi_no_network_found")
 			return
 		}
 	} else {
@@ -560,10 +560,10 @@ func autoConnectToLastNetwork(interfaceName string) {
 	
 	// Iniciar wpa_supplicant con el archivo de configuración existente
 	runDir := getRunDir()
-	LogT("logs.wifi_starting_wpa")
+	i18n.LogT("logs.wifi_starting_wpa")
 	if err := startWpaSupplicant(interfaceName, wpaConfigPath, runDir); err != nil {
 		i18n.LogTf("logs.wifi_wpa_start_error", err)
-		LogT("logs.wifi_trying_connect")
+		i18n.LogT("logs.wifi_trying_connect")
 		country := constants.DefaultCountryCode
 		result := connectWiFi(ssid, "", interfaceName, country, "system")
 		if success, ok := result["success"].(bool); ok && success {
@@ -593,13 +593,13 @@ func autoConnectToLastNetwork(interfaceName string) {
 	}
 	
 	// Habilitar y seleccionar la red (todo en secuencia rápida)
-	LogT("logs.wifi_enabling_network")
+	i18n.LogT("logs.wifi_enabling_network")
 	runWpaCli("enable_network", "0")
 	runWpaCli("select_network", "0")
 	runWpaCli("reconnect")
 	
 	// Verificar conexión más rápido (menos espera, menos intentos)
-	LogT("logs.wifi_waiting_auth")
+	i18n.LogT("logs.wifi_waiting_auth")
 	connected := false
 	for attempt := 0; attempt < 8; attempt++ { // Reducido de 15 a 8 intentos
 		time.Sleep(1 * time.Second) // Reducido de 2 a 1 segundo

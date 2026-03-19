@@ -151,7 +151,7 @@ func createTemplateEngine() *html.Engine {
 	}
 	
 	if engine == nil {
-		LogTln("logs.templates_fs_unavailable")
+		i18n.LogTln("logs.templates_fs_unavailable")
 		tmplFS, err := fs.Sub(templatesFS, "website/templates")
 		if err == nil {
 			if entries, err := fs.ReadDir(tmplFS, "."); err == nil {
