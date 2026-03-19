@@ -454,7 +454,7 @@ func networkConfigHandler(c *fiber.Ctx) error {
 						errorMsg += ")"
 					}
 					errors = append(errors, errorMsg)
-					if appConfig.Server.Debug {
+					if config.AppConfig.Server.Debug {
 						log.Printf("All hostname setting methods failed for hostname: %s. Last error: %v, Last output: %s", req.Hostname, lastError, lastOutput)
 					}
 				}

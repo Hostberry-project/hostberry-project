@@ -469,7 +469,7 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 	if result != nil {
 		if interfaces, ok := result["interfaces"]; ok {
 			if interfacesArray, ok := interfaces.([]map[string]interface{}); ok && len(interfacesArray) > 0 {
-				if appConfig.Server.Debug {
+				if config.AppConfig.Server.Debug {
 					LogTf("logs.handlers_interfaces_count", len(interfacesArray))
 				}
 				return c.JSON(result)
