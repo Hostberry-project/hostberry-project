@@ -12,6 +12,7 @@ import (
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
 	"hostberry/internal/metrics"
+	webtemplates "hostberry/internal/templates"
 	"hostberry/internal/models"
 )
 
@@ -299,7 +300,7 @@ func errorHandler(c *fiber.Ctx, err error) error {
 	if config.AppConfig.Server.Debug {
 		renderDetails = err.Error()
 	}
-	if renderErr := renderTemplate(c, "error", fiber.Map{
+	if renderErr := webtemplates.RenderTemplate(c, "error", fiber.Map{
 		"Title":   "Error",
 		"Code":    code,
 		"Message": message,
