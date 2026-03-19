@@ -4,6 +4,10 @@ server:
   debug: false
   read_timeout: 30
   write_timeout: 30
+  # Opcional: TLS integrado (HTTPS directo, sin proxy inverso).
+  # Si dejas estos campos vacíos, el servidor arrancará sólo en HTTP.
+  #tls_cert_file: "/opt/hostberry/certs/fullchain.pem"
+  #tls_key_file: "/opt/hostberry/certs/privkey.pem"
 
 database:
   type: "sqlite"  # sqlite, postgres, mysql
