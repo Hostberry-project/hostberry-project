@@ -17,8 +17,9 @@ func (e *LoginError) Error() string { return e.Default }
 
 // Claims son los claims del JWT.
 type Claims struct {
-	Username string `json:"username"`
-	UserID   int    `json:"user_id"`
+	Username     string `json:"username"`
+	UserID       int    `json:"user_id"`
+	TokenVersion int    `json:"token_version"`
 	jwt.RegisteredClaims
 }
 
@@ -35,6 +36,7 @@ type User struct {
 
 	LastLogin          *time.Time
 	LoginCount         int       `gorm:"default:0"`
+	TokenVersion       int       `gorm:"default:1"`
 	FailedAttempts     int       `gorm:"default:0"`
 	LockedUntil        *time.Time
 	EmailNotifications bool `gorm:"default:false"`
