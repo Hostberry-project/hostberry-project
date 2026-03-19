@@ -29,16 +29,16 @@
                             <i class="bi bi-search"></i>
                             <span>{{ call .t "update.check_updates" "Check for updates" }}</span>
                         </button>
-                        <button class="action-btn action-update" id="action-update-system">
-                            <i class="bi bi-arrow-up-circle"></i>
+                        <button class="action-btn action-update" id="action-update-system" data-requires-admin="true" aria-label="{{ call .t "update.update_system" "Update Debian" }}">
+                            <i class="bi bi-arrow-up-circle" aria-hidden="true"></i>
                             <span>{{ call .t "update.update_system" "Update Debian" }}</span>
                         </button>
-                        <button class="action-btn action-update" id="action-update-project">
-                            <i class="bi bi-code-slash"></i>
+                        <button class="action-btn action-update" id="action-update-project" data-requires-admin="true" aria-label="{{ call .t "update.update_project" "Update HostBerry" }}">
+                            <i class="bi bi-code-slash" aria-hidden="true"></i>
                             <span>{{ call .t "update.update_project" "Update HostBerry" }}</span>
                         </button>
-                        <button class="action-btn action-update" id="action-update-all">
-                            <i class="bi bi-arrow-repeat"></i>
+                        <button class="action-btn action-update" id="action-update-all" data-requires-admin="true" aria-label="{{ call .t "update.update_all" "Update All" }}">
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
                             <span>{{ call .t "update.update_all" "Update All" }}</span>
                         </button>
                     </div>
