@@ -18,6 +18,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/health** | Endpoints de salud y métricas: `HealthCheckHandler`, `ReadinessCheckHandler`, `LivenessCheckHandler`, `MetricsHandler`, `MetricsSummaryHandler`. |
 | **internal/templates** | Motor de templates y render: `CreateTemplateEngine`, `RenderTemplate`. |
 | **internal/utils** | Utilidades compartidas: ejecución de comandos permitidos (caché/filtrado), parseos seguros y helpers de estado. |
+| **internal/wifi** | Lógica WiFi: `ScanWiFiNetworks`, `ToggleWiFi`, `ConnectWiFi`, `AutoConnectToLastNetwork` y helpers wpa_supplicant. |
 
 ## Uso desde `package main`
 
@@ -32,7 +33,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 
 ## Raíz del módulo
 
-En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers), `wifi_helpers.go` y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`.)
+En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), `utils.go` (wrappers) y el resto de archivos que orquestan la app y usan los paquetes internos. (Los middlewares viven en `internal/middleware`, la lógica WiFi vive en `internal/wifi`.)
 
 Se eliminó `api_compat.go` (estaba vacío; la compatibilidad se cubre en otros módulos).
 
