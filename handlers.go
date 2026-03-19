@@ -213,7 +213,7 @@ func firstLoginChangeAPIHandler(c *fiber.Ctx) error {
 			return err
 		}
 		if req.NewUsername != user.Username {
-			var existingUser User
+			var existingUser models.User
 			if err := db.Where("username = ?", req.NewUsername).First(&existingUser).Error; err == nil {
 				return c.Status(400).JSON(fiber.Map{
 					"error": "El nombre de usuario ya está en uso",
