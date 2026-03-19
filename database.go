@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"hostberry/internal/config"
+	"hostberry/internal/models"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/mysql"
@@ -19,10 +22,11 @@ var db *gorm.DB
 func initDatabase() error {
 	var err error
 	var dialector gorm.Dialector
+	cfg := config.AppConfig
 
-	switch appConfig.Database.Type {
+	switch cfg.Database.Type {
 	case "sqlite":
-		dbDir := filepath.Dir(appConfig.Database.Path)
+		dbDir := filepath.Dir(cfg.Database.Path)
 		if err := os.MkdirAll(dbDir, 0755); err != nil {
 			return fmt.Errorf("error creando directorio de BD: %v", err)
 		}
