@@ -159,7 +159,7 @@
                         <i class="bi bi-speedometer2 me-2"></i>
                         {{ call .t "network.speedtest_title" "LibreSpeed - Speed Test" }}
                     </h5>
-                    <button type="button" class="btn btn-sm btn-primary" id="speedtest-run-btn" onclick="runSpeedtest()">
+                    <button type="button" class="btn btn-sm btn-primary" id="speedtest-run-btn" data-requires-admin="true" aria-label="{{ call .t "network.speedtest" "Speed test" }}" onclick="runSpeedtest()">
                         <i class="bi bi-play-fill me-1"></i>
                         {{ call .t "network.speedtest_run" "Run test" }}
                     </button>
