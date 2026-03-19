@@ -279,7 +279,7 @@ func AdblockUpdateHandler(c *fiber.Ctx) error {
 	})
 }
 
-func adblockToggleListHandler(c *fiber.Ctx) error {
+func AdblockToggleListHandler(c *fiber.Ctx) error {
 	listName := strings.TrimSpace(c.Params("name"))
 	if listName == "" || len(listName) > 100 {
 		return c.Status(400).JSON(fiber.Map{"error": "Nombre de lista inválido"})
@@ -308,7 +308,7 @@ func adblockToggleListHandler(c *fiber.Ctx) error {
 	})
 }
 
-func adblockToggleDomainHandler(c *fiber.Ctx) error {
+func AdblockToggleDomainHandler(c *fiber.Ctx) error {
 	domain := strings.ToLower(strings.TrimSpace(c.Params("name")))
 	if domain == "" || len(domain) > 255 || !adblockDomainRegex.MatchString(domain) {
 		return c.Status(400).JSON(fiber.Map{"error": "Dominio inválido"})
@@ -335,7 +335,7 @@ func adblockToggleDomainHandler(c *fiber.Ctx) error {
 	})
 }
 
-func adblockConfigHandler(c *fiber.Ctx) error {
+func AdblockConfigHandler(c *fiber.Ctx) error {
 	var req struct {
 		UpdateInterval string `json:"update_interval"`
 		MaxLists       int    `json:"max_lists"`
