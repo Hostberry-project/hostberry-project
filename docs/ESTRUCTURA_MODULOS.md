@@ -14,6 +14,8 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/i18n** | Internacionalización: `Init()`, `T()`, `GetCurrentLanguage()`, `TemplateFuncs()`, `LanguageMiddleware`, `LogT`, `LogTf`, `LogTln`, `LogTfatal`, `SetLogLanguage`, `GetLogLanguage`, `Ready()`. |
 | **internal/database** | Conexión y operaciones de BD: `Init()`, `DB`, `InsertLog`, `GetLogs`, `SetConfig`, `GetConfig`, `GetAllConfigs`, `InsertStatistic`, `LogMsg`, `LogMsgErr`, `LogMsgWarn`. |
 | **internal/auth** | Autenticación y JWT: `GenerateToken`, `ValidateToken`, `HashPassword`, `CheckPassword`, `Login`, `Register`, `RegisterBootstrap`, `IsDefaultAdminCredentialsInUse`. |
+| **internal/health** | Endpoints de salud y métricas: `HealthCheckHandler`, `ReadinessCheckHandler`, `LivenessCheckHandler`, `MetricsHandler`, `MetricsSummaryHandler`. |
+| **internal/templates** | Motor de templates y render: `CreateTemplateEngine`, `RenderTemplate`. |
 
 ## Uso desde `package main`
 
@@ -28,7 +30,7 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 
 ## Raíz del módulo
 
-En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), middleware (`middleware.go`, `rate_limiter.go`, `request_id.go`), `templates.go`, `utils.go`, `health.go`, `wifi_helpers.go` y el resto de archivos que orquestan la app y usan los paquetes internos.
+En el paquete `main` permanecen: `main.go`, handlers (`handlers.go`, `api_*.go`, …), middleware (`middleware.go`, `rate_limiter.go`, `request_id.go`), `utils.go`, `wifi_helpers.go` y el resto de archivos que orquestan la app y usan los paquetes internos.
 
 Se eliminó `api_compat.go` (estaba vacío; la compatibilidad se cubre en otros módulos).
 
