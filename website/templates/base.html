@@ -149,17 +149,17 @@
                         <i class="bi bi-gear-wide-connected me-2"></i>
                         {{ call .t "navigation.reload_setup_wizard" "Volver al wizard" }}
                     </a></li>
-                    <li><a class="dropdown-item text-danger" href="#" data-action="logout">
-                        <i class="bi bi-box-arrow-right me-2"></i>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="logout" aria-label="{{ call .t "navigation.logout" "Logout" }}">
+                        <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>
                         {{ call .t "navigation.logout" "Logout" }}
                     </a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-warning" href="#" data-action="restart">
-                        <i class="bi bi-arrow-clockwise me-2"></i>
+                    <li><a class="dropdown-item text-warning" href="#" data-action="restart" data-requires-admin="true" aria-label="{{ call .t "system.restart" "Restart" }}">
+                        <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>
                         {{ call .t "system.restart" "Restart" }}
                     </a></li>
-                    <li><a class="dropdown-item text-danger" href="#" data-action="shutdown">
-                        <i class="bi bi-power me-2"></i>
+                    <li><a class="dropdown-item text-danger" href="#" data-action="shutdown" data-requires-admin="true" aria-label="{{ call .t "system.shutdown" "Shutdown" }}">
+                        <i class="bi bi-power me-2" aria-hidden="true"></i>
                         {{ call .t "system.shutdown" "Shutdown" }}
                     </a></li>
                 </ul>
