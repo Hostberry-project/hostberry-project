@@ -14,7 +14,8 @@ El proyecto está organizado con paquetes bajo `internal/` para separar configur
 | **internal/i18n** | Internacionalización: `Init()`, `T()`, `GetCurrentLanguage()`, `TemplateFuncs()`, `LanguageMiddleware`, `LogT`, `LogTf`, `LogTln`, `LogTfatal`, `SetLogLanguage`, `GetLogLanguage`, `Ready()`. |
 | **internal/database** | Conexión y operaciones de BD: `Init()`, `DB`, `InsertLog`, `GetLogs`, `SetConfig`, `GetConfig`, `GetAllConfigs`, `InsertStatistic`, `LogMsg`, `LogMsgErr`, `LogMsgWarn`. |
 | **internal/auth** | Autenticación y JWT: `GenerateToken`, `ValidateToken`, `HashPassword`, `CheckPassword`, `Login`, `Register`, `RegisterBootstrap`, `IsDefaultAdminCredentialsInUse`. |
-| **internal/middleware** | Middlewares/auth: `RequireAuth`, `RequireAdmin`, `GetUser`, `RunActionWithUser`, `LoggingMiddleware`, `ErrorHandler`, `SecurityHeadersMiddleware`, `EnforceHTTPSMiddleware`, `RequestIDMiddleware`, `RateLimitMiddleware`. |
+| **internal/middleware** | Middlewares/auth: `RequireAuth` (JWT/cookie; API WiFi de setup solo con `X-HostBerry-WiFi-Setup-Token` o `wifi_setup_token`), `RequireAdmin`, `GetUser`, `RunActionWithUser`, `LoggingMiddleware`, `ErrorHandler`, `SecurityHeadersMiddleware`, `EnforceHTTPSMiddleware`, `RequestIDMiddleware`, `RateLimitMiddleware`. |
+| **internal/wifisetup** | Token de arranque (o fijo en `config.yaml`) para `/api/v1/wifi/{status,scan,connect,disconnect}` sin sesión; `Init`, `Valid`, `ExtractFromRequest`. |
 | **internal/health** | Endpoints de salud y métricas: `HealthCheckHandler`, `ReadinessCheckHandler`, `LivenessCheckHandler`, `MetricsHandler`, `MetricsSummaryHandler`. |
 | **internal/templates** | Motor de templates y render: `CreateTemplateEngine`, `RenderTemplate`. |
 | **internal/utils** | Utilidades compartidas: ejecución de comandos permitidos (caché/filtrado), parseos seguros y helpers de estado. |
