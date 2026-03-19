@@ -30,21 +30,21 @@ func GenerateToken(user *models.User) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(appConfig.Security.JWTSecret))
+	return token.SignedString([]byte(config.AppConfig.Security.JWTSecret))
 }
 
-func ValidateToken(tokenString string) (*Claims, error) {
+func ValidateToken(tokenString string) (*models.Claims, error) {
 	if tokenString == "" {
 		return nil, errors.New("token vacío")
 	}
 
-	claims := &Claims{}
+	claims := &models.Claims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("método de firma inválido")
 		}
-		return []byte(appConfig.Security.JWTSecret), nil
+		return []byte(config.AppConfig.Security.JWTSecret), nil
 	})
 
 	if err != nil {
@@ -73,7 +73,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 }
 
 func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), appConfig.Security.BcryptCost)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), config.AppConfig.Security.BcryptCost)
 	return string(bytes), err
 }
 
@@ -106,8 +106,8 @@ func getMaxLoginAttempts() int {
 }
 
 func getLockoutMinutes() int {
-	if appConfig.Security.LockoutMinutes > 0 {
-		return appConfig.Security.LockoutMinutes
+	if config.AppConfig.Security.LockoutMinutes > 0 {
+		return config.AppConfig.Security.LockoutMinutes
 	}
 	return 15
 }
