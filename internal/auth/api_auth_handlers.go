@@ -162,7 +162,7 @@ func LogoutAllSessionsAPIHandler(c *fiber.Ctx) error {
 	database.InsertLog("INFO", database.LogMsg("Cierre de sesión global en todos los dispositivos", user.Username), "auth", &userID)
 
 	return c.JSON(fiber.Map{
-		"message": "Sesiones cerradas en todos los dispositivos",
+		"message": i18n.T(c, "auth.logout_all_success", "Logged out from all devices"),
 	})
 }
 
