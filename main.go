@@ -198,9 +198,9 @@ func createApp() *fiber.App {
 
 	app.Use(i18n.LanguageMiddleware)
 
-	app.Use(requestIDMiddleware)
+	app.Use(middleware.RequestIDMiddleware)
 
-	app.Use("/api/", rateLimitMiddleware)
+	app.Use("/api/", middleware.RateLimitMiddleware)
 
 	return app
 }
