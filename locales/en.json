@@ -340,6 +340,7 @@
     "invalid_credentials": "Invalid credentials",
     "account_locked": "Account locked",
     "session_expired": "Session expired",
+    "readonly_mode": "You are viewing the panel in read-only mode. Only administrators can make changes.",
     "access_denied": "Access denied",
     "unauthorized": "Unauthorized",
     "admin_required": "Administrator privileges required",
