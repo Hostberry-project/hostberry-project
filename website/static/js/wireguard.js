@@ -13,7 +13,7 @@
     try {
       const resp = await api('/api/v1/wireguard/config');
       if (resp && resp.ok) {
-        const data = await resp.json();
+        const data = await resp.json().catch(function () { return {}; });
         const ta = document.getElementById('wg_config');
         if (ta && data && typeof data.config === 'string') ta.value = data.config;
       }
@@ -26,7 +26,7 @@
     try {
       const resp = await api('/api/v1/wireguard/interfaces');
       if (resp && resp.ok) {
-        const interfaces = await resp.json();
+        const interfaces = await resp.json().catch(function () { return []; });
         const tbody = document.getElementById('interfacesTable');
         if (!tbody) return;
         tbody.innerHTML = '';
