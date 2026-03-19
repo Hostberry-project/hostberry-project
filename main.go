@@ -133,7 +133,7 @@ func main() {
 }
 
 func createApp() *fiber.App {
-	engine := createTemplateEngine()
+	engine := webtemplates.CreateTemplateEngine(templatesFS)
 	if engine == nil {
 		i18n.LogTfatal("logs.template_engine_error")
 	}
