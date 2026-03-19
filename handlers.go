@@ -1319,13 +1319,13 @@ func torCircuitHandler(c *fiber.Ctx) error {
 }
 
 func networkPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "network", fiber.Map{
+	return webtemplates.RenderTemplate(c, "network", fiber.Map{
 		"Title": i18n.T(c, "network.title", "Network Management"),
 	})
 }
 
 func wifiPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "wifi", fiber.Map{
+	return webtemplates.RenderTemplate(c, "wifi", fiber.Map{
 		"Title":         i18n.T(c, "wifi.overview", "WiFi Overview"),
 		"wifi_stats":    fiber.Map{},
 		"wifi_status":   fiber.Map{},
@@ -1336,13 +1336,13 @@ func wifiPageHandler(c *fiber.Ctx) error {
 }
 
 func wifiScanPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "wifi_scan", fiber.Map{
+	return webtemplates.RenderTemplate(c, "wifi_scan", fiber.Map{
 		"Title": i18n.T(c, "wifi.scan", "WiFi Scan"),
 	})
 }
 
 func vpnPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "vpn", fiber.Map{
+	return webtemplates.RenderTemplate(c, "vpn", fiber.Map{
 		"Title":        i18n.T(c, "vpn.overview", "VPN Overview"),
 		"vpn_stats":    fiber.Map{},
 		"vpn_status":   fiber.Map{},
@@ -1353,7 +1353,7 @@ func vpnPageHandler(c *fiber.Ctx) error {
 }
 
 func wireguardPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "wireguard", fiber.Map{
+	return webtemplates.RenderTemplate(c, "wireguard", fiber.Map{
 		"Title":            i18n.T(c, "wireguard.overview", "WireGuard Overview"),
 		"wireguard_stats":  fiber.Map{},
 		"wireguard_status": fiber.Map{},
@@ -1363,20 +1363,20 @@ func wireguardPageHandler(c *fiber.Ctx) error {
 }
 
 func torPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "tor", fiber.Map{
+	return webtemplates.RenderTemplate(c, "tor", fiber.Map{
 		"Title": i18n.T(c, "tor.title", "Tor Configuration"),
 		"tor_status": getTorStatus(),
 	})
 }
 
 func adblockPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "adblock", fiber.Map{
+	return webtemplates.RenderTemplate(c, "adblock", fiber.Map{
 		"Title": i18n.T(c, "adblock.overview", "AdBlock (Blocky)"),
 	})
 }
 
 func hostapdPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "hostapd", fiber.Map{
+	return webtemplates.RenderTemplate(c, "hostapd", fiber.Map{
 		"Title":          i18n.T(c, "hostapd.overview", "Hotspot Overview"),
 		"hostapd_stats":  fiber.Map{},
 		"hostapd_status": fiber.Map{},
@@ -1409,7 +1409,7 @@ func profilePageHandler(c *fiber.Ctx) error {
 
 	configs, _ := database.GetAllConfigs()
 	configsJSON, _ := json.Marshal(configs)
-	return renderTemplate(c, "profile", fiber.Map{
+	return webtemplates.RenderTemplate(c, "profile", fiber.Map{
 		"Title": i18n.T(c, "auth.profile", "Profile"),
 		"user":  user,
 		"recent_activities": activities,
@@ -1420,52 +1420,52 @@ func profilePageHandler(c *fiber.Ctx) error {
 }
 
 func systemPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "system", fiber.Map{
+	return webtemplates.RenderTemplate(c, "system", fiber.Map{
 		"Title": i18n.T(c, "system.title", "System Manager"),
 	})
 }
 
 func monitoringPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "monitoring", fiber.Map{
+	return webtemplates.RenderTemplate(c, "monitoring", fiber.Map{
 		"Title": i18n.T(c, "monitoring.title", "Monitoring"),
 	})
 }
 
 func updatePageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "update", fiber.Map{
+	return webtemplates.RenderTemplate(c, "update", fiber.Map{
 		"Title": i18n.T(c, "update.title", "Updates"),
 	})
 }
 
 func firstLoginPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "first_login", fiber.Map{
+	return webtemplates.RenderTemplate(c, "first_login", fiber.Map{
 		"Title": i18n.T(c, "auth.first_login", "First Login"),
 	})
 }
 
 func setupWizardPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "setup_wizard", fiber.Map{
+	return webtemplates.RenderTemplate(c, "setup_wizard", fiber.Map{
 		"Title":      i18n.T(c, "setup_wizard.title", "Configuración inicial"),
 		"last_update": time.Now().Unix(),
 	})
 }
 
 func setupWizardVpnPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "setup_wizard_vpn", fiber.Map{
+	return webtemplates.RenderTemplate(c, "setup_wizard_vpn", fiber.Map{
 		"Title":      i18n.T(c, "setup_wizard.security_vpn", "VPN"),
 		"last_update": time.Now().Unix(),
 	})
 }
 
 func setupWizardWireguardPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "setup_wizard_wireguard", fiber.Map{
+	return webtemplates.RenderTemplate(c, "setup_wizard_wireguard", fiber.Map{
 		"Title":      i18n.T(c, "setup_wizard.security_wireguard", "WireGuard"),
 		"last_update": time.Now().Unix(),
 	})
 }
 
 func setupWizardTorPageHandler(c *fiber.Ctx) error {
-	return renderTemplate(c, "setup_wizard_tor", fiber.Map{
+	return webtemplates.RenderTemplate(c, "setup_wizard_tor", fiber.Map{
 		"Title":      i18n.T(c, "setup_wizard.security_tor", "Tor"),
 		"last_update": time.Now().Unix(),
 	})
