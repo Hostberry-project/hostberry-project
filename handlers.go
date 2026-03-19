@@ -918,11 +918,11 @@ func vpnConnectHandler(c *fiber.Ctx) error {
 	userID := user.ID
 	result := connectVPN(req.Config, req.Type, user.Username)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", fmt.Sprintf("VPN conectado: %s (usuario: %s)", req.Type, user.Username), "vpn", &userID)
+		InsertLog("INFO", LogMsg("Conexión VPN ("+req.Type+") correcta", user.Username), "vpn", &userID)
 		return c.JSON(result)
 	}
 	if errorMsg, ok := result["error"].(string); ok {
-		InsertLog("ERROR", fmt.Sprintf("Error conectando VPN %s: %s (usuario: %s)", req.Type, errorMsg, user.Username), "vpn", &userID)
+		InsertLog("ERROR", LogMsgErr("conectar VPN ("+req.Type+")", errorMsg, user.Username), "vpn", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
 	}
 	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
@@ -1269,7 +1269,7 @@ func torConfigureHandler(c *fiber.Ctx) error {
 	}
 	result := configureTor(opts)
 	if success, ok := result["success"].(bool); ok && success {
-		InsertLog("INFO", fmt.Sprintf("Tor configurado por usuario %s", user.Username), "tor", &userID)
+		InsertLog("INFO", LogMsg("Tor configurado correctamente", user.Username), "tor", &userID)
 		return c.JSON(result)
 	}
 
