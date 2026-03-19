@@ -2293,6 +2293,7 @@
     "connection_type_wifi": "WiFi",
     "connected_via_cable": "Connected via cable (Ethernet)",
     "continue_stay_connected": "Continue (stay connected)",
-    "error_network_device_switching_ssid": "The connection may have succeeded to «{ssid}». Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi)."
+    "error_network_device_switching_ssid": "The connection may have succeeded to «{ssid}». Wait about 30 seconds and open the panel again (the HostBerry may have a new IP on your WiFi).",
+    "wifi_connect_session_warning": "If you access the panel over WiFi, your session (or SSH) may drop when connecting to another network. Prefer Ethernet for this step."
   }
 }
