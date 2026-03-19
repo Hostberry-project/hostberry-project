@@ -303,7 +303,7 @@ func setupRoutes(app *fiber.App) {
 			system.Get("/services", systemServicesHandler)
 			system.Get("/metrics", health.MetricsSummaryHandler)
 			system.Post("/backup", middleware.RequireAdmin, sys.SystemBackupHandler)
-			system.Post("/config", middleware.RequireAdmin, systemConfigHandler)
+			system.Post("/config", middleware.RequireAdmin, sys.SystemConfigHandler)
 			system.Post("/updates/execute", middleware.RequireAdmin, sys.SystemUpdatesExecuteHandler)
 			system.Post("/updates/project", middleware.RequireAdmin, sys.SystemUpdatesProjectHandler)
 			system.Post("/notifications/test-email", middleware.RequireAdmin, sys.SystemNotificationsTestEmailHandler)
