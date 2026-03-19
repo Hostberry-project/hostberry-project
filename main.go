@@ -1,27 +1,11 @@
 package main
 
 import (
-	"context"
 	"embed"
-	"fmt"
-	"os"
-	"os/exec"
-	"os/signal"
-	"strings"
-	"syscall"
-	"time"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/compress"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"hostberry/internal/config"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
 	server "hostberry/internal/server"
-	middleware "hostberry/internal/middleware"
-	webtemplates "hostberry/internal/templates"
-	wifiHandlers "hostberry/internal/wifi"
 )
 
 var templatesFS embed.FS
