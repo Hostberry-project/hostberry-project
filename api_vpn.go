@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	middleware "hostberry/internal/middleware"
 )
 
 func vpnConnectionsHandler(c *fiber.Ctx) error {
