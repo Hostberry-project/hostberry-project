@@ -255,13 +255,13 @@ func setupRoutes(app *fiber.App) {
 
 	web := app.Group("/")
 	{
-		web.Get("/login", loginHandler)
+		web.Get("/login", auth.LoginPageHandler)
 		web.Get("/first-login", sys.FirstLoginPageHandler)
-		web.Get("/", indexHandler)
+		web.Get("/", auth.IndexPageHandler)
 
 		protected := web.Group("/", middleware.RequireAuth)
-		protected.Get("/dashboard", dashboardHandler)
-		protected.Get("/settings", settingsHandler)
+		protected.Get("/dashboard", auth.DashboardPageHandler)
+		protected.Get("/settings", auth.SettingsPageHandler)
 		protected.Get("/network", netHandlers.NetworkPageHandler)
 		protected.Get("/wifi", wifiHandlers.WifiPageHandler)
 		protected.Get("/wifi-scan", wifiHandlers.WifiScanPageHandler)
