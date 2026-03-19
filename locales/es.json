@@ -1678,6 +1678,7 @@
     "wifi_interface_wait": "⏳ Esperando interfaz WiFi... (intento %d/3)",
     "wifi_auto_start": "🔄 Iniciando autoconexión WiFi en interfaz: %s",
     "wifi_interface_not_found": "⚠️  No se detectó interfaz WiFi después de 3 intentos, omitiendo autoconexión",
+    "wifi_setup_token_info": "🔑 API WiFi sin sesión: usa cabecera %s o ?%s=… con el valor de este arranque: %s (secreto; con login en el panel no hace falta).",
     "server_starting": "🚀 HostBerry iniciando en %s",
     "server_config": "📋 Configuración: Debug=%v, Timeout=%ds/%ds",
     "server_stopping": "🛑 Deteniendo servidor...",

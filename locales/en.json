@@ -1678,6 +1678,7 @@
     "wifi_interface_wait": "⏳ Waiting for WiFi interface... (attempt %d/3)",
     "wifi_auto_start": "🔄 Starting WiFi auto-connection on interface: %s",
     "wifi_interface_not_found": "⚠️ WiFi interface not detected after 3 attempts, skipping auto-connection",
+    "wifi_setup_token_info": "🔑 WiFi API without session: use header %s or ?%s=… with this boot’s value: %s (keep secret; normal panel login does not need it).",
     "server_starting": "🚀 HostBerry starting on %s",
     "server_config": "📋 Configuration: Debug=%v, Timeout=%ds/%ds",
     "server_stopping": "🛑 Stopping server...",
