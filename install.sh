@@ -2086,7 +2086,12 @@ show_final_info() {
     print_info "Web:    ${web_url}"
     print_info "Config: ${CONFIG_FILE}"
     print_info "Logs:   journalctl -u ${SERVICE_NAME} -f"
-    print_warning "Login:  admin / admin (cámbiala)"
+
+    if [ "$MODE" = "install" ] && [ -n "$GENERATED_ADMIN_PASSWORD" ]; then
+        print_warning "Login inicial: admin / ${GENERATED_ADMIN_PASSWORD} (se ha guardado también en ${INSTALL_DIR}/INSTALL_CREDENTIALS.txt)"
+    else
+        print_warning "Login:  admin / admin (cámbiala)"
+    fi
     echo ""
 }
 
