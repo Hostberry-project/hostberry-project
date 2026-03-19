@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"hostberry/internal/constants"
 )
 
 const WpaSupplicantConfigDir = "/etc/wpa_supplicant"
@@ -387,7 +389,7 @@ func waitForWpaCliConnection(interfaceName string, maxAttempts int) (string, err
 // getLastConnectedNetwork obtiene la última red WiFi conectada desde los archivos de configuración
 func getLastConnectedNetwork(interfaceName string) (string, string, error) {
 	if interfaceName == "" {
-		interfaceName = DefaultWiFiInterface
+		interfaceName = constants.DefaultWiFiInterface
 	}
 
 	// Primero intentar obtener desde wpa_cli si wpa_supplicant está corriendo

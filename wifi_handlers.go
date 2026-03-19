@@ -15,7 +15,7 @@ func scanWiFiNetworks(interfaceName string) map[string]interface{} {
 	result := make(map[string]interface{})
 	networks := []map[string]interface{}{}
 	if interfaceName == "" {
-		interfaceName = DefaultWiFiInterface
+		interfaceName = constants.DefaultWiFiInterface
 	}
 	executeCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
 	time.Sleep(1 * time.Second)
@@ -122,7 +122,7 @@ func freqToChannel(freq int) int {
 func toggleWiFi(interfaceName string, enable bool) map[string]interface{} {
 	result := make(map[string]interface{})
 	if interfaceName == "" {
-		interfaceName = DefaultWiFiInterface
+		interfaceName = constants.DefaultWiFiInterface
 	}
 	if enable {
 		executeCommand("sudo rfkill unblock wifi 2>/dev/null || true")
@@ -150,7 +150,7 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 		return result
 	}
 	if interfaceName == "" {
-		interfaceName = DefaultWiFiInterface
+		interfaceName = constants.DefaultWiFiInterface
 	}
 
 	// Asegurar que la interfaz está levantada y el WiFi desbloqueado antes de iniciar wpa_supplicant.
@@ -302,7 +302,7 @@ func connectWiFi(ssid, password, interfaceName, country, user string) map[string
 // autoConnectToLastNetwork intenta conectarse automáticamente a la última red WiFi conectada
 func autoConnectToLastNetwork(interfaceName string) {
 	if interfaceName == "" {
-		interfaceName = DefaultWiFiInterface
+		interfaceName = constants.DefaultWiFiInterface
 	}
 
 	LogTf("logs.wifi_auto_connect_start", interfaceName)
