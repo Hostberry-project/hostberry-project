@@ -859,7 +859,7 @@ func wifiConnectHandler(c *fiber.Ctx) error {
 	
 	interfaceName := req.Interface
 	if interfaceName == "" {
-		interfaceName = DefaultWiFiInterface
+		interfaceName = constants.DefaultWiFiInterface
 	}
 
 	if len(interfaceName) > 16 || !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(interfaceName) {

@@ -113,7 +113,7 @@ func connectVPN(config, vpnType, user string) map[string]interface{} {
 			return result
 		}
 	} else {
-		if err := validators.validators.ValidateVPNConfig(config); err != nil {
+		if err := validators.ValidateVPNConfig(config); err != nil {
 			result["success"] = false
 			result["error"] = err.Error()
 			return result

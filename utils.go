@@ -72,7 +72,7 @@ func createDefaultAdmin() {
 			return
 		}
 
-		var admin *User
+		var admin *models.User
 		var err error
 		if useBootstrap {
 			admin, err = RegisterBootstrap("admin", adminPassword, "admin@hostberry.local")
