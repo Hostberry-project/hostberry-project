@@ -172,7 +172,7 @@ func requireAdmin(c *fiber.Ctx) error {
 
 // RunActionWithUser exige usuario autenticado, ejecuta action(user) y devuelve JSON según result["success"]/result["error"].
 // successAction y errorActionPrefix se usan con LogMsg/LogMsgErr para mensajes unificados y legibles.
-func RunActionWithUser(c *fiber.Ctx, source, successAction, errorActionPrefix string, action func(*User) map[string]interface{}) error {
+func RunActionWithUser(c *fiber.Ctx, source, successAction, errorActionPrefix string, action func(*models.User) map[string]interface{}) error {
 	user, ok := GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
