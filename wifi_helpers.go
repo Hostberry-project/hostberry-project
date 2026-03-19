@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"hostberry/internal/constants"
+	"hostberry/internal/i18n"
 )
 
 const WpaSupplicantConfigDir = "/etc/wpa_supplicant"

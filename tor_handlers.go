@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"hostberry/internal/i18n"
 )
 
 // TorConfigOptions agrupa todas las opciones de configuración de Tor (incl. estilo Onion Pi).
