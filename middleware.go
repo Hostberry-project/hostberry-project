@@ -104,7 +104,7 @@ func requireAuth(c *fiber.Ctx) error {
 
 	var user models.User
 	if err := db.First(&user, claims.UserID).Error; err != nil {
-		LogTf("logs.middleware_user_not_found", claims.UserID, err)
+		i18n.LogTf("logs.middleware_user_not_found", claims.UserID, err)
 		if strings.HasPrefix(path, "/api/") {
 			return c.Status(401).JSON(fiber.Map{
 				"error": "Usuario no encontrado. Por favor, inicia sesión nuevamente.",
@@ -273,7 +273,7 @@ func errorHandler(c *fiber.Ctx, err error) error {
 
 	if code >= 500 {
 		if config.AppConfig.Server.Debug {
-			LogTf("logs.middleware_error", method, path, err)
+			i18n.LogTf("logs.middleware_error", method, path, err)
 		}
 		go func() {
 			InsertLog("ERROR", LogMsgErr("procesar petición "+path, errMsg, ""), "http", userIDPtr)
@@ -302,7 +302,7 @@ func errorHandler(c *fiber.Ctx, err error) error {
 		"Message": message,
 		"Details": renderDetails,
 	}); renderErr != nil {
-		LogTf("logs.middleware_render_error", renderErr)
+		i18n.LogTf("logs.middleware_render_error", renderErr)
 		return c.Status(code).SendString(fmt.Sprintf(
 			"<html><body><h1>Error %d</h1><p>%s</p></body></html>",
 			code, message,

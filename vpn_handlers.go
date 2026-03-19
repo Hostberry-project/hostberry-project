@@ -253,6 +253,6 @@ func configureWireGuard(config, user string) map[string]interface{} {
 	}
 
 	result["success"] = true
-	LogT("logs.vpn_wireguard_success")
+	i18n.LogT("logs.vpn_wireguard_success")
 	return result
 }

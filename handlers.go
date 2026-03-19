@@ -472,7 +472,7 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 		if interfaces, ok := result["interfaces"]; ok {
 			if interfacesArray, ok := interfaces.([]map[string]interface{}); ok && len(interfacesArray) > 0 {
 				if config.AppConfig.Server.Debug {
-					LogTf("logs.handlers_interfaces_count", len(interfacesArray))
+					i18n.LogTf("logs.handlers_interfaces_count", len(interfacesArray))
 				}
 				return c.JSON(result)
 			}
@@ -484,12 +484,12 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 	cmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}'")
 	output, err := cmd.Output()
 	if err != nil {
-		LogTf("logs.handlers_interfaces_error", err)
+		i18n.LogTf("logs.handlers_interfaces_error", err)
 		return c.JSON(fiber.Map{"interfaces": interfaces})
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	LogTf("logs.handlers_interfaces_found", lines)
+	i18n.LogTf("logs.handlers_interfaces_found", lines)
 	for _, ifaceName := range lines {
 		ifaceName = strings.TrimSpace(ifaceName)
 		if ifaceName == "" || ifaceName == "lo" {
@@ -498,11 +498,11 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 		
 		ifaceCheckCmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", ifaceName))
 		if ifaceCheckErr := ifaceCheckCmd.Run(); ifaceCheckErr != nil {
-			LogTf("logs.handlers_interface_skip", ifaceName)
+			i18n.LogTf("logs.handlers_interface_skip", ifaceName)
 			continue
 		}
 		
-		LogTf("logs.handlers_interface_processing", ifaceName)
+		i18n.LogTf("logs.handlers_interface_processing", ifaceName)
 
 		iface := map[string]interface{}{
 			"name": ifaceName,
@@ -535,7 +535,7 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 		}
 		
 		if ifaceName == "ap0" {
-			LogTf("logs.handlers_ap0_found", iface["state"])
+			i18n.LogTf("logs.handlers_ap0_found", iface["state"])
 			if iface["state"] == "down" || iface["state"] == "unknown" {
 				LogT("logs.handlers_ap0_down")
 				activateCmd := exec.Command("sh", "-c", "sudo ip link set ap0 up 2>/dev/null")
@@ -546,7 +546,7 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 						newState := strings.TrimSpace(string(stateOut2))
 						if newState != "" {
 							iface["state"] = newState
-							LogTf("logs.handlers_ap0_activated", newState)
+							i18n.LogTf("logs.handlers_ap0_activated", newState)
 						}
 					}
 				}
@@ -812,7 +812,7 @@ func networkInterfacesHandler(c *fiber.Ctx) error {
 		interfaces = append(interfaces, iface)
 	}
 
-	LogTf("logs.handlers_fallback_interfaces", len(interfaces))
+	i18n.LogTf("logs.handlers_fallback_interfaces", len(interfaces))
 	return c.JSON(fiber.Map{"interfaces": interfaces})
 }
 

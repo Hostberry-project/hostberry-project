@@ -120,7 +120,7 @@ func enableAdBlock(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "AdBlock habilitado"
-	LogT("logs.adblock_enabled")
+	i18n.LogT("logs.adblock_enabled")
 	return result
 }
 
@@ -138,7 +138,7 @@ func disableAdBlock(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "AdBlock deshabilitado"
-	LogT("logs.adblock_disabled")
+	i18n.LogT("logs.adblock_disabled")
 	return result
 }
 
@@ -228,7 +228,7 @@ func installDNSCrypt(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "DNSCrypt instalado correctamente"
-	LogT("logs.dnscrypt_installed")
+	i18n.LogT("logs.dnscrypt_installed")
 	return result
 }
 
@@ -348,7 +348,7 @@ googlesyndication.*
 
 	result["success"] = true
 	result["message"] = "DNSCrypt configurado correctamente"
-	LogT("logs.dnscrypt_configured")
+	i18n.LogT("logs.dnscrypt_configured")
 	return result
 }
 
@@ -435,7 +435,7 @@ func enableDNSCrypt(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "DNSCrypt habilitado correctamente"
-	LogT("logs.dnscrypt_enabled")
+	i18n.LogT("logs.dnscrypt_enabled")
 	return result
 }
 
@@ -471,7 +471,7 @@ func disableDNSCrypt(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "DNSCrypt deshabilitado correctamente"
-	LogT("logs.dnscrypt_disabled")
+	i18n.LogT("logs.dnscrypt_disabled")
 	return result
 }
 
@@ -786,7 +786,7 @@ WantedBy=multi-user.target
 
 	result["success"] = true
 	result["message"] = "Blocky instalado correctamente"
-	LogT("logs.blocky_installed")
+	i18n.LogT("logs.blocky_installed")
 	return result
 }
 
@@ -908,7 +908,7 @@ log:
 
 	result["success"] = true
 	result["message"] = "Blocky configurado correctamente"
-	LogT("logs.blocky_configured")
+	i18n.LogT("logs.blocky_configured")
 	return result
 }
 
@@ -979,7 +979,7 @@ func enableBlocky(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "Blocky habilitado correctamente"
-	LogT("logs.blocky_enabled")
+	i18n.LogT("logs.blocky_enabled")
 	return result
 }
 
@@ -1010,7 +1010,7 @@ func disableBlocky(user string) map[string]interface{} {
 
 	result["success"] = true
 	result["message"] = "Blocky deshabilitado correctamente"
-	LogT("logs.blocky_disabled")
+	i18n.LogT("logs.blocky_disabled")
 	return result
 }
 
