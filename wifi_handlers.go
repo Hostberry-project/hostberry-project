@@ -1230,10 +1230,10 @@ func autoConnectToLastNetwork(interfaceName string) {
 	LogT("logs.wifi_searching_network")
 	
 	// Primero intentar con wpa_cli si wpa_supplicant está corriendo
-	socketDirs := []string{"/run/wpa_supplicant", "/var/run/wpa_supplicant", "/tmp/wpa_supplicant"}
+	socketDirs := WpaSocketDirs
 	var workingSocketDir string
 	var useGlobalSocket bool
-	
+
 	// Buscar socket de interfaz específica
 	for _, dir := range socketDirs {
 		socketPath := fmt.Sprintf("%s/%s", dir, interfaceName)
