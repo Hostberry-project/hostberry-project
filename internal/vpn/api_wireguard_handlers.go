@@ -82,7 +82,7 @@ func WireguardPeersHandler(c *fiber.Ctx) error {
 		}
 		name := curPeer
 		if len(name) > 12 {
-			name = name[:12] + "…"
+			name = name[:12] + "..."
 		}
 		peers = append(peers, fiber.Map{
 			"name":      name,
