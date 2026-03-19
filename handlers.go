@@ -12,6 +12,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/config"
+	"hostberry/internal/models"
+	"hostberry/internal/validators"
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
@@ -39,7 +42,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := ValidateUsername(req.Username); err != nil {
+	if err := validators.ValidateUsername(req.Username); err != nil {
 		return err
 	}
 
@@ -62,7 +65,7 @@ func loginAPIHandler(c *fiber.Ctx) error {
 	// Primer login o credenciales por defecto (admin/admin): forzar cambio de contraseña en first-login
 	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && CheckPassword("admin", user.Password))
 
-	cookieExpiry := time.Duration(appConfig.Security.TokenExpiry) * time.Minute
+	cookieExpiry := time.Duration(config.AppConfig.Security.TokenExpiry) * time.Minute
 	secure := false
 	// Si la petición ya viene por HTTPS (cabeceras estándar reverse proxy),
 	// marcar la cookie como Secure para evitar envío por HTTP plano.
