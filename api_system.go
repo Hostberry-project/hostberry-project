@@ -85,3 +85,17 @@ func systemUpdatesHandler(c *fiber.Ctx) error {
 func systemBackupHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": false, "message": "Backup no implementado aún"})
 }
+
+// systemHttpsInfoHandler devuelve información básica sobre el estado HTTP/HTTPS actual.
+// Útil para mostrar en la página System una guía de configuración TLS.
+func systemHttpsInfoHandler(c *fiber.Ctx) error {
+	isHttps := c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https")
+
+	return c.JSON(fiber.Map{
+		"is_https":        isHttps,
+		"host":            appConfig.Server.Host,
+		"port":            appConfig.Server.Port,
+		"tls_cert_file":   appConfig.Server.TLSCertFile,
+		"tls_key_file":    appConfig.Server.TLSKeyFile,
+	})
+}
