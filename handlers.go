@@ -1288,19 +1288,19 @@ func torEnableHandler(c *fiber.Ctx) error {
 }
 
 func torIptablesEnableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Red Hostberry torificada por usuario %s", "Error torificando red: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Red torificada correctamente", "torificar red", func(user *User) map[string]interface{} {
 		return enableTorIptables(user.Username)
 	})
 }
 
 func torIptablesDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Torificación de red desactivada por usuario %s", "Error desactivando torificación: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Torificación de red desactivada correctamente", "desactivar torificación de red", func(user *User) map[string]interface{} {
 		return disableTorIptables(user.Username)
 	})
 }
 
 func torDisableHandler(c *fiber.Ctx) error {
-	return RunActionWithUser(c, "tor", "Tor deshabilitado por usuario %s", "Error deshabilitando Tor: %s (usuario: %s)", func(user *User) map[string]interface{} {
+	return RunActionWithUser(c, "tor", "Tor deshabilitado correctamente", "deshabilitar Tor", func(user *User) map[string]interface{} {
 		return disableTor(user.Username)
 	})
 }
