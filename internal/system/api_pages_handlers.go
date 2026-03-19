@@ -1,10 +1,14 @@
 package system
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/i18n"
+	"hostberry/internal/database"
+	middleware "hostberry/internal/middleware"
+	"hostberry/internal/models"
 	webtemplates "hostberry/internal/templates"
 )
 
@@ -51,6 +55,47 @@ func SetupWizardTorPageHandler(c *fiber.Ctx) error {
 	return webtemplates.RenderTemplate(c, "setup_wizard_tor", fiber.Map{
 		"Title":       i18n.T(c, "setup_wizard.security_tor", "Tor"),
 		"last_update": time.Now().Unix(),
+	})
+}
+
+func ProfilePageHandler(c *fiber.Ctx) error {
+	user, ok := middleware.GetUser(c)
+	if !ok {
+		return c.Redirect("/login")
+	}
+
+	logs, _, _ := database.GetLogs("all", 10, 0)
+	type activity struct {
+		Action      string
+		Timestamp   string
+		Description string
+		IPAddress   string
+	}
+
+	var activities []activity
+	for _, l := range logs {
+		activities = append(activities, activity{
+			Action:      l.Source,
+			Timestamp:   l.CreatedAt.Format(time.RFC3339),
+			Description: l.Message,
+			IPAddress:   "-",
+		})
+	}
+
+	// settings para render de la página.
+	configs, _ := database.GetAllConfigs()
+	configsJSON, _ := json.Marshal(configs)
+
+	// user model no se usa directamente en la lógica, pero se pasa al template.
+	_ = models.User{}
+
+	return webtemplates.RenderTemplate(c, "profile", fiber.Map{
+		"Title":              i18n.T(c, "auth.profile", "Profile"),
+		"user":               user,
+		"recent_activities": activities,
+		"settings":          configs,
+		"settings_json":     string(configsJSON),
+		"last_update":       time.Now().Unix(),
 	})
 }
 
