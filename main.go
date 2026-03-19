@@ -164,8 +164,8 @@ func createApp() *fiber.App {
 
 	app := fiber.New(fiber.Config{
 		Views:        engine,
-		ReadTimeout:  time.Duration(appConfig.Server.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(appConfig.Server.WriteTimeout) * time.Second,
+		ReadTimeout:  time.Duration(config.AppConfig.Server.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(config.AppConfig.Server.WriteTimeout) * time.Second,
 		ErrorHandler: errorHandler,
 	})
 
@@ -200,8 +200,8 @@ func createApp() *fiber.App {
 	}))
 	app.Use(compress.New())
 	corsOrigins := "*"
-	if !appConfig.Server.Debug {
-		corsOrigins = "http://localhost:" + fmt.Sprintf("%d", appConfig.Server.Port) + ",http://127.0.0.1:" + fmt.Sprintf("%d", appConfig.Server.Port)
+	if !config.AppConfig.Server.Debug {
+		corsOrigins = "http://localhost:" + fmt.Sprintf("%d", config.AppConfig.Server.Port) + ",http://127.0.0.1:" + fmt.Sprintf("%d", config.AppConfig.Server.Port)
 	}
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     corsOrigins,
