@@ -80,7 +80,7 @@ func createDefaultAdmin() {
 		if useBootstrap {
 			admin, err = auth.RegisterBootstrap("admin", adminPassword, "admin@hostberry.local")
 		} else {
-			admin, err = Register("admin", adminPassword, "admin@hostberry.local")
+			admin, err = auth.Register("admin", adminPassword, "admin@hostberry.local")
 		}
 		if err != nil {
 			i18n.LogTf("logs.utils_admin_error", err)
