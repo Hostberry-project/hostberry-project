@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/constants"
 	"hostberry/internal/utils"
+	"hostberry/internal/validators"
 )
 
 // executeCommand delega al helper seguro en internal/utils.
@@ -140,11 +141,11 @@ func HostapdClientsHandler(c *fiber.Ctx) error {
 
 func HostapdCreateAp0Handler(c *fiber.Ctx) error {
 	phyInterface := "wlan0"
-
 	interfacesResp, _ := executeCommand("ip link show | grep -E '^[0-9]+: wlan' | awk -F: '{print $2}' | awk '{print $1}' | head -1")
-	if strings.TrimSpace(interfacesResp) != "" {
-		phyInterface = strings.TrimSpace(interfacesResp)
+	if t := strings.TrimSpace(interfacesResp); t != "" {
+		phyInterface = t
 	}
+	phyInterface = sanitizeIfaceOrDefault(phyInterface, "wlan0")
 
 	log.Printf("Creating ap0 interface from %s", phyInterface)
 
@@ -183,6 +184,10 @@ func HostapdCreateAp0Handler(c *fiber.Ctx) error {
 	if phyName == "" {
 		phyName = "phy0"
 		log.Printf("Warning: Could not detect phy name, using default: %s", phyName)
+	}
+
+	if err := validators.ValidatePhyName(phyName); err != nil {
+		return respondValidatorError(c, err)
 	}
 
 	log.Printf("Detected phy name: %s for interface %s", phyName, phyInterface)
@@ -319,16 +324,7 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 			log.Printf("Interface ap0 already exists")
 		} else {
 			log.Printf("Interface ap0 does not exist, creating it...")
-			phyInterface := "wlan0"
-			if configContent, err := os.ReadFile(configPath); err == nil {
-				lines := strings.Split(string(configContent), "\n")
-				for _, line := range lines {
-					line = strings.TrimSpace(line)
-					if strings.HasPrefix(line, "interface=") {
-						break
-					}
-				}
-			}
+			phyInterface := ifaceFromHostapdConf(configPath, "wlan0")
 
 			executeCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", phyInterface))
 			time.Sleep(500 * time.Millisecond)
@@ -354,6 +350,11 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 			if phyName == "" {
 				phyName = "phy0"
 				log.Printf("Warning: Could not detect phy name, using default: %s", phyName)
+			}
+
+			if err := validators.ValidatePhyName(phyName); err != nil {
+				log.Printf("phy name inválido tras detección: %v", err)
+				phyName = "phy0"
 			}
 
 			log.Printf("Creating ap0 interface using phy %s from interface %s...", phyName, phyInterface)
@@ -406,8 +407,18 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 				continue
 			}
 			if strings.HasPrefix(line, "interface=") {
-				interfaceName = strings.TrimPrefix(line, "interface=")
+				interfaceName = strings.TrimSpace(strings.TrimPrefix(line, "interface="))
 			}
+		}
+
+		if interfaceName != "" && validators.ValidateIfaceName(interfaceName) != nil {
+			log.Printf("HostAPD config: nombre de interfaz inválido: %q", interfaceName)
+			return c.Status(400).JSON(fiber.Map{
+				"error":          "HostAPD: valor 'interface' en la configuración no es un nombre de interfaz válido.",
+				"success":        false,
+				"config_missing": true,
+				"config_path":    configPath,
+			})
 		}
 
 		if interfaceName == "" {
