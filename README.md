@@ -2,6 +2,41 @@
 
 Sistema de gestión de red para Raspberry Pi y equipos Linux: WiFi, punto de acceso (HostAPD), VPN, WireGuard, Tor, AdBlock y monitorización.
 
+## Primeros pasos (guía rápida)
+
+1. **Instalar HostBerry**  
+   Ejecuta como root o con `sudo`:
+   ```bash
+   sudo ./install.sh
+   ```
+   Sigue los mensajes en pantalla. Al terminar verás la URL del panel y las credenciales iniciales (o la ruta del archivo `INSTALL_CREDENTIALS.txt` con usuario/contraseña y JWT).
+
+2. **Primer acceso al panel**  
+   - Abre en el navegador: `http://IP_DE_TU_EQUIPO:8000` (o `https://...` si ya has configurado TLS).  
+   - Inicia sesión con el usuario `admin` y la contraseña generada en la instalación (consulta `INSTALL_CREDENTIALS.txt` si la has perdido).
+
+3. **Cambiar contraseña del admin**  
+   - Ve a la sección de perfil / ajustes de usuario.  
+   - Cambia la contraseña del usuario `admin` por una segura.  
+   - Opcionalmente, crea usuarios adicionales y decide qué usuarios serán **admin**.
+
+4. **Ejecutar el Setup Wizard**  
+   - Desde el menú de usuario, lanza el **wizard de configuración**.  
+   - Sigue los pasos para:
+     - Verificar o configurar la conexión a Internet (Ethernet o WiFi).  
+     - Configurar, si quieres, el punto de acceso propio (HostBerry como router WiFi).  
+     - Activar y ajustar servicios como VPN, WireGuard, Tor o AdBlock.
+
+5. **Configurar HTTPS (opcional pero recomendado)**  
+   - Prepara tus certificados en `/opt/hostberry/certs/` o configura un proxy inverso (Nginx/Traefik).  
+   - Ajusta `config.yaml` según la sección **HTTPS** de este README.  
+   - Reinicia el servicio de HostBerry (`systemctl restart hostberry`) para aplicar los cambios.
+
+6. **Uso diario**  
+   - Supervisa el estado del sistema y de los servicios desde las páginas **Dashboard**, **System** y **Monitoring**.  
+   - Gestiona redes WiFi, reglas de firewall, VPN, Tor y AdBlock desde sus respectivas secciones.  
+   - Revisa métricas en `/metrics` o desde la tarjeta de métricas en el panel.
+
 ## Requisitos
 
 - **Sistema operativo**:  
