@@ -152,11 +152,11 @@ func Login(username, password string) (*models.User, string, error) {
 		_ = db.Save(&user).Error
 		if user.FailedAttempts >= maxAttempts {
 			if user.LockedUntil != nil {
-				return nil, "", &LoginError{Key: "auth.too_many_attempts_time", Default: "demasiados intentos fallidos. Cuenta bloqueada " + strconv.Itoa(lockoutMin) + " minutos.", Args: []interface{}{lockoutMin}}
+				return nil, "", &models.LoginError{Key: "auth.too_many_attempts_time", Default: "demasiados intentos fallidos. Cuenta bloqueada " + strconv.Itoa(lockoutMin) + " minutos.", Args: []interface{}{lockoutMin}}
 			}
-			return nil, "", &LoginError{Key: "auth.too_many_attempts", Default: "demasiados intentos fallidos. Intenta nuevamente más tarde"}
+			return nil, "", &models.LoginError{Key: "auth.too_many_attempts", Default: "demasiados intentos fallidos. Intenta nuevamente más tarde"}
 		}
-		return nil, "", &LoginError{Key: "auth.invalid_credentials", Default: "usuario o contraseña incorrectos"}
+		return nil, "", &models.LoginError{Key: "auth.invalid_credentials", Default: "usuario o contraseña incorrectos"}
 	}
 
 	if !strings.HasPrefix(user.Password, "$2a$") && !strings.HasPrefix(user.Password, "$2b$") {
