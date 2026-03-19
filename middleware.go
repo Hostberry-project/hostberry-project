@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/config"
+	"hostberry/internal/models"
 )
 
 // Contadores simples de peticiones HTTP por clase de estado.
@@ -107,7 +109,7 @@ func requireAuth(c *fiber.Ctx) error {
 		return c.Redirect("/login")
 	}
 
-	var user User
+	var user models.User
 	if err := db.First(&user, claims.UserID).Error; err != nil {
 		LogTf("logs.middleware_user_not_found", claims.UserID, err)
 		if strings.HasPrefix(path, "/api/") {
@@ -136,12 +138,12 @@ func requireAuth(c *fiber.Ctx) error {
 
 // GetUser obtiene el usuario autenticado de forma segura (evita panic por type assertion).
 // Solo debe usarse en rutas protegidas por requireAuth. Si ok es false, el handler debe responder 401.
-func GetUser(c *fiber.Ctx) (*User, bool) {
+func GetUser(c *fiber.Ctx) (*models.User, bool) {
 	u := c.Locals("user")
 	if u == nil {
 		return nil, false
 	}
-	user, ok := u.(*User)
+	user, ok := u.(*models.User)
 	return user, ok && user != nil
 }
 
