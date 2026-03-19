@@ -83,7 +83,7 @@ func createDefaultAdmin() {
 			i18n.LogTf("logs.utils_admin_error", err)
 		} else {
 			if config.AppConfig.Server.Debug {
-				LogT("logs.utils_admin_success")
+				i18n.LogT("logs.utils_admin_success")
 			}
 			_ = admin
 		}

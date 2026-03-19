@@ -216,11 +216,11 @@ func systemRestart(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.system_restart_requested", user)
+	i18n.LogTf("logs.system_restart_requested", user)
 
 	restartCmd := "systemctl reboot"
 	if _, err := executeCommand(restartCmd); err != nil {
-		LogTf("logs.system_restart_fallback", err)
+		i18n.LogTf("logs.system_restart_fallback", err)
 		shutdownPaths := []string{"/usr/sbin/shutdown", "/sbin/shutdown", "shutdown"}
 		found := false
 		for _, path := range shutdownPaths {
@@ -244,7 +244,7 @@ func systemRestart(user string) map[string]interface{} {
 				result["success"] = false
 				result["error"] = err3.Error()
 				result["message"] = "Error al ejecutar comando de reinicio"
-				LogTf("logs.system_restart_error", err3)
+				i18n.LogTf("logs.system_restart_error", err3)
 				return result
 			}
 			result["success"] = true
@@ -255,7 +255,7 @@ func systemRestart(user string) map[string]interface{} {
 		result["success"] = false
 		result["error"] = err.Error()
 		result["message"] = "Error al ejecutar comando de reinicio"
-		LogTf("logs.system_restart_error", err)
+		i18n.LogTf("logs.system_restart_error", err)
 		return result
 	}
 
@@ -273,11 +273,11 @@ func systemShutdown(user string) map[string]interface{} {
 		user = "unknown"
 	}
 
-	LogTf("logs.system_shutdown_requested", user)
+	i18n.LogTf("logs.system_shutdown_requested", user)
 
 	shutdownCmd := "systemctl poweroff"
 	if _, err := executeCommand(shutdownCmd); err != nil {
-		LogTf("logs.system_shutdown_fallback", err)
+		i18n.LogTf("logs.system_shutdown_fallback", err)
 		shutdownPaths := []string{"/usr/sbin/shutdown", "/sbin/shutdown", "shutdown"}
 		found := false
 		for _, path := range shutdownPaths {
@@ -301,7 +301,7 @@ func systemShutdown(user string) map[string]interface{} {
 				result["success"] = false
 				result["error"] = err3.Error()
 				result["message"] = "Error al ejecutar comando de apagado"
-				LogTf("logs.system_shutdown_error", err3)
+				i18n.LogTf("logs.system_shutdown_error", err3)
 				return result
 			}
 			result["success"] = true
@@ -312,7 +312,7 @@ func systemShutdown(user string) map[string]interface{} {
 		result["success"] = false
 		result["error"] = err.Error()
 		result["message"] = "Error al ejecutar comando de apagado"
-		LogTf("logs.system_shutdown_error", err)
+		i18n.LogTf("logs.system_shutdown_error", err)
 		return result
 	}
 

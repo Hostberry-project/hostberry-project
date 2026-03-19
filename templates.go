@@ -108,42 +108,42 @@ func createTemplateEngine() *html.Engine {
 						}
 					}
 						if htmlFiles > 0 {
-							LogTf("logs.templates_found", htmlFiles, path)
+							i18n.LogTf("logs.templates_found", htmlFiles, path)
 							criticalTemplates := []string{"dashboard.html", "login.html", "base.html", "error.html"}
 							missingCritical := false
 							for _, tmpl := range criticalTemplates {
 								if _, err := os.Stat(filepath.Join(path, tmpl)); err != nil {
-									LogTf("logs.templates_missing", tmpl, path)
+									i18n.LogTf("logs.templates_missing", tmpl, path)
 									missingCritical = true
 								}
 							}
 							if missingCritical {
-								LogTf("logs.templates_rejected", path)
+								i18n.LogTf("logs.templates_rejected", path)
 								continue
 							}
 
 							engine = html.New(path, ".html")
 						if engine == nil {
-							LogTf("logs.templates_engine_nil", path)
+							i18n.LogTf("logs.templates_engine_nil", path)
 							continue
 						}
 						
 						registerTemplateFuncs(engine)
 						
 						if err := engine.Load(); err != nil {
-							LogTf("logs.templates_load_error", path, err)
+							i18n.LogTf("logs.templates_load_error", path, err)
 							engine = nil
 							continue
 						}
 
-						LogTf("logs.templates_loaded", path)
-						LogTf("logs.templates_html_count", htmlFiles)
-						LogTf("logs.templates_registered", foundTemplates)
+						i18n.LogTf("logs.templates_loaded", path)
+						i18n.LogTf("logs.templates_html_count", htmlFiles)
+						i18n.LogTf("logs.templates_registered", foundTemplates)
 
 						engine.Reload(!config.AppConfig.Server.Debug)
 						break // Salir del loop, engine encontrado y cargado con éxito
 					} else {
-						LogTf("logs.templates_no_html", path)
+						i18n.LogTf("logs.templates_no_html", path)
 					}
 				}
 			}
@@ -171,9 +171,9 @@ func createTemplateEngine() *html.Engine {
 					for _, tmpl := range criticalTemplates {
 						if testFile, err := tmplFS.Open(tmpl); err == nil {
 							testFile.Close()
-							LogTf("logs.templates_embedded_verified", tmpl)
+							i18n.LogTf("logs.templates_embedded_verified", tmpl)
 						} else {
-							LogTf("logs.templates_embedded_open_error", tmpl, err)
+							i18n.LogTf("logs.templates_embedded_open_error", tmpl, err)
 							allCriticalFound = false
 						}
 					}
@@ -187,13 +187,13 @@ func createTemplateEngine() *html.Engine {
 							registerTemplateFuncs(engine)
 							
 							if loadErr := engine.Load(); loadErr != nil {
-								LogTf("logs.templates_embedded_load_error", loadErr)
+								i18n.LogTf("logs.templates_embedded_load_error", loadErr)
 								engine = nil
 								err = loadErr
 							} else {
 								engine.Reload(false)
-								LogTf("logs.templates_embedded_loaded", htmlFiles)
-								LogTf("logs.templates_embedded_list", templateNames)
+								i18n.LogTf("logs.templates_embedded_loaded", htmlFiles)
+								i18n.LogTf("logs.templates_embedded_list", templateNames)
 							}
 						} else {
 							LogT("logs.templates_embedded_nil")
@@ -205,7 +205,7 @@ func createTemplateEngine() *html.Engine {
 					err = fmt.Errorf("templates embebidos vacíos")
 				}
 			} else {
-				LogTf("logs.templates_embedded_read_error", err)
+				i18n.LogTf("logs.templates_embedded_read_error", err)
 			}
 		} else {
 			log.Printf("⚠️  Error creando sub-FS de templates embebidos: %v", err)

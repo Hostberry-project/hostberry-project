@@ -24,7 +24,7 @@ func scanWiFiNetworks(interfaceName string) map[string]interface{} {
 	scanCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo iw dev %s scan 2>/dev/null", interfaceName))
 	scanOut, err := scanCmd.Output()
 	if err != nil {
-		LogTf("logs.wifi_scan_error", err)
+		i18n.LogTf("logs.wifi_scan_error", err)
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error escaneando redes: %v", err)
 		result["networks"] = networks
@@ -307,12 +307,12 @@ func autoConnectToLastNetwork(interfaceName string) {
 		interfaceName = constants.DefaultWiFiInterface
 	}
 
-	LogTf("logs.wifi_auto_connect_start", interfaceName)
+	i18n.LogTf("logs.wifi_auto_connect_start", interfaceName)
 
 	// Verificar que la interfaz existe antes de continuar
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", interfaceName))
 	if err := cmd.Run(); err != nil {
-		LogTf("logs.wifi_interface_not_exists", interfaceName)
+		i18n.LogTf("logs.wifi_interface_not_exists", interfaceName)
 		return
 	}
 
@@ -335,7 +335,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 		socketPath := fmt.Sprintf("%s/%s", dir, interfaceName)
 		if _, err := os.Stat(socketPath); err == nil {
 			workingSocketDir = dir
-			LogTf("logs.wifi_socket_interface_found", socketPath)
+			i18n.LogTf("logs.wifi_socket_interface_found", socketPath)
 			break
 		}
 	}
@@ -347,7 +347,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 			if _, err := os.Stat(globalSocket); err == nil {
 				workingSocketDir = dir
 				useGlobalSocket = true
-				LogTf("logs.wifi_socket_global_found", globalSocket)
+				i18n.LogTf("logs.wifi_socket_global_found", globalSocket)
 				break
 			}
 		}
@@ -407,7 +407,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 					}
 					
 					if netID != "" {
-						LogTf("logs.wifi_reconnecting", netID)
+						i18n.LogTf("logs.wifi_reconnecting", netID)
 						// Hacer todo en secuencia rápida
 						runWpaCli("enable_network", netID)
 						runWpaCli("select_network", netID)
@@ -442,7 +442,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 	LogT("logs.wifi_searching_config")
 	ssid, _, err := getLastConnectedNetwork(interfaceName)
 	if err != nil {
-		LogTf("logs.wifi_config_not_found", err)
+		i18n.LogTf("logs.wifi_config_not_found", err)
 		LogT("logs.wifi_trying_other_way")
 		
 		// Último intento: buscar cualquier archivo de configuración reciente
@@ -477,7 +477,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 					if strings.HasPrefix(strings.TrimSpace(line), "ssid=") {
 						ssid = strings.Trim(strings.TrimPrefix(strings.TrimSpace(line), "ssid="), "\"")
 						if ssid != "" {
-							LogTf("logs.wifi_network_found_file", lastFile.Name(), ssid)
+							i18n.LogTf("logs.wifi_network_found_file", lastFile.Name(), ssid)
 							break
 						}
 					}
@@ -523,7 +523,7 @@ func autoConnectToLastNetwork(interfaceName string) {
 						cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
 						if err := cmd.Run(); err == nil {
 							found = true
-							LogTf("logs.wifi_config_file_found", wpaConfigPath)
+							i18n.LogTf("logs.wifi_config_file_found", wpaConfigPath)
 							break
 						}
 					}
@@ -538,14 +538,14 @@ func autoConnectToLastNetwork(interfaceName string) {
 				country := constants.DefaultCountryCode
 				result := connectWiFi(ssid, "", interfaceName, country, "system")
 				if success, ok := result["success"].(bool); ok && success {
-					LogTf("logs.wifi_auto_success", ssid)
+					i18n.LogTf("logs.wifi_auto_success", ssid)
 					return
 				} else {
 					errorMsg := "Error desconocido"
 					if err, ok := result["error"].(string); ok && err != "" {
 						errorMsg = err
 					}
-					LogTf("logs.wifi_auto_error", errorMsg)
+					i18n.LogTf("logs.wifi_auto_error", errorMsg)
 					return
 				}
 			}
@@ -562,15 +562,15 @@ func autoConnectToLastNetwork(interfaceName string) {
 	runDir := getRunDir()
 	LogT("logs.wifi_starting_wpa")
 	if err := startWpaSupplicant(interfaceName, wpaConfigPath, runDir); err != nil {
-		LogTf("logs.wifi_wpa_start_error", err)
+		i18n.LogTf("logs.wifi_wpa_start_error", err)
 		LogT("logs.wifi_trying_connect")
 		country := constants.DefaultCountryCode
 		result := connectWiFi(ssid, "", interfaceName, country, "system")
 		if success, ok := result["success"].(bool); ok && success {
-			LogTf("logs.wifi_auto_success", ssid)
+			i18n.LogTf("logs.wifi_auto_success", ssid)
 		} else {
 			errStr, _ := result["error"].(string)
-			LogTf("logs.wifi_auto_error", errStr)
+			i18n.LogTf("logs.wifi_auto_error", errStr)
 		}
 		return
 	}
@@ -606,11 +606,11 @@ func autoConnectToLastNetwork(interfaceName string) {
 		statusOut, _ := runWpaCli("status")
 		if strings.Contains(statusOut, "wpa_state=COMPLETED") {
 			connected = true
-			LogTf("logs.wifi_authenticated", ssid)
+			i18n.LogTf("logs.wifi_authenticated", ssid)
 			break
 		}
 		if attempt%3 == 0 && attempt > 0 {
-			LogTf("logs.wifi_status_attempt3", statusOut, attempt+1)
+			i18n.LogTf("logs.wifi_status_attempt3", statusOut, attempt+1)
 		}
 	}
 	
