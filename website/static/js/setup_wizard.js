@@ -326,9 +326,12 @@
         setStep(2);
       });
     }
-    document.getElementById('wizard-back-2').addEventListener('click', function() { setStep(1); });
-    document.getElementById('wizard-next-2').addEventListener('click', function() { saveHostapd(); });
-    document.getElementById('wizard-back-3').addEventListener('click', function() { setStep(2); });
+    var back2 = document.getElementById('wizard-back-2');
+    var next2 = document.getElementById('wizard-next-2');
+    var back3 = document.getElementById('wizard-back-3');
+    if (back2) back2.addEventListener('click', function() { setStep(1); });
+    if (next2) next2.addEventListener('click', function() { saveHostapd(); });
+    if (back3) back3.addEventListener('click', function() { setStep(2); });
 
     document.querySelectorAll('.wizard-security-option').forEach(function(card) {
       card.addEventListener('click', function() {
