@@ -95,3 +95,9 @@ func ProfilePageHandler(c *fiber.Ctx) error {
 	})
 }
 
+func FirstLoginPageHandler(c *fiber.Ctx) error {
+	return webtemplates.RenderTemplate(c, "first_login", fiber.Map{
+		"Title": i18n.T(c, "auth.first_login", "First Login"),
+	})
+}
+
