@@ -699,8 +699,12 @@ func wifiLegacyStatusHandler(c *fiber.Ctx) error {
 					if strings.Contains(iwconfigStr, "Signal level=") {
 						parts := strings.Split(iwconfigStr, "Signal level=")
 						if len(parts) > 1 {
-							signalPart := strings.Fields(parts[1])[0]
-							signalStr := strings.TrimSpace(signalPart)
+							fields := strings.Fields(parts[1])
+							if len(fields) == 0 {
+								// parts[1] vacío o solo espacios, evitar panic
+							} else {
+								signalPart := fields[0]
+								signalStr := strings.TrimSpace(signalPart)
 							signalStr = strings.TrimSuffix(signalStr, "dBm")
 							signalStr = strings.TrimSpace(signalStr)
 							if signalStr != "" && signalStr != "0" {
