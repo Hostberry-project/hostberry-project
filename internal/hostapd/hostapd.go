@@ -45,28 +45,15 @@ func HostapdAccessPointsHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	interfaceName := sanitizeIfaceOrDefault(config["interface"], "ap0")
-	hostapdActive := hostapdProcessOrUnitActive()
-	hostapdTransmitting := false
-
-	if hostapdActive {
-		if info, err := iwDevInfo(interfaceName); err == nil && iwDevInfoShowsAP(info) {
-			hostapdTransmitting = true
-		}
-		if !hostapdTransmitting && hostapdCliStatusEnabled(interfaceName) {
-			hostapdTransmitting = true
-		}
-	}
-
 	if hostapdActive || len(config) > 0 {
 		ssid := config["ssid"]
 		if ssid == "" {
 			ssid = "hostberry" // Valor por defecto (red + portal cautivo)
 		}
 
-		displayIface := sanitizeIfaceOrDefault(config["interface"], constants.DefaultWiFiInterface)
-		if config["interface"] == "" {
-			displayIface = constants.DefaultWiFiInterface
+		interfaceName := config["interface"]
+		if interfaceName == "" {
+			interfaceName = constants.DefaultWiFiInterface
 		}
 
 		channel := config["channel"]
@@ -85,20 +72,15 @@ func HostapdAccessPointsHandler(c *fiber.Ctx) error {
 
 		clientsCount := 0
 		if hostapdActive {
-			cliOut, err := exec.Command("sh", "-c", fmt.Sprintf("hostapd_cli -i %s all_sta 2>/dev/null | grep -c '^sta=' || echo 0", interfaceName)).CombinedOutput()
-			if err == nil {
-				if count, err := strconvAtoiSafe(strings.TrimSpace(string(cliOut))); err == nil {
-					clientsCount = count
-				}
-			}
+			clientsCount = hostapdCliCountStations(interfaceName)
 		}
 
 		actuallyActive := hostapdActive && hostapdTransmitting
 
 		aps = append(aps, fiber.Map{
-			"name":      interfaceName,
+			"name":      displayIface,
 			"ssid":      ssid,
-			"interface": interfaceName,
+			"interface": displayIface,
 			"channel":   channel,
 			"security":  security,
 			"enabled":   actuallyActive, // Solo true si realmente está transmitiendo
