@@ -33,6 +33,7 @@ import (
 	netHandlers "hostberry/internal/network"
 	vpnHandlers "hostberry/internal/vpn"
 	torHandlers "hostberry/internal/tor"
+	adblockHandlers "hostberry/internal/adblock"
 )
 
 var templatesFS embed.FS
