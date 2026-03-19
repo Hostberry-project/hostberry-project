@@ -334,7 +334,7 @@
     try {
       if (!confirm(t('system.backup_confirm', 'Are you sure you want to create a system backup?'))) return;
       toast('info', t('system.backup_creating', 'Creating backup...'));
-      const resp = await api('/api/v1/system/backup', { method: 'POST' });
+      const resp = await api('/api/v1/system/backup', { method: 'POST', sourceElement: document.getElementById('action-backup') });
       const payload = await resp?.json?.().catch(() => ({}));
       if (!resp || !resp.ok || payload?.success === false) {
         toast('warning', payload?.message || t('system.backup_error', 'Unable to create backup'));
@@ -351,7 +351,7 @@
     try {
       if (!confirm(t('system.restart_confirm', 'Are you sure you want to restart the system? This will disconnect all users.'))) return;
       toast('warning', t('system.restarting', 'Restarting system...'));
-      const resp = await api('/api/v1/system/restart', { method: 'POST' });
+      const resp = await api('/api/v1/system/restart', { method: 'POST', sourceElement: document.getElementById('action-restart') });
       const payload = await resp?.json?.().catch(() => ({}));
       if (!resp || !resp.ok || payload?.success === false) {
         toast('danger', payload?.error || t('system.restart_error', 'Unable to restart system'));
@@ -371,7 +371,7 @@
       const doubleConfirm = t('system.shutdown_double_confirm', 'Type SHUTDOWN to confirm');
       if (prompt(doubleConfirm) !== 'SHUTDOWN') return;
       toast('warning', t('system.shutting_down', 'Shutting down system...'));
-      const resp = await api('/api/v1/system/shutdown', { method: 'POST' });
+      const resp = await api('/api/v1/system/shutdown', { method: 'POST', sourceElement: document.getElementById('action-shutdown') });
       const payload = await resp?.json?.().catch(() => ({}));
       if (!resp || !resp.ok || payload?.success === false) {
         toast('danger', payload?.error || t('system.shutdown_error', 'Unable to shutdown system'));
@@ -388,7 +388,7 @@
     try {
       if (!confirm(t('update.system_confirm', 'Update system?'))) return;
       toast('info', t('update.updating_system', 'Updating system...'));
-      const resp = await api('/api/v1/system/updates/execute', { method: 'POST' });
+      const resp = await api('/api/v1/system/updates/execute', { method: 'POST', sourceElement: document.getElementById('action-update-system') });
       if (resp && (resp.status === 404 || resp.status === 405 || resp.status === 501)) {
         toast('warning', t('errors.not_implemented', 'Not implemented'));
         return;
@@ -409,7 +409,7 @@
     try {
       if (!confirm(t('update.project_confirm', 'Update project?'))) return;
       toast('info', t('update.updating_project', 'Updating project...'));
-      const resp = await api('/api/v1/system/updates/project', { method: 'POST' });
+      const resp = await api('/api/v1/system/updates/project', { method: 'POST', sourceElement: document.getElementById('action-update-project') });
       if (resp && (resp.status === 404 || resp.status === 405 || resp.status === 501)) {
         toast('warning', t('errors.not_implemented', 'Not implemented'));
         return;
