@@ -15,7 +15,7 @@ import (
 )
 
 func translateLoginError(c *fiber.Ctx, err error) string {
-	var le *LoginError
+	var le *models.LoginError
 	if errors.As(err, &le) {
 		msg := T(c, le.Key, le.Default)
 		if len(le.Args) > 0 {
