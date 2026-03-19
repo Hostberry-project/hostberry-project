@@ -164,6 +164,32 @@
         </div>
     </div>
 
+    <!-- HTTPS / TLS Info -->
+    <div class="row mb-4 justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6 mb-4">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h5 class="actions-card-title text-center d-flex justify-content-center align-items-center">
+                        <i class="bi bi-lock-fill me-2"></i>
+                        {{ call .t "system.https_status" "HTTPS Status" }}
+                    </h5>
+                </div>
+                <div class="actions-card-body">
+                    <p class="text-center mb-2">
+                        <span id="https-status-badge" class="badge bg-secondary">--</span>
+                    </p>
+                    <p class="text-white-50 small mb-2" id="https-status-text">
+                        {{ call .t "https.insecure_http_warning" "Warning: You are accessing HostBerry over HTTP (not encrypted)." }}
+                    </p>
+                    <ul class="text-white-50 small mb-0">
+                        <li>{{ call .t "system.https_hint_1" "To enable HTTPS directly, set tls_cert_file and tls_key_file in config.yaml (Server section)." }}</li>
+                        <li>{{ call .t "system.https_hint_2" "Alternatively, place HostBerry behind a reverse proxy (Nginx, Traefik) with TLS termination." }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- System Actions -->
     <div class="row mb-4 justify-content-center">
         <div class="col-12 col-md-8 col-lg-6 mb-4">
