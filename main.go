@@ -430,7 +430,7 @@ func indexHandler(c *fiber.Ctx) error {
 	if token != "" {
 		claims, err := ValidateToken(token)
 		if err == nil {
-			var user User
+			var user models.User
 			if err := db.First(&user, claims.UserID).Error; err == nil && user.IsActive {
 				return c.Redirect("/dashboard")
 			}
@@ -545,7 +545,7 @@ func wifiInterfacesHandler(c *fiber.Ctx) error {
 
 	if len(interfaces) == 0 {
 		interfaces = append(interfaces, fiber.Map{
-			"name":  DefaultWiFiInterface,
+			"name":  constants.DefaultWiFiInterface,
 			"type":  "wifi",
 			"state": "unknown",
 		})
@@ -575,7 +575,7 @@ func wifiScanHandler(c *fiber.Ctx) error {
 		interfaceName = detectWiFiInterface()
 	}
 	if interfaceName == "" {
-		interfaceName = DefaultWiFiInterface
+		interfaceName = constants.DefaultWiFiInterface
 	}
 
 	result := scanWiFiNetworks(interfaceName)
