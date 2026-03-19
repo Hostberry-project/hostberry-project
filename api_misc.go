@@ -8,10 +8,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/database"
+	middleware "hostberry/internal/middleware"
 )
 
 func helpContactHandler(c *fiber.Ctx) error {
-	user, ok := GetUser(c)
+	user, ok := middleware.GetUser(c)
 	if !ok {
 		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
 	}
