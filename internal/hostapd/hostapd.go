@@ -833,18 +833,7 @@ func HostapdGetConfigHandler(c *fiber.Ctx) error {
 }
 
 func HostapdConfigHandler(c *fiber.Ctx) error {
-	var req struct {
-		Interface      string `json:"interface"`
-		SSID           string `json:"ssid"`
-		Password       string `json:"password"`
-		Channel        int    `json:"channel"`
-		Security       string `json:"security"`
-		Gateway        string `json:"gateway"`
-		DHCPRangeStart string `json:"dhcp_range_start"`
-		DHCPRangeEnd   string `json:"dhcp_range_end"`
-		LeaseTime      string `json:"lease_time"`
-		Country        string `json:"country"`
-	}
+	var req HostapdConfigBody
 
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -876,13 +865,17 @@ func HostapdConfigHandler(c *fiber.Ctx) error {
 		req.Country = constants.DefaultCountryCode
 	}
 
+	req.Country = strings.ToUpper(strings.TrimSpace(req.Country))
 	if len(req.Country) != 2 {
 		req.Country = "US"
 	}
-	req.Country = strings.ToUpper(req.Country)
 
 	if req.Security != "wpa2" && req.Security != "wpa3" && req.Security != "open" {
 		req.Security = "wpa2"
+	}
+
+	if err := validateHostapdPOST(&req); err != nil {
+		return respondValidatorError(c, err)
 	}
 
 	apInterface := "ap0"
@@ -928,6 +921,10 @@ func HostapdConfigHandler(c *fiber.Ctx) error {
 	if phyName == "" {
 		phyName = "phy0"
 		log.Printf("Warning: Could not detect phy name, using default: %s", phyName)
+	}
+
+	if err := validators.ValidatePhyName(phyName); err != nil {
+		return respondValidatorError(c, err)
 	}
 
 	log.Printf("Detected phy name: %s for interface %s", phyName, phyInterface)
@@ -1187,12 +1184,6 @@ country_code=%s
 	if req.Security == "open" {
 		configContent += "auth_algs=0\n"
 	} else if req.Security == "wpa2" {
-		if req.Password == "" {
-			return c.Status(400).JSON(fiber.Map{
-				"error":   "Password required for WPA2/WPA3",
-				"success": false,
-			})
-		}
 		configContent += fmt.Sprintf(`wpa=2
 wpa_passphrase=%s
 wpa_key_mgmt=WPA-PSK
@@ -1200,12 +1191,6 @@ wpa_pairwise=TKIP
 rsn_pairwise=CCMP
 `, req.Password)
 	} else if req.Security == "wpa3" {
-		if req.Password == "" {
-			return c.Status(400).JSON(fiber.Map{
-				"error":   "Password required for WPA2/WPA3",
-				"success": false,
-			})
-		}
 		configContent += fmt.Sprintf(`wpa=2
 wpa_passphrase=%s
 wpa_key_mgmt=WPA-PSK-SHA256
