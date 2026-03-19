@@ -115,17 +115,17 @@ func getLockoutMinutes() int {
 // IsDefaultAdminCredentialsInUse indica si el usuario admin existe y su contraseña es "admin".
 // Se usa para mostrar el aviso en la pantalla de login (primer arranque o BD con credenciales por defecto).
 func IsDefaultAdminCredentialsInUse() bool {
-	var user User
+	var user models.User
 	if err := db.Where("username = ? AND is_active = ?", "admin", true).First(&user).Error; err != nil {
 		return false
 	}
 	return CheckPassword("admin", user.Password)
 }
 
-func Login(username, password string) (*User, string, error) {
-	var user User
+func Login(username, password string) (*models.User, string, error) {
+	var user models.User
 	if err := db.Where("username = ? AND is_active = ?", username, true).First(&user).Error; err != nil {
-		return nil, "", &LoginError{Key: "auth.invalid_credentials", Default: "usuario o contraseña incorrectos"}
+		return nil, "", &models.LoginError{Key: "auth.invalid_credentials", Default: "usuario o contraseña incorrectos"}
 	}
 
 	maxAttempts := getMaxLoginAttempts()
