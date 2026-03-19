@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"hostberry/internal/auth"
 	"hostberry/internal/config"
 	"hostberry/internal/database"
 	"hostberry/internal/i18n"
@@ -77,7 +78,7 @@ func createDefaultAdmin() {
 		var admin *models.User
 		var err error
 		if useBootstrap {
-			admin, err = RegisterBootstrap("admin", adminPassword, "admin@hostberry.local")
+			admin, err = auth.RegisterBootstrap("admin", adminPassword, "admin@hostberry.local")
 		} else {
 			admin, err = Register("admin", adminPassword, "admin@hostberry.local")
 		}
