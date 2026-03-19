@@ -6,12 +6,256 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
 
+// scanWiFiNetworks escanea redes WiFi con iw y devuelve un mapa con "success", "networks" y "error".
+func scanWiFiNetworks(interfaceName string) map[string]interface{} {
+	result := make(map[string]interface{})
+	networks := []map[string]interface{}{}
+	if interfaceName == "" {
+		interfaceName = DefaultWiFiInterface
+	}
+	executeCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
+	time.Sleep(1 * time.Second)
+	scanCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo iw dev %s scan 2>/dev/null", interfaceName))
+	scanOut, err := scanCmd.Output()
+	if err != nil {
+		LogTf("logs.wifi_scan_error", err)
+		result["success"] = false
+		result["error"] = fmt.Sprintf("Error escaneando redes: %v", err)
+		result["networks"] = networks
+		return result
+	}
+	lines := strings.Split(string(scanOut), "\n")
+	currentNetwork := make(map[string]interface{})
+	seenNetworks := make(map[string]bool)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "BSS ") {
+			if len(currentNetwork) > 0 {
+				if ssid, ok := currentNetwork["ssid"].(string); ok && ssid != "" {
+					if !seenNetworks[ssid] {
+						seenNetworks[ssid] = true
+						networks = append(networks, currentNetwork)
+					}
+				}
+			}
+			currentNetwork = make(map[string]interface{})
+			currentNetwork["security"] = "Open"
+			currentNetwork["signal"] = 0
+		} else if strings.HasPrefix(line, "SSID:") {
+			ssid := strings.TrimSpace(strings.TrimPrefix(line, "SSID:"))
+			if ssid != "" {
+				currentNetwork["ssid"] = ssid
+			}
+		} else if strings.Contains(line, "signal:") {
+			re := regexp.MustCompile(`signal:\s*(-?\d+\.?\d*)\s*dBm?`)
+			if matches := re.FindStringSubmatch(line); len(matches) > 1 {
+				if n, e := parseFloat(matches[1]); e == nil {
+					if n > 0 {
+						n = -n
+					}
+					if n >= -100 && n <= -30 {
+						currentNetwork["signal"] = int(n)
+					}
+				}
+			}
+		} else if strings.Contains(line, "freq:") {
+			re := regexp.MustCompile(`freq:\s*(\d+)`)
+			if matches := re.FindStringSubmatch(line); len(matches) > 1 {
+				if freq, e := parseInt(matches[1]); e == nil {
+					channel := freqToChannel(freq)
+					if channel > 0 {
+						currentNetwork["channel"] = channel
+					}
+				}
+			}
+		} else if strings.Contains(line, "RSN:") {
+			if strings.Contains(line, "WPA3") || strings.Contains(line, "SAE") {
+				currentNetwork["security"] = "WPA3"
+			} else {
+				currentNetwork["security"] = "WPA2"
+			}
+		} else if strings.Contains(line, "WPA:") {
+			currentNetwork["security"] = "WPA2"
+		}
+	}
+	if len(currentNetwork) > 0 {
+		if ssid, ok := currentNetwork["ssid"].(string); ok && ssid != "" && !seenNetworks[ssid] {
+			networks = append(networks, currentNetwork)
+		}
+	}
+	result["success"] = true
+	result["networks"] = networks
+	result["count"] = len(networks)
+	return result
+}
 
+func parseFloat(s string) (float64, error) {
+	var f float64
+	_, err := fmt.Sscanf(s, "%f", &f)
+	return f, err
+}
+
+func parseInt(s string) (int, error) {
+	var n int
+	_, err := fmt.Sscanf(s, "%d", &n)
+	return n, err
+}
+
+func freqToChannel(freq int) int {
+	if freq >= 2412 && freq <= 2484 {
+		return (freq-2412)/5 + 1
+	}
+	if freq >= 5000 && freq <= 5825 {
+		return (freq - 5000) / 5
+	}
+	if freq >= 5955 && freq <= 7115 {
+		return (freq - 5955) / 5
+	}
+	return 0
+}
+
+// toggleWiFi habilita o deshabilita la interfaz WiFi (rfkill + ip link).
+func toggleWiFi(interfaceName string, enable bool) map[string]interface{} {
+	result := make(map[string]interface{})
+	if interfaceName == "" {
+		interfaceName = DefaultWiFiInterface
+	}
+	if enable {
+		executeCommand("sudo rfkill unblock wifi 2>/dev/null || true")
+		executeCommand(fmt.Sprintf("sudo ip link set %s up 2>/dev/null || true", interfaceName))
+		result["success"] = true
+		result["message"] = "WiFi habilitado"
+		result["enabled"] = true
+	} else {
+		executeCommand("sudo rfkill block wifi 2>/dev/null || true")
+		executeCommand(fmt.Sprintf("sudo ip link set %s down 2>/dev/null || true", interfaceName))
+		result["success"] = true
+		result["message"] = "WiFi deshabilitado"
+		result["enabled"] = false
+	}
+	return result
+}
+
+// connectWiFi conecta a una red WiFi; usa helpers de wifi_helpers (startWpaSupplicant, waitForWpaCliConnection, etc.).
+func connectWiFi(ssid, password, interfaceName, country, user string) map[string]interface{} {
+	result := make(map[string]interface{})
+	result["success"] = false
+	result["error"] = ""
+	if ssid == "" {
+		result["error"] = "SSID requerido"
+		return result
+	}
+	if interfaceName == "" {
+		interfaceName = DefaultWiFiInterface
+	}
+	safeSSID := regexp.MustCompile(`[^a-zA-Z0-9_-]`).ReplaceAllString(ssid, "_")
+	wpaConfigPath := fmt.Sprintf("%s/wpa_supplicant-%s.conf", WpaSupplicantConfigDir, safeSSID)
+
+	// Crear directorio de config si no existe
+	if _, err := os.Stat(WpaSupplicantConfigDir); os.IsNotExist(err) {
+		executeCommand(fmt.Sprintf("sudo mkdir -p %s 2>/dev/null || true", WpaSupplicantConfigDir))
+		executeCommand(fmt.Sprintf("sudo chmod 755 %s 2>/dev/null || true", WpaSupplicantConfigDir))
+		executeCommand(fmt.Sprintf("sudo chown root:netdev %s 2>/dev/null || true", WpaSupplicantConfigDir))
+	}
+
+	var networkBlock string
+	if password != "" {
+		cmd := exec.Command("wpa_passphrase", ssid, password)
+		cmd.Env = append(os.Environ(), "LANG=C")
+		out, err := cmd.Output()
+		if err != nil || !strings.Contains(string(out), "network=") {
+			result["error"] = "Error al generar la clave PSK. Verifica el SSID y la contraseña."
+			return result
+		}
+		networkBlock = strings.TrimSpace(string(out))
+	} else {
+		networkBlock = fmt.Sprintf("network={\n\tssid=\"%s\"\n\tkey_mgmt=NONE\n}", strings.ReplaceAll(ssid, "\\", "\\\\"))
+	}
+
+	runDir := "/var/run/wpa_supplicant"
+	if _, err := os.Stat("/var/run/wpa_supplicant"); os.IsNotExist(err) {
+		runDir = "/run/wpa_supplicant"
+	}
+	executeCommand(fmt.Sprintf("sudo mkdir -p %s 2>/dev/null || true", runDir))
+	executeCommand(fmt.Sprintf("sudo chmod 775 %s 2>/dev/null || true", runDir))
+	executeCommand(fmt.Sprintf("sudo chown root:netdev %s 2>/dev/null || true", runDir))
+	activeRunDir = runDir
+
+	configContent := fmt.Sprintf("ctrl_interface=DIR=%s GROUP=netdev\nupdate_config=1\ncountry=%s\n\n%s", runDir, country, networkBlock)
+	tmpPath := fmt.Sprintf("/tmp/wpa_supplicant_%s_%d.conf", safeSSID, time.Now().Unix())
+	if err := os.WriteFile(tmpPath, []byte(configContent), 0600); err != nil {
+		result["error"] = fmt.Sprintf("Error escribiendo config: %v", err)
+		return result
+	}
+	defer os.Remove(tmpPath)
+	executeCommand(fmt.Sprintf("sudo cp %s %s 2>/dev/null || true", tmpPath, wpaConfigPath))
+	executeCommand(fmt.Sprintf("sudo chmod 600 %s 2>/dev/null || true", wpaConfigPath))
+	executeCommand(fmt.Sprintf("sudo chown root:root %s 2>/dev/null || true", wpaConfigPath))
+
+	stopWpaSupplicant(interfaceName)
+	time.Sleep(1 * time.Second)
+
+	if err := startWpaSupplicant(interfaceName, wpaConfigPath, runDir); err != nil {
+		result["error"] = err.Error()
+		return result
+	}
+	socketDir, err := waitForWpaCliConnection(interfaceName, 10)
+	if err != nil {
+		result["error"] = "wpa_cli no puede comunicarse con wpa_supplicant. Verifica permisos del socket."
+		return result
+	}
+
+	runWpaCli := func(args ...string) (string, error) {
+		base := []string{"wpa_cli", "-i", interfaceName, "-p", socketDir}
+		cmd := exec.Command("sudo", append(base, args...)...)
+		out, err := cmd.CombinedOutput()
+		return strings.TrimSpace(string(out)), err
+	}
+
+	runWpaCli("list_networks")
+	netIDOut, netIDErr := runWpaCli("add_network")
+	if netIDErr != nil || netIDOut == "" {
+		result["error"] = fmt.Sprintf("Error agregando red: %v", netIDErr)
+		return result
+	}
+	netID := strings.TrimSpace(netIDOut)
+	escape := func(s string) string {
+		s = strings.ReplaceAll(s, "\\", "\\\\")
+		return strings.ReplaceAll(s, "\"", "\\\"")
+	}
+	if _, err := runWpaCli("set_network", netID, "ssid", fmt.Sprintf("\"%s\"", escape(ssid))); err != nil {
+		result["error"] = "Error configurando SSID"
+		return result
+	}
+	if password != "" {
+		if _, err := runWpaCli("set_network", netID, "psk", fmt.Sprintf("\"%s\"", escape(password))); err != nil {
+			result["error"] = "Error configurando PSK"
+			return result
+		}
+	} else {
+		runWpaCli("set_network", netID, "key_mgmt", "NONE")
+	}
+	runWpaCli("enable_network", netID)
+	runWpaCli("select_network", netID)
+	runWpaCli("reconnect")
+
+	// Esperar conexión
+	for i := 0; i < 25; i++ {
+		time.Sleep(1 * time.Second)
+		statusOut, _ := runWpaCli("status")
+		if strings.Contains(statusOut, "wpa_state=COMPLETED") {
+			result["success"] = true
+			result["message"] = "Conectado"
+			return result
+		}
+	}
+	result["error"] = "Tiempo de espera agotado. Comprueba la contraseña e inténtalo de nuevo."
+	return result
+}
 
 // autoConnectToLastNetwork intenta conectarse automáticamente a la última red WiFi conectada
 func autoConnectToLastNetwork(interfaceName string) {
