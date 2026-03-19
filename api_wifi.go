@@ -15,11 +15,12 @@ import (
 	"hostberry/internal/database"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/models"
+	"hostberry/internal/wifi"
 )
 
 func wifiNetworksHandler(c *fiber.Ctx) error {
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
-	result := scanWiFiNetworks(interfaceName)
+	result := wifi.ScanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(networks)
 	}
@@ -42,7 +43,7 @@ func wifiToggleHandler(c *fiber.Ctx) error {
 	rfkillOut, _ := rfkillCheck.Output()
 	isBlocked := strings.Contains(strings.ToLower(string(rfkillOut)), "yes")
 
-	result := toggleWiFi(interfaceName, isBlocked)
+	result := wifi.ToggleWiFi(interfaceName, isBlocked)
 
 	if success, ok := result["success"].(bool); ok && success {
 		database.InsertLog("INFO", database.LogMsg("WiFi activado o desactivado correctamente", user.Username), "wifi", &userID)
@@ -923,7 +924,7 @@ func wifiLegacyScanHandler(c *fiber.Ctx) error {
 	}
 
 	interfaceName := c.Query("interface", constants.DefaultWiFiInterface)
-	result := scanWiFiNetworks(interfaceName)
+	result := wifi.ScanWiFiNetworks(interfaceName)
 	if networks, ok := result["networks"]; ok {
 		return c.JSON(fiber.Map{"success": true, "networks": networks})
 	}
