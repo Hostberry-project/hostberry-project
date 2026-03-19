@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os/exec"
 	"time"
 
 	"hostberry/internal/utils"
@@ -18,6 +19,10 @@ func executeCommand(cmd string) (string, error) {
 
 func executeCommandWithTimeout(cmd string, timeout time.Duration) (string, error) {
 	return utils.ExecuteCommandWithTimeout(cmd, timeout)
+}
+
+func execCommand(cmd string) *exec.Cmd {
+	return utils.ExecCommand(cmd)
 }
 
 func filterSudoErrors(output []byte) string {
