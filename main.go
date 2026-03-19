@@ -609,8 +609,6 @@ func wifiInterfacesHandler(c *fiber.Ctx) error {
 func wifiScanHandler(c *fiber.Ctx) error {
 	// Para el setup wizard puede que no exista sesión/token.
 	// Escanear redes no requiere usuario; solo la interfaz a usar.
-	userInterface := c.Locals("user")
-	_ = userInterface
 
 	interfaceName := c.Query("interface", "")
 	if interfaceName == "" {
