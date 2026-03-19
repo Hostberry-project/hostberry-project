@@ -1274,7 +1274,7 @@ func torConfigureHandler(c *fiber.Ctx) error {
 	}
 
 	if errorMsg, ok := result["error"].(string); ok {
-		InsertLog("ERROR", fmt.Sprintf("Error configurando Tor: %s (usuario: %s)", errorMsg, user.Username), "tor", &userID)
+		InsertLog("ERROR", LogMsgErr("configurar Tor", errorMsg, user.Username), "tor", &userID)
 		return c.Status(500).JSON(fiber.Map{"error": errorMsg})
 	}
 
