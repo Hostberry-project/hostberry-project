@@ -49,7 +49,7 @@ func main() {
 		}
 	}
 
-	LogTln("logs.checking_admin")
+	i18n.LogTln("logs.checking_admin")
 	createDefaultAdmin()
 
 	// Iniciar autoconexión WiFi en segundo plano
@@ -71,13 +71,13 @@ func main() {
 				}
 			}
 			if attempt < 2 {
-				LogTf("logs.wifi_interface_wait", attempt+1)
+				i18n.LogTf("logs.wifi_interface_wait", attempt+1)
 				time.Sleep(2 * time.Second)
 			}
 		}
 
 		if interfaceName != "" {
-			LogTf("logs.wifi_auto_start", interfaceName)
+			i18n.LogTf("logs.wifi_auto_start", interfaceName)
 			autoConnectToLastNetwork(interfaceName)
 		} else {
 			LogT("logs.wifi_interface_not_found")
@@ -276,4 +276,313 @@ func setupRoutes(app *fiber.App) {
 			auth.Post("/logout", requireAuth, logoutAPIHandler)
 			auth.Get("/me", requireAuth, meHandler)
 			auth.Post("/change-password", requireAuth, changePasswordAPIHandler)
-			auth.Post("/first-login/change", firstLoginChange
+			auth.Post("/first-login/change", firstLoginChangeAPIHandler)
+			auth.Post("/profile", requireAuth, updateProfileAPIHandler)
+			auth.Post("/preferences", requireAuth, updatePreferencesAPIHandler)
+		}
+
+		system := api.Group("/system", requireAuth)
+		{
+			system.Get("/stats", systemStatsHandler)
+			system.Get("/info", systemInfoHandler)
+			system.Get("/https-info", systemHttpsInfoHandler)
+			system.Get("/logs", systemLogsHandler)
+			system.Get("/activity", systemActivityHandler)
+			system.Get("/network", systemNetworkHandler)
+			system.Get("/updates", systemUpdatesHandler)
+			system.Get("/services", systemServicesHandler)
+			system.Get("/metrics", metricsSummaryHandler)
+			system.Post("/backup", requireAdmin, systemBackupHandler)
+			system.Post("/config", requireAdmin, systemConfigHandler)
+			system.Post("/updates/execute", requireAdmin, systemUpdatesExecuteHandler)
+			system.Post("/updates/project", requireAdmin, systemUpdatesProjectHandler)
+			system.Post("/notifications/test-email", requireAdmin, systemNotificationsTestEmailHandler)
+			system.Post("/restart", requireAdmin, systemRestartHandler)
+			system.Post("/shutdown", requireAdmin, systemShutdownHandler)
+		}
+
+		network := api.Group("/network", requireAuth)
+		{
+			network.Get("/status", networkStatusHandler)
+			network.Get("/interfaces", networkInterfacesHandler)
+			network.Get("/routing", networkRoutingHandler)
+			network.Post("/firewall/toggle", requireAdmin, networkFirewallToggleHandler)
+			network.Post("/speedtest", requireAdmin, networkSpeedtestHandler)
+			network.Get("/config", networkConfigHandler)
+			network.Post("/config", networkConfigHandler)
+		}
+
+		wifi := api.Group("/wifi", requireAuth)
+		{
+			wifi.Get("/status", wifiStatusHandler)
+			wifi.Get("/scan", wifiScanHandler)
+			wifi.Post("/scan", wifiScanHandler)
+			wifi.Get("/interfaces", wifiInterfacesHandler)
+			wifi.Post("/connect", wifiConnectHandler)
+			wifi.Post("/disconnect", wifiLegacyDisconnectHandler)
+			wifi.Get("/networks", wifiNetworksHandler)
+			wifi.Get("/clients", wifiClientsHandler)
+			wifi.Post("/toggle", requireAdmin, wifiToggleHandler)
+			wifi.Post("/unblock", requireAdmin, wifiUnblockHandler)
+			wifi.Post("/software-switch", requireAdmin, wifiSoftwareSwitchHandler)
+			wifi.Post("/config", requireAdmin, wifiConfigHandler)
+		}
+
+		vpn := api.Group("/vpn", requireAuth)
+		{
+			vpn.Get("/status", vpnStatusHandler)
+			vpn.Get("/config", vpnGetConfigHandler)
+			vpn.Post("/connect", vpnConnectHandler)
+			vpn.Get("/connections", vpnConnectionsHandler)
+			vpn.Get("/servers", vpnServersHandler)
+			vpn.Get("/clients", vpnClientsHandler)
+			vpn.Post("/toggle", requireAdmin, vpnToggleHandler)
+			vpn.Post("/config", requireAdmin, vpnConfigHandler)
+			vpn.Post("/connections/:name/toggle", requireAdmin, vpnConnectionToggleHandler)
+			vpn.Post("/certificates/generate", requireAdmin, vpnCertificatesGenerateHandler)
+		}
+
+		hostapd := api.Group("/hostapd", requireAuth)
+		{
+			hostapd.Get("/access-points", hostapdAccessPointsHandler)
+			hostapd.Get("/clients", hostapdClientsHandler)
+			hostapd.Get("/config", hostapdGetConfigHandler)
+			hostapd.Get("/diagnostics", hostapdDiagnosticsHandler)
+			hostapd.Post("/create-ap0", requireAdmin, hostapdCreateAp0Handler)
+			hostapd.Post("/toggle", requireAdmin, hostapdToggleHandler)
+			hostapd.Post("/restart", requireAdmin, hostapdRestartHandler)
+			hostapd.Post("/config", requireAdmin, hostapdConfigHandler)
+		}
+
+		help := api.Group("/help", requireAuth)
+		{
+			help.Post("/contact", helpContactHandler)
+		}
+
+		api.Get("/translations/:lang", translationsHandler)
+
+		wireguard := api.Group("/wireguard", requireAuth)
+		{
+			wireguard.Get("/status", wireguardStatusHandler)
+			wireguard.Get("/interfaces", wireguardInterfacesHandler)
+			wireguard.Get("/peers", wireguardPeersHandler)
+			wireguard.Get("/config", wireguardGetConfigHandler)
+			wireguard.Post("/config", requireAdmin, wireguardConfigHandler)
+			wireguard.Post("/toggle", requireAdmin, wireguardToggleHandler)
+			wireguard.Post("/restart", requireAdmin, wireguardRestartHandler)
+		}
+
+		adblock := api.Group("/adblock", requireAuth)
+		{
+			adblock.Get("/status", adblockStatusHandler)
+			adblock.Get("/lists", adblockListsHandler)
+			adblock.Get("/domains", adblockDomainsHandler)
+			adblock.Post("/enable", requireAdmin, adblockEnableHandler)
+			adblock.Post("/disable", requireAdmin, adblockDisableHandler)
+			adblock.Post("/update", requireAdmin, adblockUpdateHandler)
+			adblock.Post("/lists/:name/toggle", requireAdmin, adblockToggleListHandler)
+			adblock.Post("/domains/:name/toggle", requireAdmin, adblockToggleDomainHandler)
+			adblock.Post("/config", requireAdmin, adblockConfigHandler)
+
+			// DNSCrypt (sub-sección de AdBlock)
+			dnscrypt := adblock.Group("/dnscrypt")
+			{
+				dnscrypt.Get("/status", dnscryptStatusHandler)
+				dnscrypt.Post("/install", requireAdmin, dnscryptInstallHandler)
+				dnscrypt.Post("/configure", requireAdmin, dnscryptConfigureHandler)
+				dnscrypt.Post("/enable", requireAdmin, dnscryptEnableHandler)
+				dnscrypt.Post("/disable", requireAdmin, dnscryptDisableHandler)
+			}
+
+			// Blocky (proxy DNS y ad-blocker, configuración desde la web)
+			adblock.Get("/blocky/status", blockyStatusHandler)
+			adblock.Get("/blocky/config", blockyConfigHandler)
+			adblock.Post("/blocky/install", requireAdmin, blockyInstallHandler)
+			adblock.Post("/blocky/configure", requireAdmin, blockyConfigureHandler)
+			adblock.Post("/blocky/enable", requireAdmin, blockyEnableHandler)
+			adblock.Post("/blocky/disable", requireAdmin, blockyDisableHandler)
+			adblock.Get("/blocky/api/*", blockyAPIProxyHandler)
+			adblock.Post("/blocky/api/*", blockyAPIProxyHandler)
+		}
+
+		tor := api.Group("/tor", requireAuth)
+		{
+			tor.Get("/status", torStatusHandler)
+			tor.Post("/install", requireAdmin, torInstallHandler)
+			tor.Post("/configure", requireAdmin, torConfigureHandler)
+			tor.Post("/enable", requireAdmin, torEnableHandler)
+			tor.Post("/disable", requireAdmin, torDisableHandler)
+			tor.Get("/circuit", torCircuitHandler)
+			tor.Post("/iptables-enable", requireAdmin, torIptablesEnableHandler)
+			tor.Post("/iptables-disable", requireAdmin, torIptablesDisableHandler)
+		}
+	}
+
+	wifiLegacy := app.Group("/api/wifi", requireAuth)
+	wifiLegacy.Get("/status", wifiLegacyStatusHandler)
+	wifiLegacy.Get("/stored_networks", wifiLegacyStoredNetworksHandler)
+	wifiLegacy.Get("/autoconnect", wifiLegacyAutoconnectHandler)
+	wifiLegacy.Get("/scan", wifiLegacyScanHandler)
+	wifiLegacy.Post("/disconnect", wifiLegacyDisconnectHandler)
+}
+
+func indexHandler(c *fiber.Ctx) error {
+	token := c.Cookies("access_token")
+
+	if token != "" {
+		claims, err := ValidateToken(token)
+		if err == nil {
+			var user models.User
+			if err := db.First(&user, claims.UserID).Error; err == nil && user.IsActive {
+				return c.Redirect("/dashboard")
+			}
+		}
+	}
+
+	return c.Redirect("/login")
+}
+
+func dashboardHandler(c *fiber.Ctx) error {
+	return renderTemplate(c, "dashboard", fiber.Map{
+		"Title": T(c, "dashboard.title", "Dashboard"),
+	})
+}
+
+func loginHandler(c *fiber.Ctx) error {
+	return renderTemplate(c, "login", fiber.Map{
+		"Title":                        T(c, "auth.login", "Login"),
+		"ShowDefaultCredentialsNotice": IsDefaultAdminCredentialsInUse(),
+	})
+}
+
+func settingsHandler(c *fiber.Ctx) error {
+	configs, _ := GetAllConfigs()
+
+	if _, exists := configs["max_login_attempts"]; !exists || configs["max_login_attempts"] == "" {
+		configs["max_login_attempts"] = "3"
+	}
+	if _, exists := configs["session_timeout"]; !exists || configs["session_timeout"] == "" {
+		configs["session_timeout"] = "60"
+	}
+	if _, exists := configs["cache_enabled"]; !exists || configs["cache_enabled"] == "" {
+		configs["cache_enabled"] = "true"
+	}
+	if _, exists := configs["cache_size"]; !exists || configs["cache_size"] == "" {
+		configs["cache_size"] = "75"
+	}
+
+	configsJSON, _ := json.Marshal(configs)
+
+	return renderTemplate(c, "settings", fiber.Map{
+		"Title":         T(c, "navigation.settings", "Settings"),
+		"settings":      configs,
+		"settings_json": string(configsJSON),
+	})
+}
+
+func systemStatsHandler(c *fiber.Ctx) error {
+	stats := getSystemStats()
+	return c.JSON(stats)
+}
+
+func systemRestartHandler(c *fiber.Ctx) error {
+	user, ok := GetUser(c)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "No autorizado"})
+	}
+	userID := user.ID
+
+	result := systemRestart(user.Username)
+	if success, ok := result["success"].(bool); ok && success {
+		InsertLog("INFO", LogMsg("Sistema reiniciado correctamente", user.Username), "system", &userID)
+		return c.JSON(result)
+	}
+
+	if errMsg, ok := result["error"].(string); ok {
+		InsertLog("ERROR", LogMsgErr("reiniciar sistema", errMsg, user.Username), "system", &userID)
+		return c.Status(500).JSON(fiber.Map{"error": errMsg})
+	}
+
+	return c.JSON(result)
+}
+
+func detectWiFiInterface() string {
+	cmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}' | grep -E '^wlan|^wl' | head -1")
+	out, err := cmd.Output()
+	if err == nil {
+		iface := strings.TrimSpace(string(out))
+		if iface != "" {
+			return iface
+		}
+	}
+
+	return constants.DefaultWiFiInterface
+}
+
+func wifiInterfacesHandler(c *fiber.Ctx) error {
+	var interfaces []fiber.Map
+
+	cmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}' | grep -E '^wlan|^wl'")
+	out, err := cmd.Output()
+	if err == nil {
+		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+		for _, ifaceName := range lines {
+			ifaceName = strings.TrimSpace(ifaceName)
+			if ifaceName != "" {
+				stateCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /sys/class/net/%s/operstate 2>/dev/null", ifaceName))
+				stateOut, _ := stateCmd.Output()
+				state := strings.TrimSpace(string(stateOut))
+				if state == "" {
+					state = "unknown"
+				}
+
+				interfaces = append(interfaces, fiber.Map{
+					"name":  ifaceName,
+					"type":  "wifi",
+					"state": state,
+				})
+			}
+		}
+	}
+
+	if len(interfaces) == 0 {
+		interfaces = append(interfaces, fiber.Map{
+			"name":  constants.DefaultWiFiInterface,
+			"type":  "wifi",
+			"state": "unknown",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success":    true,
+		"interfaces": interfaces,
+	})
+}
+
+func wifiScanHandler(c *fiber.Ctx) error {
+	// Para el setup wizard puede que no exista sesión/token.
+	// Escanear redes no requiere usuario; solo la interfaz a usar.
+
+	interfaceName := c.Query("interface", "")
+	if interfaceName == "" {
+		var req struct {
+			Interface string `json:"interface"`
+		}
+		if err := c.BodyParser(&req); err == nil {
+			interfaceName = req.Interface
+		}
+	}
+
+	if interfaceName == "" {
+		interfaceName = detectWiFiInterface()
+	}
+	if interfaceName == "" {
+		interfaceName = constants.DefaultWiFiInterface
+	}
+
+	result := scanWiFiNetworks(interfaceName)
+	if networks, ok := result["networks"]; ok {
+		return c.JSON(networks)
+	}
+	return c.JSON([]fiber.Map{})
+}
