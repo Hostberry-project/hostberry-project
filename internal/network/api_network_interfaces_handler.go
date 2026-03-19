@@ -41,6 +41,10 @@ func NetworkInterfacesHandler(c *fiber.Ctx) error {
 		if ifaceName == "" || ifaceName == "lo" {
 			continue // Saltar loopback
 		}
+		if validators.ValidateIfaceName(ifaceName) != nil {
+			i18n.LogTf("logs.handlers_interface_skip", ifaceName)
+			continue
+		}
 
 		ifaceCheckCmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", ifaceName))
 		if ifaceCheckErr := ifaceCheckCmd.Run(); ifaceCheckErr != nil {
