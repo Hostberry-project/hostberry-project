@@ -599,7 +599,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			gatewayApplied := false
 
 			if !gatewayApplied {
-			connCmd := exec.Command("/bin/sh", "-c", "nmcli -t -f NAME connection show --active 2>/dev/null | head -1")
+				connCmd := exec.Command("/bin/sh", "-c", "nmcli -t -f NAME connection show --active 2>/dev/null | head -1")
 				if connOut, err := connCmd.Output(); err == nil {
 					connName := strings.TrimSpace(string(connOut))
 					if connName != "" {
