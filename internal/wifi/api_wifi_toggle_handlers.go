@@ -47,7 +47,7 @@ func WifiToggleHandler(c *fiber.Ctx) error {
 	rfkillOut, rfkillErr := execCommand("rfkill list wifi 2>/dev/null | grep -i 'wifi' | head -1").CombinedOutput()
 	if rfkillErr == nil && strings.Contains(strings.ToLower(string(rfkillOut)), "wifi") {
 		statusOut, _ := execCommand("rfkill list wifi 2>/dev/null | grep -i 'soft blocked'").CombinedOutput()
-		isBlocked := strings.Contains(strings.ToLower(string(statusOut)), "yes")
+		isBlocked = strings.Contains(strings.ToLower(string(statusOut)), "yes")
 
 		var rfkillCmd string
 		var wasEnabled bool
