@@ -294,21 +294,14 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 					cmd := fmt.Sprintf("sudo hostnamectl set-hostname %s", req.Hostname)
 					if out, err := executeCommand(cmd); err == nil {
 						time.Sleep(500 * time.Millisecond)
-						verifyCmd := exec.Command("/bin/sh", "-c", "hostnamectl --static 2>/dev/null || hostname 2>/dev/null || echo ''")
-						if verifyOut, err := verifyCmd.Output(); err == nil {
-							currentHostname := strings.TrimSpace(string(verifyOut))
-							if currentHostname == req.Hostname {
-								hostnameApplied = true
-								i18n.LogTf("logs.api_hostname_set", req.Hostname)
-								_ = out
-							} else {
-								i18n.LogTf("logs.api_hostname_verify_failed", req.Hostname, currentHostname)
-								lastError = fmt.Errorf("verification failed: got %s", currentHostname)
-								lastOutput = out
-							}
+						currentHostname := getHostnameStatic()
+						if currentHostname == req.Hostname {
+							hostnameApplied = true
+							i18n.LogTf("logs.api_hostname_set", req.Hostname)
+							_ = out
 						} else {
-							i18n.LogTf("logs.api_hostname_verify_error", err)
-							lastError = err
+							i18n.LogTf("logs.api_hostname_verify_failed", req.Hostname, currentHostname)
+							lastError = fmt.Errorf("verification failed: got %s", currentHostname)
 							lastOutput = out
 						}
 					} else {
@@ -323,7 +316,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 					tmpHostname := "/tmp/hostname_hostberry_" + fmt.Sprintf("%d", time.Now().Unix())
 					if wErr := os.WriteFile(tmpHostname, []byte(req.Hostname+"\n"), 0644); wErr == nil {
 						defer os.Remove(tmpHostname)
-						cpCmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo cp -f %s %s", tmpHostname, hostnameFile))
+						cpCmd := exec.Command("sudo", "cp", "-f", tmpHostname, hostnameFile)
 						cpOut, cpErr := cpCmd.CombinedOutput()
 						out := strings.TrimSpace(string(cpOut))
 						if cpErr == nil {
@@ -482,42 +475,54 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 
 							if !copySuccess {
 								log.Printf("Trying alternative method: cat with tee")
-								catCmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo cat %s | sudo tee %s > /dev/null", tmpFile, hostsFile))
-								catCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
-								if catOut, catErr := catCmd.CombinedOutput(); catErr != nil {
-									log.Printf("Error with cat/tee: %v, output: %s", catErr, string(catOut))
-								} else {
-									log.Printf("cat/tee command executed, output: %s", string(catOut))
-									time.Sleep(100 * time.Millisecond)
-									if content, err := os.ReadFile(hostsFile); err == nil {
-										if strings.Contains(string(content), req.Hostname) {
-											log.Printf("Successfully copied with cat/tee - hostname found in /etc/hosts")
-											copySuccess = true
-										} else {
-											log.Printf("cat/tee executed but hostname not found in /etc/hosts")
-											log.Printf("Verification failed after cat/tee: hostname not found in /etc/hosts")
+								if tmpContent, err := os.ReadFile(tmpFile); err == nil {
+									catCmd := exec.Command("sudo", "tee", hostsFile)
+									catCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+									catCmd.Stdin = strings.NewReader(string(tmpContent))
+									catCmd.Stdout = io.Discard
+									catCmd.Stderr = io.Discard
+									if catErr := catCmd.Run(); catErr != nil {
+										log.Printf("Error with cat/tee: %v", catErr)
+									} else {
+										log.Printf("cat/tee command executed")
+										time.Sleep(100 * time.Millisecond)
+										if content, err := os.ReadFile(hostsFile); err == nil {
+											if strings.Contains(string(content), req.Hostname) {
+												log.Printf("Successfully copied with cat/tee - hostname found in /etc/hosts")
+												copySuccess = true
+											} else {
+												log.Printf("cat/tee executed but hostname not found in /etc/hosts")
+												log.Printf("Verification failed after cat/tee: hostname not found in /etc/hosts")
+											}
 										}
 									}
+								} else {
+									log.Printf("Error reading temp hosts file for tee: %v", err)
 								}
 							}
 
 							if !copySuccess {
-								log.Printf("Trying sh -c method with direct redirection")
-								writeCmd := exec.Command("sudo", "/bin/sh", "-c", fmt.Sprintf("cat %s > %s", tmpFile, hostsFile))
-								writeCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
-								if writeOut, writeErr := writeCmd.CombinedOutput(); writeErr != nil {
-									log.Printf("Error with sh -c: %v, output: %s", writeErr, string(writeOut))
-								} else {
-									log.Printf("sh -c command executed, output: %s", string(writeOut))
-									time.Sleep(100 * time.Millisecond)
-									if content, err := os.ReadFile(hostsFile); err == nil {
-										if strings.Contains(string(content), req.Hostname) {
-											log.Printf("Successfully copied with sh -c - hostname found in /etc/hosts")
-											copySuccess = true
-										} else {
-											log.Printf("sh -c executed but hostname not found in /etc/hosts")
-											log.Printf("Verification failed after sh -c: hostname not found in /etc/hosts")
+								// Reintento con tee (ya no usamos shell con redirecciones).
+								log.Printf("Reintentando copia con tee sin shell")
+								if tmpContent, err := os.ReadFile(tmpFile); err == nil {
+									writeCmd := exec.Command("sudo", "tee", hostsFile)
+									writeCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+									writeCmd.Stdin = strings.NewReader(string(tmpContent))
+									writeCmd.Stdout = io.Discard
+									writeCmd.Stderr = io.Discard
+									if err := writeCmd.Run(); err == nil {
+										time.Sleep(100 * time.Millisecond)
+										if content, err := os.ReadFile(hostsFile); err == nil {
+											if strings.Contains(string(content), req.Hostname) {
+												log.Printf("Successfully copied with tee - hostname found in /etc/hosts")
+												copySuccess = true
+											} else {
+												log.Printf("tee executed but hostname not found in /etc/hosts")
+												log.Printf("Verification failed after tee: hostname not found in /etc/hosts")
+											}
 										}
+									} else {
+										log.Printf("Error with tee reintento: %v", err)
 									}
 								}
 							}
