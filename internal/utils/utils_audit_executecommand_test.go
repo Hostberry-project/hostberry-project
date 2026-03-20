@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 )
 
@@ -77,9 +76,6 @@ func TestAudit_ExecuteCommandStringLiterals_AreAllowlisted(t *testing.T) {
 				if xIdent, ok := fn.X.(*ast.Ident); ok && xIdent.Name == "utils" && fn.Sel != nil && fn.Sel.Name == "ExecuteCommand" {
 					isRelevant = true
 				}
-			case *ast.SelectorExpr:
-				// (queda cubierto arriba)
-				_ = fn
 			case *ast.Ident:
 				if inUtilsPackage && fn.Name == "ExecuteCommand" {
 					isRelevant = true
