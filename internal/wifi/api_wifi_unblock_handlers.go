@@ -22,8 +22,7 @@ func WifiUnblockHandler(c *fiber.Ctx) error {
 	method := ""
 	var lastError error
 
-	rfkillCheck := exec.Command("sh", "-c", "command -v rfkill 2>/dev/null")
-	if rfkillCheck.Run() == nil {
+	if _, err := exec.LookPath("rfkill"); err == nil {
 		rfkillOut, rfkillErr := execCommand("rfkill list wifi 2>/dev/null | grep -i 'wifi' | head -1").CombinedOutput()
 		if rfkillErr == nil && strings.Contains(strings.ToLower(string(rfkillOut)), "wifi") {
 			rfkillCmd := "rfkill unblock wifi"
@@ -38,8 +37,7 @@ func WifiUnblockHandler(c *fiber.Ctx) error {
 	}
 
 	if !success {
-		nmcliCheck := exec.Command("sh", "-c", "command -v nmcli 2>/dev/null")
-		if nmcliCheck.Run() == nil {
+		if _, err := exec.LookPath("nmcli"); err == nil {
 			nmcliCmd := "nmcli radio wifi on"
 			nmcliOut, nmcliErr := execCommand(nmcliCmd + " 2>&1").CombinedOutput()
 			if nmcliErr == nil {
@@ -54,8 +52,7 @@ func WifiUnblockHandler(c *fiber.Ctx) error {
 	}
 
 	if success && method == "rfkill (con sudo)" {
-		nmcliCheck := exec.Command("sh", "-c", "command -v nmcli 2>/dev/null")
-		if nmcliCheck.Run() == nil {
+		if _, err := exec.LookPath("nmcli"); err == nil {
 			execCommand("nmcli radio wifi on 2>/dev/null").Run()
 		}
 	}
@@ -73,10 +70,10 @@ func WifiUnblockHandler(c *fiber.Ctx) error {
 	}
 
 	availableCmds := []string{}
-	if exec.Command("sh", "-c", "command -v rfkill 2>/dev/null").Run() == nil {
+	if _, err := exec.LookPath("rfkill"); err == nil {
 		availableCmds = append(availableCmds, "rfkill")
 	}
-	if exec.Command("sh", "-c", "command -v nmcli 2>/dev/null").Run() == nil {
+	if _, err := exec.LookPath("nmcli"); err == nil {
 		availableCmds = append(availableCmds, "nmcli")
 	}
 
