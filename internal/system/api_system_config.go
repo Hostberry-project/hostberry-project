@@ -402,85 +402,64 @@ func SystemConfigHandler(c *fiber.Ctx) error {
 		errors = append(errors, err.Error())
 	}
 
-	if len(errors) == 0 {
-		for key, valueStr := range normalized {
-			if err := database.SetConfig(key, valueStr); err != nil {
-				i18n.LogTf("logs.config_save_error", key, err)
-				errors = append(errors, fmt.Sprintf("Error guardando %s", key))
-				continue
-			}
-
-			if key == "timezone" && valueStr != "" {
-				tz := strings.TrimSpace(valueStr)
-				cmd := exec.Command("sudo", "/usr/local/sbin/hostberry-safe/set-timezone", tz)
-				output, err := cmd.CombinedOutput()
-				if err != nil {
-					combined := strings.TrimSpace(string(output))
-					i18n.LogTf("logs.config_timezone_error", err, combined)
-
-					baseMsg := "No se pudo aplicar la zona horaria al sistema"
-					if combined != "" {
-						if strings.Contains(strings.ToLower(combined), "sudo") &&
-							(strings.Contains(strings.ToLower(combined), "password") || strings.Contains(strings.ToLower(combined), "required")) {
-							errors = append(errors, "Permisos insuficientes (sudo requerido)")
-						} else {
-							errors = append(errors, fmt.Sprintf("%s: %s", baseMsg, combined[:min(len(combined), 200)]))
-						}
-					} else {
-						errors = append(errors, fmt.Sprintf("%s (rc=%v)", baseMsg, err))
-					}
-				} else {
-					i18n.LogTf("logs.config_timezone_success", tz)
-				}
-			}
-
-			if key == "session_timeout" {
-				if timeout, err := strconv.Atoi(valueStr); err == nil && timeout > 0 {
-					config.AppConfig.Security.TokenExpiry = timeout
-					i18n.LogTf("logs.config_session_timeout", timeout)
-				}
-			}
-
-			if key == "max_login_attempts" {
-				i18n.LogTf("logs.config_max_login", valueStr)
-			}
-
-			if key == "cache_enabled" {
-				i18n.LogTf("logs.config_cache_enabled", valueStr)
-			}
-
-			if key == "compression_enabled" {
-				i18n.LogTf("logs.config_compression", valueStr)
-			}
-
-			updatedKeys = append(updatedKeys, key)
-		}
-	} else {
-		for key := range normalized {
-			_ = key
-		}
+	if len(errors) > 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Configuración inválida",
+			"errors":  errors,
+		})
 	}
 
-	for _, key := range updatedKeys {
-		if _, ok := normalized[key]; !ok {
+	for key, valueStr := range normalized {
+		if err := database.SetConfig(key, valueStr); err != nil {
+			i18n.LogTf("logs.config_save_error", key, err)
+			errors = append(errors, fmt.Sprintf("Error guardando %s", key))
 			continue
 		}
-	}
 
-	if len(errors) == 0 {
-		for _, key := range updatedKeys {
-			_ = key
-		}
-	}
+		if key == "timezone" && valueStr != "" {
+			tz := strings.TrimSpace(valueStr)
+			cmd := exec.Command("sudo", "/usr/local/sbin/hostberry-safe/set-timezone", tz)
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				combined := strings.TrimSpace(string(output))
+				i18n.LogTf("logs.config_timezone_error", err, combined)
 
-	for key := range normalized {
-		if len(errors) != 0 {
-			break
+				baseMsg := "No se pudo aplicar la zona horaria al sistema"
+				if combined != "" {
+					if strings.Contains(strings.ToLower(combined), "sudo") &&
+						(strings.Contains(strings.ToLower(combined), "password") || strings.Contains(strings.ToLower(combined), "required")) {
+						errors = append(errors, "Permisos insuficientes (sudo requerido)")
+					} else {
+						errors = append(errors, fmt.Sprintf("%s: %s", baseMsg, combined[:min(len(combined), 200)]))
+					}
+				} else {
+					errors = append(errors, fmt.Sprintf("%s (rc=%v)", baseMsg, err))
+				}
+			} else {
+				i18n.LogTf("logs.config_timezone_success", tz)
+			}
 		}
-		if _, err := database.GetConfig(key); err != nil && err != nil {
-			i18n.LogTf("logs.config_save_error", key, err)
-			break
+
+		if key == "session_timeout" {
+			if timeout, err := strconv.Atoi(valueStr); err == nil && timeout > 0 {
+				config.AppConfig.Security.TokenExpiry = timeout
+				i18n.LogTf("logs.config_session_timeout", timeout)
+			}
 		}
+
+		if key == "max_login_attempts" {
+			i18n.LogTf("logs.config_max_login", valueStr)
+		}
+
+		if key == "cache_enabled" {
+			i18n.LogTf("logs.config_cache_enabled", valueStr)
+		}
+
+		if key == "compression_enabled" {
+			i18n.LogTf("logs.config_compression", valueStr)
+		}
+
+		updatedKeys = append(updatedKeys, key)
 	}
 
 	response := fiber.Map{
