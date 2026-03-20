@@ -370,8 +370,7 @@ func enableDNSCrypt(user string) map[string]interface{} {
 	i18n.LogTf("logs.dnscrypt_enabling", user)
 
 	// Verificar si está instalado
-	checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null")
-	if checkCmd.Run() != nil {
+	if _, err := exec.LookPath("dnscrypt-proxy"); err != nil {
 		result["success"] = false
 		result["error"] = "DNSCrypt no está instalado. Instálalo primero."
 		return result
@@ -588,14 +587,12 @@ func getBlockyStatus() map[string]interface{} {
 		return result
 	}
 
-	statusCmd := exec.Command("sh", "-c", "systemctl is-active blocky 2>/dev/null || echo inactive")
-	statusOut, _ := statusCmd.Output()
+	statusOut, _ := exec.Command("systemctl", "is-active", "blocky").Output()
 	status := strings.TrimSpace(string(statusOut))
 	result["active"] = status == "active"
 	result["status"] = status
 
-	enabledCmd := exec.Command("sh", "-c", "systemctl is-enabled blocky 2>/dev/null || echo disabled")
-	enabledOut, _ := enabledCmd.Output()
+	enabledOut, _ := exec.Command("systemctl", "is-enabled", "blocky").Output()
 	result["enabled"] = strings.TrimSpace(string(enabledOut)) == "enabled"
 
 	if _, err := os.Stat(blockyConfigPath); err == nil {
