@@ -113,7 +113,7 @@ func stopWpaSupplicant(interfaceName string) {
 	utils.ExecuteCommand("sudo killall wpa_supplicant 2>/dev/null || true")
 
 	for i := 0; i < 5; i++ {
-		checkCmd := exec.Command("sh", "-c", fmt.Sprintf("pgrep -f 'wpa_supplicant.*%s'", interfaceName))
+		checkCmd := exec.Command("pgrep", "-f", fmt.Sprintf("wpa_supplicant.*%s", interfaceName))
 		if out, _ := checkCmd.Output(); strings.TrimSpace(string(out)) == "" {
 			break
 		}
@@ -161,7 +161,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 	}
 
 	if wpaSupplicantPath == "" {
-		whichCmd := exec.Command("sh", "-c", "which wpa_supplicant 2>/dev/null")
+		whichCmd := exec.Command("which", "wpa_supplicant")
 		if whichOut, err := whichCmd.Output(); err == nil {
 			wpaSupplicantPath = strings.TrimSpace(string(whichOut))
 		}
@@ -240,7 +240,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 		pidFound := false
 		var pid string
 
-		pidCmd := exec.Command("sh", "-c", fmt.Sprintf("pgrep -f 'wpa_supplicant.*%s'", interfaceName))
+		pidCmd := exec.Command("pgrep", "-f", fmt.Sprintf("wpa_supplicant.*%s", interfaceName))
 		if pidOut, err := pidCmd.Output(); err == nil {
 			pid = strings.TrimSpace(string(pidOut))
 			if pid != "" {
@@ -249,7 +249,7 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 		}
 
 		if !pidFound {
-			pidCmd2 := exec.Command("sh", "-c", fmt.Sprintf("pgrep -f '%s.*%s'", wpaSupplicantPath, interfaceName))
+			pidCmd2 := exec.Command("pgrep", "-f", fmt.Sprintf("%s.*%s", wpaSupplicantPath, interfaceName))
 			if pidOut2, err2 := pidCmd2.Output(); err2 == nil {
 				pid = strings.TrimSpace(string(pidOut2))
 				if pid != "" {
@@ -259,8 +259,8 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 		}
 
 		if !pidFound {
-			psCmd := exec.Command("sh", "-c", fmt.Sprintf("ps aux | grep '[w]pa_supplicant.*%s' | awk '{print $2}' | head -1", interfaceName))
-			if psOut, err := psCmd.Output(); err == nil {
+			pidCmd3 := exec.Command("pgrep", "-f", fmt.Sprintf("wpa_supplicant.*%s", interfaceName))
+			if psOut, err := pidCmd3.Output(); err == nil {
 				pid = strings.TrimSpace(string(psOut))
 				if pid != "" {
 					pidFound = true
@@ -280,9 +280,24 @@ func startWpaSupplicant(interfaceName, configPath, runDir string) error {
 
 	if lastErr != nil {
 		i18n.LogT("logs.wpa_not_running")
-		dmesgCmd := exec.Command("sh", "-c", "dmesg | tail -20 | grep -i wpa 2>/dev/null || echo 'No hay mensajes de wpa en dmesg'")
-		if dmesgOut, err := dmesgCmd.Output(); err == nil {
-			i18n.LogTf("logs.wpa_dmesg", string(dmesgOut))
+		if dmesgOut, err := exec.Command("dmesg").Output(); err == nil {
+			// Filtrar en Go para evitar pipelines/shell residual.
+			lines := strings.Split(string(dmesgOut), "\n")
+			matches := make([]string, 0, 20)
+			for _, line := range lines {
+				if strings.Contains(strings.ToLower(line), "wpa") {
+					matches = append(matches, line)
+				}
+			}
+			if len(matches) == 0 {
+				i18n.LogT("logs.wpa_dmesg")
+			} else {
+				start := 0
+				if len(matches) > 20 {
+					start = len(matches) - 20
+				}
+				i18n.LogTf("logs.wpa_dmesg", strings.Join(matches[start:], "\n"))
+			}
 		}
 		if lastOut != "" {
 			return fmt.Errorf("%v. Salida: %s", lastErr, strings.TrimSpace(lastOut))
