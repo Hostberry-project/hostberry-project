@@ -470,4 +470,3 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 		"connection_info":    connectionInfo,
 	})
 }
-
