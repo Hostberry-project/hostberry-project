@@ -1590,4 +1590,3 @@ wpa_cli -i %s reconfigure 2>/dev/null || true
 		"message": "Configuration saved and services restarted",
 	})
 }
-
