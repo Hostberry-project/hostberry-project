@@ -16,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
 	"hostberry/internal/config"
+	"hostberry/internal/constants"
 	"hostberry/internal/i18n"
 )
 
@@ -57,6 +58,11 @@ func registerTemplateFuncs(engine *html.Engine) {
 			seq = append(seq, i)
 		}
 		return seq
+	})
+
+	// Interfaz WiFi por defecto (p. ej. monitoring.html).
+	engine.AddFunc("DefaultWiFiInterface", func() string {
+		return constants.DefaultWiFiInterface
 	})
 }
 
