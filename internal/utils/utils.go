@@ -363,12 +363,12 @@ func canUseSudo() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	sudoCheck := exec.CommandContext(ctx, "sh", "-c", "command -v sudo 2>/dev/null")
-	if sudoCheck.Run() != nil {
+	if _, err := exec.LookPath("sudo"); err != nil {
 		return false
 	}
 
-	testCmd := exec.CommandContext(ctx, "sh", "-c", "sudo -n true 2>&1")
+	// `sudo -n true` no requiere shell; así mantenemos semántica sin `sh -c`.
+	testCmd := exec.CommandContext(ctx, "sudo", "-n", "true")
 	output, err := testCmd.CombinedOutput()
 	outputStr := strings.ToLower(string(output))
 
@@ -395,14 +395,14 @@ func execCommand(cmd string) *exec.Cmd {
 	cmd = strings.TrimPrefix(cmd, "sudo ")
 
 	if os.Geteuid() == 0 {
-		return exec.Command("sh", "-c", cmd)
+		return exec.Command("/bin/sh", "-c", cmd)
 	}
 
 	if canUseSudo() {
 		cmd = "sudo " + cmd
 	}
 
-	return exec.Command("sh", "-c", cmd)
+	return exec.Command("/bin/sh", "-c", cmd)
 }
 
 // ExecCommand es un wrapper exportado para que el paquete main pueda usar
