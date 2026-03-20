@@ -153,7 +153,12 @@
       if (resp && resp.ok) {
         const data = await resp.json();
         const ta = document.getElementById('openvpn_config');
-        if (ta && data && typeof data.config === 'string') ta.value = data.config;
+        if (ta && data && data.redacted) {
+          ta.value = '';
+          ta.placeholder = data.exists
+            ? 'La configuracion existente esta oculta por seguridad. Pega o sube una nueva para reemplazarla.'
+            : 'No hay configuracion guardada. Pega o sube una nueva.';
+        }
       }
     } catch (e) {
       console.error('Error loading OpenVPN config:', e);

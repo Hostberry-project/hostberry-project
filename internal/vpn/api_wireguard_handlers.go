@@ -1,7 +1,6 @@
 package vpn
 
 import (
-	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -115,11 +114,14 @@ func WireguardPeersHandler(c *fiber.Ctx) error {
 }
 
 func WireguardGetConfigHandler(c *fiber.Ctx) error {
-	out, err := os.ReadFile("/etc/wireguard/wg0.conf")
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	result := GetWireGuardConfigMetadata()
+	if success, ok := result["success"].(bool); ok && !success {
+		if errorMsg, ok := result["error"].(string); ok && errorMsg != "" {
+			return c.Status(500).JSON(fiber.Map{"error": errorMsg})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": "Error obteniendo metadatos de configuración"})
 	}
-	return c.JSON(fiber.Map{"config": string(out)})
+	return c.JSON(result)
 }
 
 func WireguardToggleHandler(c *fiber.Ctx) error {
