@@ -669,6 +669,13 @@ install_files() {
     cp -f "${SCRIPT_DIR}"/*.go "${INSTALL_DIR}/" 2>/dev/null || true
     cp -f "${SCRIPT_DIR}/go.mod" "${INSTALL_DIR}/" 2>/dev/null || true
     cp -f "${SCRIPT_DIR}/go.sum" "${INSTALL_DIR}/" 2>/dev/null || true
+
+    # Copiar el árbol interno del módulo (incluye internal/handlers, etc.).
+    # Sin esto, `go build` falla al resolver imports `hostberry/internal/...`.
+    if [ -d "${SCRIPT_DIR}/internal" ]; then
+        rm -rf "${INSTALL_DIR}/internal" 2>/dev/null || true
+        cp -r "${SCRIPT_DIR}/internal" "${INSTALL_DIR}/internal" 2>/dev/null || true
+    fi
     
     # Directorios (lua ya no se usa - todo está en Go)
     if [ -d "${SCRIPT_DIR}/locales" ]; then
@@ -935,6 +942,10 @@ build_project() {
         exit 1
     fi
     
+    # Fuerza modo módulos para evitar que un GO111MODULE=off externo rompa imports.
+    export GO111MODULE=on
+    export GOWORK=off
+
     export GOTOOLCHAIN=local
     env $HOSTBERRY_GO_MOD_ENV go mod tidy > /dev/null 2>&1 || true
     
