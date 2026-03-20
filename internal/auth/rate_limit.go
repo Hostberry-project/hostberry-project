@@ -4,17 +4,83 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/i18n"
-	middleware "hostberry/internal/middleware"
 )
 
+type authRateLimiter struct {
+	requests map[string][]time.Time
+	mu       sync.Mutex
+	maxReqs  int
+	window   time.Duration
+}
+
+func newAuthRateLimiter(maxReqs int, window time.Duration) *authRateLimiter {
+	rl := &authRateLimiter{
+		requests: make(map[string][]time.Time),
+		maxReqs:  maxReqs,
+		window:   window,
+	}
+	go rl.cleanup()
+	return rl
+}
+
+func (rl *authRateLimiter) AllowWithRetry(key string) (bool, time.Duration) {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	cutoff := now.Add(-rl.window)
+	validReqs := make([]time.Time, 0, len(rl.requests[key]))
+	for _, reqTime := range rl.requests[key] {
+		if reqTime.After(cutoff) {
+			validReqs = append(validReqs, reqTime)
+		}
+	}
+	rl.requests[key] = validReqs
+	if len(rl.requests[key]) >= rl.maxReqs {
+		oldest := rl.requests[key][0]
+		retryAfter := oldest.Add(rl.window).Sub(now)
+		if retryAfter < 0 {
+			retryAfter = 0
+		}
+		return false, retryAfter
+	}
+	rl.requests[key] = append(rl.requests[key], now)
+	return true, 0
+}
+
+func (rl *authRateLimiter) cleanup() {
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+	for range ticker.C {
+		rl.mu.Lock()
+		now := time.Now()
+		cutoff := now.Add(-rl.window)
+		for key, reqs := range rl.requests {
+			validReqs := reqs[:0]
+			for _, reqTime := range reqs {
+				if reqTime.After(cutoff) {
+					validReqs = append(validReqs, reqTime)
+				}
+			}
+			if len(validReqs) == 0 {
+				delete(rl.requests, key)
+				continue
+			}
+			rl.requests[key] = append([]time.Time(nil), validReqs...)
+		}
+		rl.mu.Unlock()
+	}
+}
+
 var (
-	loginIPRateLimiter       = middleware.NewRateLimiter(20, 10*time.Minute)
-	loginUsernameRateLimiter = middleware.NewRateLimiter(5, 10*time.Minute)
-	firstLoginIPRateLimiter  = middleware.NewRateLimiter(10, 10*time.Minute)
+	loginIPRateLimiter       = newAuthRateLimiter(20, 10*time.Minute)
+	loginUsernameRateLimiter = newAuthRateLimiter(5, 10*time.Minute)
+	firstLoginIPRateLimiter  = newAuthRateLimiter(10, 10*time.Minute)
 )
 
 func loginRateLimitKeyUsername(c *fiber.Ctx) string {
