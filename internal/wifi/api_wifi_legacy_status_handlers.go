@@ -3,7 +3,6 @@ package wifi
 import (
 	"fmt"
 	"log"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -45,8 +44,7 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 				enabled = true
 			}
 		} else {
-			ipCheck := exec.Command("sh", "-c", "ip link show | grep -E '^[0-9]+: wlan' | grep -i 'state UP'")
-			if ipOut, err := ipCheck.Output(); err == nil && len(ipOut) > 0 {
+			if anyWirelessInterfaceUp() {
 				enabled = true
 			}
 		}
@@ -56,15 +54,9 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 	connected := false
 	iface := "wlan0"
 
-	ipIfaceCmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}' | grep -E '^wlan|^wl' | head -1")
-	if ipIfaceOut, err := ipIfaceCmd.Output(); err == nil {
-		if ipIfaceStr := strings.TrimSpace(string(ipIfaceOut)); ipIfaceStr != "" {
-			iface = ipIfaceStr
-		}
-	}
+	iface = firstWirelessIface()
 
-	wpaStatusCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo wpa_cli -i %s status 2>/dev/null", iface))
-	wpaStatusOut, wpaErr := wpaStatusCmd.CombinedOutput()
+	wpaStatusOut, wpaErr := wpaCliStatus(iface)
 	if wpaErr == nil && len(wpaStatusOut) > 0 {
 		wpaStatus := string(wpaStatusOut)
 		for _, line := range strings.Split(wpaStatus, "\n") {
@@ -82,8 +74,7 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 	}
 
 	if !connected || ssid == "" {
-		iwLinkCmd := exec.Command("sh", "-c", fmt.Sprintf("iw dev %s link 2>/dev/null", iface))
-		iwLinkOut, iwErr := iwLinkCmd.CombinedOutput()
+		iwLinkOut, iwErr := iwDevLink(iface)
 		if iwErr == nil && len(iwLinkOut) > 0 {
 			iwLink := string(iwLinkOut)
 			for _, line := range strings.Split(iwLink, "\n") {
@@ -125,10 +116,8 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 			}
 		}
 
-		ipCheckCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 | head -1", iface))
-		ipOut, ipErr := ipCheckCmd.Output()
-		if ipErr == nil {
-			ip := strings.TrimSpace(string(ipOut))
+		ip := ifaceIPv4(iface)
+		if ip != "" || wpaStateCompleted {
 			if ip != "" && ip != "N/A" && !strings.HasPrefix(ip, "169.254") {
 				reallyConnected = true
 				log.Printf("WiFi realmente conectado: SSID=%s, IP=%s", ssid, ip)
@@ -138,10 +127,9 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 					reallyConnected = true
 					log.Printf("WiFi autenticado (wpa_state=COMPLETED) pero sin IP aún: SSID=%s", ssid)
 					// Intentar obtener IP si no hay proceso DHCP corriendo
-					dhcpCheck := exec.Command("sh", "-c", fmt.Sprintf("ps aux | grep -E '[d]hclient|udhcpc' | grep %s", iface))
-					if dhcpOut, _ := dhcpCheck.Output(); len(dhcpOut) == 0 {
+					if !dhcpClientRunningForIface(iface) {
 						log.Printf("Iniciando DHCP para obtener IP...")
-						executeCommand(fmt.Sprintf("sudo dhclient -v %s 2>&1 || sudo udhcpc -i %s -q -n 2>&1 || true", iface, iface))
+						startDHCPForIface(iface)
 					} else {
 						log.Printf("WiFi está obteniendo IP (DHCP en proceso)")
 					}
@@ -162,16 +150,9 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 			"ssid": ssid,
 		}
 
-		iface := "wlan0"
-		ipIfaceCmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}' | grep -E '^wlan|^wl' | head -1")
-		if ipIfaceOut, err := ipIfaceCmd.Output(); err == nil {
-			if ipIfaceStr := strings.TrimSpace(string(ipIfaceOut)); ipIfaceStr != "" {
-				iface = ipIfaceStr
-			}
-		}
+		iface := firstWirelessIface()
 
-		wpaStatusCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo wpa_cli -i %s status 2>/dev/null", iface))
-		wpaStatusOut, wpaErr := wpaStatusCmd.CombinedOutput()
+		wpaStatusOut, wpaErr := wpaCliStatus(iface)
 		if wpaErr == nil && len(wpaStatusOut) > 0 {
 			wpaStatus := string(wpaStatusOut)
 			log.Printf("wpa_cli status output for %s: %s", iface, wpaStatus)
@@ -253,12 +234,7 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 			connectionInfo["channel"] == nil || connectionInfo["channel"] == "" ||
 			connectionInfo["security"] == nil || connectionInfo["security"] == "" {
 			log.Printf("Getting additional info from iw for interface %s", iface)
-			iwLinkCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo iw dev %s link 2>/dev/null", iface))
-			iwLinkOut, iwErr := iwLinkCmd.CombinedOutput()
-			if iwErr != nil || len(iwLinkOut) == 0 {
-				iwLinkCmd = exec.Command("sh", "-c", fmt.Sprintf("iw dev %s link 2>/dev/null", iface))
-				iwLinkOut, iwErr = iwLinkCmd.CombinedOutput()
-			}
+			iwLinkOut, iwErr := iwDevLink(iface)
 			if iwErr == nil && len(iwLinkOut) > 0 {
 				iwLink := string(iwLinkOut)
 				log.Printf("iw link output for %s: %s", iface, iwLink)
@@ -342,10 +318,8 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 
 		if connectionInfo["signal"] == nil || connectionInfo["signal"] == "" || connectionInfo["signal"] == "0" {
 			log.Printf("Trying /proc/net/wireless for signal on %s", iface)
-			wirelessCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /proc/net/wireless 2>/dev/null | grep %s", iface))
-			wirelessOut, wirelessErr := wirelessCmd.Output()
-			if wirelessErr == nil && len(wirelessOut) > 0 {
-				wirelessLine := strings.TrimSpace(string(wirelessOut))
+			wirelessLine := wirelessProcLine(iface)
+			if wirelessLine != "" {
 				log.Printf("/proc/net/wireless output: %s", wirelessLine)
 				parts := strings.Fields(wirelessLine)
 				if len(parts) >= 3 {
@@ -363,10 +337,8 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 		if (connectionInfo["signal"] == nil || connectionInfo["signal"] == "" || connectionInfo["signal"] == "0") ||
 			(connectionInfo["channel"] == nil || connectionInfo["channel"] == "") {
 			log.Printf("Trying iwconfig as last resort for interface %s", iface)
-			iwconfigCmd := exec.Command("sh", "-c", fmt.Sprintf("iwconfig %s 2>/dev/null", iface))
-			iwconfigOut, iwconfigErr := iwconfigCmd.CombinedOutput()
-			if iwconfigErr == nil && len(iwconfigOut) > 0 {
-				iwconfigStr := string(iwconfigOut)
+			iwconfigStr := iwconfigOutput(iface)
+			if iwconfigStr != "" {
 				log.Printf("iwconfig output: %s", iwconfigStr)
 				if connectionInfo["signal"] == nil || connectionInfo["signal"] == "" || connectionInfo["signal"] == "0" {
 					if strings.Contains(iwconfigStr, "Signal level=") {
@@ -409,8 +381,7 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 		if (connectionInfo["signal"] == nil || connectionInfo["signal"] == "" || connectionInfo["signal"] == "0") ||
 			(connectionInfo["channel"] == nil || connectionInfo["channel"] == "") {
 			log.Printf("Trying iw dev %s station dump as additional method", iface)
-			iwStationCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo iw dev %s station dump 2>/dev/null", iface))
-			iwStationOut, iwStationErr := iwStationCmd.CombinedOutput()
+			iwStationOut, iwStationErr := iwStationDump(iface)
 			if iwStationErr == nil && len(iwStationOut) > 0 {
 				iwStationStr := string(iwStationOut)
 				log.Printf("iw station dump output: %s", iwStationStr)
@@ -453,39 +424,27 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 		}
 
 		if iface != "" {
-			ipCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 | head -1", iface))
-			ipOut, _ := ipCmd.Output()
-			if ipStr := strings.TrimSpace(string(ipOut)); ipStr != "" {
+			if ipStr := ifaceIPv4(iface); ipStr != "" {
 				connectionInfo["ip"] = ipStr
 			}
 
-			macCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /sys/class/net/%s/address 2>/dev/null", iface))
-			macOut, _ := macCmd.Output()
-			if macStr := strings.TrimSpace(string(macOut)); macStr != "" {
+			if macStr := readInterfaceFile(iface, "address"); macStr != "" {
 				connectionInfo["mac"] = macStr
 			}
 
-			speedCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /sys/class/net/%s/speed 2>/dev/null", iface))
-			speedOut, _ := speedCmd.Output()
-			if speedStr := strings.TrimSpace(string(speedOut)); speedStr != "" && speedStr != "-1" {
+			if speedStr := readInterfaceFile(iface, "speed"); speedStr != "" && speedStr != "-1" {
 				connectionInfo["speed"] = speedStr + " Mbps"
 			}
 		}
 	}
 
 	if !connected && enabled {
-		ifaceCmd := execCommand("nmcli -t -f DEVICE,TYPE dev status 2>/dev/null | grep wifi | head -1 | cut -d: -f1")
-		if ifaceOut, err := ifaceCmd.Output(); err == nil {
-			iface := strings.TrimSpace(string(ifaceOut))
-			if iface != "" {
-				if connectionInfo == nil {
-					connectionInfo = fiber.Map{}
-				}
-				macCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /sys/class/net/%s/address 2>/dev/null", iface))
-				macOut, _ := macCmd.Output()
-				if macStr := strings.TrimSpace(string(macOut)); macStr != "" {
-					connectionInfo["mac"] = macStr
-				}
+		if iface := nmcliFirstWifiDevice(); iface != "" {
+			if connectionInfo == nil {
+				connectionInfo = fiber.Map{}
+			}
+			if macStr := readInterfaceFile(iface, "address"); macStr != "" {
+				connectionInfo["mac"] = macStr
 			}
 		}
 	}
@@ -495,12 +454,8 @@ func WifiLegacyStatusHandler(c *fiber.Ctx) error {
 	if reallyConnected && ssid != "" {
 		connectionType = "wifi"
 	} else {
-		defaultIfaceCmd := exec.Command("sh", "-c", "ip route show default 2>/dev/null | awk '{print $5}' | head -1")
-		if defaultOut, err := defaultIfaceCmd.Output(); err == nil {
-			ifaceName := strings.TrimSpace(string(defaultOut))
-			if ifaceName != "" && (strings.HasPrefix(ifaceName, "eth") || strings.HasPrefix(ifaceName, "enp") || strings.HasPrefix(ifaceName, "eno") || strings.HasPrefix(ifaceName, "ens")) {
-				connectionType = "ethernet"
-			}
+		if ifaceName := defaultRouteIface(); ifaceName != "" && (strings.HasPrefix(ifaceName, "eth") || strings.HasPrefix(ifaceName, "enp") || strings.HasPrefix(ifaceName, "eno") || strings.HasPrefix(ifaceName, "ens")) {
+			connectionType = "ethernet"
 		}
 	}
 
