@@ -18,19 +18,31 @@ func executeCommand(cmd string) (string, error) {
 	return utils.ExecuteCommand(cmd)
 }
 
-func getOpenVPNConfig() map[string]interface{} {
-	result := make(map[string]interface{})
-	data, err := os.ReadFile(openvpnClientConfigPath)
+func readRedactedConfigMetadata(path, vpnName string) map[string]interface{} {
+	result := map[string]interface{}{
+		"success":  true,
+		"exists":   false,
+		"redacted": true,
+		"message":  fmt.Sprintf("La configuración de %s no se devuelve por API por seguridad", vpnName),
+	}
+
+	info, err := os.Stat(path)
 	if err != nil {
-		result["config"] = ""
-		result["exists"] = false
-		result["success"] = true
+		if os.IsNotExist(err) {
+			return result
+		}
+		result["success"] = false
+		result["error"] = fmt.Sprintf("Error accediendo a la configuración de %s: %v", vpnName, err)
 		return result
 	}
-	result["config"] = string(data)
+
 	result["exists"] = true
-	result["success"] = true
+	result["size"] = info.Size()
 	return result
+}
+
+func getOpenVPNConfig() map[string]interface{} {
+	return readRedactedConfigMetadata(openvpnClientConfigPath, "OpenVPN")
 }
 
 func saveOpenVPNConfig(config, user string) map[string]interface{} {
@@ -267,6 +279,9 @@ func configureWireGuard(config, user string) map[string]interface{} {
 // ---- wrappers exportados ----
 
 func GetOpenVPNConfig() map[string]interface{} { return getOpenVPNConfig() }
+func GetWireGuardConfigMetadata() map[string]interface{} {
+	return readRedactedConfigMetadata("/etc/wireguard/wg0.conf", "WireGuard")
+}
 func SaveOpenVPNConfig(config, user string) map[string]interface{} {
 	return saveOpenVPNConfig(config, user)
 }
