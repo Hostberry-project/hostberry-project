@@ -331,8 +331,11 @@ func HostapdCreateAp0Handler(c *fiber.Ctx) error {
 func HostapdToggleHandler(c *fiber.Ctx) error {
 	log.Printf("HostAPD toggle request received")
 
-	hostapdOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null || pgrep hostapd > /dev/null && echo active || echo inactive").CombinedOutput()
-	hostapdStatus := strings.TrimSpace(string(hostapdOut))
+	hostapdStatus := systemctlIsActive("hostapd")
+	// Mantener compatibilidad: si systemctl no lo marca como active pero pgrep encuentra procesos, lo consideramos active.
+	if hostapdStatus != "active" && processRunning("hostapd") {
+		hostapdStatus = "active"
+	}
 	isActive := hostapdStatus == "active"
 
 	log.Printf("Current HostAPD status: %s (isActive: %v)", hostapdStatus, isActive)
@@ -447,8 +450,7 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 			}
 		}
 
-		maskedCheck, _ := exec.Command("sh", "-c", "systemctl is-enabled hostapd 2>&1").CombinedOutput()
-		maskedStatus := strings.TrimSpace(string(maskedCheck))
+		maskedStatus := systemctlIsEnabled("hostapd")
 		if strings.Contains(maskedStatus, "masked") {
 			log.Printf("HostAPD service is masked, unmasking...")
 			executeCommand("sudo systemctl unmask hostapd 2>/dev/null || true")
@@ -489,9 +491,7 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 		if interfaceName != "" {
 			gatewayIP = "192.168.4.1"
 
-			ipCheckCmd := fmt.Sprintf("ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | cut -d/ -f1", interfaceName)
-			ipOut, _ := exec.Command("sh", "-c", ipCheckCmd).CombinedOutput()
-			currentIP := strings.TrimSpace(string(ipOut))
+			currentIP := firstIPv4FromIPAddrShow(interfaceName)
 
 			if currentIP == "" {
 				log.Printf("Configuring IP %s on interface %s", gatewayIP, interfaceName)
@@ -536,8 +536,9 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 
 		var errorDetails string
 		if action == "enable" {
-			journalOut, _ := exec.Command("sh", "-c", "sudo journalctl -u hostapd -n 20 --no-pager 2>/dev/null | tail -10").CombinedOutput()
+			journalOut, _ := exec.Command("sudo", "journalctl", "-u", "hostapd", "-n", "20", "--no-pager").CombinedOutput()
 			journalLogs := strings.TrimSpace(string(journalOut))
+			journalLogs = strings.Join(lastNLines(journalLogs, 10), "\n")
 			if journalLogs != "" {
 				lines := strings.Split(journalLogs, "\n")
 				errorLines := []string{}
@@ -555,8 +556,9 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 					errorDetails = fmt.Sprintf(" Last logs: %s", strings.Join(lines[len(lines)-3:], "; "))
 				}
 			} else {
-				statusOut, _ := exec.Command("sh", "-c", "sudo systemctl status hostapd --no-pager 2>/dev/null | head -15").CombinedOutput()
+				statusOut, _ := exec.Command("sudo", "systemctl", "status", "hostapd", "--no-pager").CombinedOutput()
 				statusInfo := strings.TrimSpace(string(statusOut))
+				statusInfo = strings.Join(firstNLines(statusInfo, 15), "\n")
 				if statusInfo != "" {
 					errorDetails = fmt.Sprintf(" Service status: %s", statusInfo)
 				}
@@ -577,20 +579,23 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	hostapdOut2, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null || pgrep hostapd > /dev/null && echo active || echo inactive").CombinedOutput()
-	hostapdStatus2 := strings.TrimSpace(string(hostapdOut2))
+	hostapdStatus2 := systemctlIsActive("hostapd")
+	if hostapdStatus2 != "active" && processRunning("hostapd") {
+		hostapdStatus2 = "active"
+	}
 	actuallyActive := hostapdStatus2 == "active"
 
 	if action == "enable" && !actuallyActive {
 		log.Printf("HostAPD failed to start. Checking logs...")
-		enabledOut, _ := exec.Command("sh", "-c", "systemctl is-enabled hostapd 2>/dev/null || echo disabled").CombinedOutput()
-		enabledStatus := strings.TrimSpace(string(enabledOut))
+		enabledStatus := systemctlIsEnabled("hostapd")
 
-		journalOut, _ := exec.Command("sh", "-c", "sudo journalctl -u hostapd -n 15 --no-pager 2>/dev/null | tail -8").CombinedOutput()
+		journalOut, _ := exec.Command("sudo", "journalctl", "-u", "hostapd", "-n", "15", "--no-pager").CombinedOutput()
 		journalLogs := strings.TrimSpace(string(journalOut))
+		journalLogs = strings.Join(lastNLines(journalLogs, 8), "\n")
 
-		statusOut, _ := exec.Command("sh", "-c", "sudo systemctl status hostapd --no-pager 2>/dev/null | head -20").CombinedOutput()
+		statusOut, _ := exec.Command("sudo", "systemctl", "status", "hostapd", "--no-pager").CombinedOutput()
 		statusInfo := strings.TrimSpace(string(statusOut))
+		statusInfo = strings.Join(firstNLines(statusInfo, 20), "\n")
 
 		var errorMsg string
 		if journalLogs != "" {
@@ -688,10 +693,11 @@ func HostapdRestartHandler(c *fiber.Ctx) error {
 func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	diagnostics := make(map[string]interface{})
 
-	systemctlOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null").CombinedOutput()
-	systemctlStatus := strings.TrimSpace(string(systemctlOut))
-	pgrepOut, _ := exec.Command("sh", "-c", "pgrep hostapd > /dev/null 2>&1 && echo active || echo inactive").CombinedOutput()
-	pgrepStatus := strings.TrimSpace(string(pgrepOut))
+	systemctlStatus := systemctlIsActive("hostapd")
+	pgrepStatus := "inactive"
+	if processRunning("hostapd") {
+		pgrepStatus = "active"
+	}
 
 	serviceRunning := systemctlStatus == "active" || pgrepStatus == "active"
 	diagnostics["service_running"] = serviceRunning
@@ -737,8 +743,9 @@ func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	diagnostics["transmitting"] = transmitting
 	diagnostics["interface_in_ap_mode"] = iwStatus != ""
 
-	journalOut, _ := exec.Command("sh", "-c", "sudo journalctl -u hostapd -n 50 --no-pager 2>/dev/null | tail -30").CombinedOutput()
+	journalOut, _ := exec.Command("sudo", "journalctl", "-u", "hostapd", "-n", "50", "--no-pager").CombinedOutput()
 	journalLogs := string(journalOut)
+	journalLogs = strings.Join(lastNLines(journalLogs, 30), "\n")
 	diagnostics["recent_logs"] = journalLogs
 
 	errors := []string{}
@@ -767,8 +774,7 @@ func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	interfaceUp := strings.Contains(strings.ToLower(ipOut), "state up")
 	diagnostics["interface_up"] = interfaceUp
 
-	dnsmasqOut, _ := exec.Command("sh", "-c", "systemctl is-active dnsmasq 2>/dev/null || echo inactive").CombinedOutput()
-	dnsmasqStatus := strings.TrimSpace(string(dnsmasqOut))
+	dnsmasqStatus := systemctlIsActive("dnsmasq")
 	diagnostics["dnsmasq_running"] = dnsmasqStatus == "active"
 
 	diagnostics["status"] = func() string {
