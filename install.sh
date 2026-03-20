@@ -757,7 +757,8 @@ EOF
         fi
 
         # Password aleatoria para usuario admin por defecto (se inyecta vía systemd)
-        GENERATED_ADMIN_PASSWORD="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 || echo "HostBerry1234")"
+        # Debe cumplir validators.ValidatePassword: mayúscula, minúscula, número y carácter especial.
+        GENERATED_ADMIN_PASSWORD="Hb!$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 14 || echo 'xX1yY2zZ3')9a"
 
         # Guardar credenciales iniciales en un fichero sólo-lectura root/hostberry
         local cred_file="${INSTALL_DIR}/INSTALL_CREDENTIALS.txt"
