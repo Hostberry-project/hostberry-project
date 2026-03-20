@@ -31,6 +31,11 @@ func NewRateLimiter(maxReqs int, window time.Duration) *RateLimiter {
 }
 
 func (rl *RateLimiter) Allow(key string) bool {
+	allowed, _ := rl.AllowWithRetry(key)
+	return allowed
+}
+
+func (rl *RateLimiter) AllowWithRetry(key string) (bool, time.Duration) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -46,11 +51,16 @@ func (rl *RateLimiter) Allow(key string) bool {
 	rl.requests[key] = validReqs
 
 	if len(rl.requests[key]) >= rl.maxReqs {
-		return false
+		oldest := rl.requests[key][0]
+		retryAfter := oldest.Add(rl.window).Sub(now)
+		if retryAfter < 0 {
+			retryAfter = 0
+		}
+		return false, retryAfter
 	}
 
 	rl.requests[key] = append(rl.requests[key], now)
-	return true
+	return true, 0
 }
 
 func (rl *RateLimiter) cleanup() {
@@ -102,7 +112,8 @@ func RateLimitMiddleware(c *fiber.Ctx) error {
 		}
 	}
 
-	if !globalRateLimiter.Allow(key) {
+	allowed, _ := globalRateLimiter.AllowWithRetry(key)
+	if !allowed {
 		return c.Status(429).JSON(fiber.Map{
 			"error": "Demasiadas peticiones. Por favor, intenta más tarde.",
 		})
