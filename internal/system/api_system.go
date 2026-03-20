@@ -56,26 +56,42 @@ func SystemNetworkHandler(c *fiber.Ctx) error {
 }
 
 func SystemUpdatesHandler(c *fiber.Ctx) error {
-	commands := []string{
-		"apt list --upgradable 2>/dev/null | tail -n +2 | cut -d/ -f1",
-		"apt-get -s upgrade 2>/dev/null | awk '/^Inst /{print $2}'",
-	}
-
 	pkgSet := make(map[string]struct{})
-	for _, cmdText := range commands {
-		out, err := exec.Command("sh", "-c", cmdText).Output()
-		if err != nil {
-			continue
-		}
-		for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
-			pkg := strings.TrimSpace(line)
-			if pkg == "" {
+
+	// 1) Intentar con `apt list --upgradable` (sin shell/pipes).
+	if out, err := exec.Command("apt", "list", "--upgradable").Output(); err == nil {
+		for _, line := range strings.Split(string(out), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "Listing") {
 				continue
 			}
-			pkgSet[pkg] = struct{}{}
+			// Formato típico: "paquete/xxx ...".
+			if parts := strings.SplitN(line, "/", 2); len(parts) == 2 {
+				pkg := strings.TrimSpace(parts[0])
+				if pkg != "" {
+					pkgSet[pkg] = struct{}{}
+				}
+			}
 		}
-		if len(pkgSet) > 0 {
-			break
+	}
+
+	// 2) Si no hay resultados, fallback a `apt-get -s upgrade`.
+	if len(pkgSet) == 0 {
+		if out, err := exec.Command("apt-get", "-s", "upgrade").Output(); err == nil {
+			for _, line := range strings.Split(string(out), "\n") {
+				line = strings.TrimSpace(line)
+				if !strings.HasPrefix(line, "Inst ") {
+					continue
+				}
+				// Formato típico: "Inst paquete ...".
+				fields := strings.Fields(line)
+				if len(fields) >= 2 {
+					pkg := strings.TrimSpace(fields[1])
+					if pkg != "" {
+						pkgSet[pkg] = struct{}{}
+					}
+				}
+			}
 		}
 	}
 
