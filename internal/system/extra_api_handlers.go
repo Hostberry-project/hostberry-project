@@ -55,18 +55,36 @@ func SystemUpdatesExecuteHandler(c *fiber.Ctx) error {
 		ctx, cancel := context.WithTimeout(context.Background(), 45*time.Minute)
 		defer cancel()
 
-		cmd := exec.CommandContext(ctx, "sh", "-c", "sudo DEBIAN_FRONTEND=noninteractive apt-get update -y && sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y")
-		out, err := cmd.CombinedOutput()
-		output := strings.TrimSpace(filterSudoErrors(out))
+		env := append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+
+		updateCmd := exec.CommandContext(ctx, "sudo", "apt-get", "update", "-y")
+		updateCmd.Env = env
+		out1, err1 := updateCmd.CombinedOutput()
+		output1 := strings.TrimSpace(filterSudoErrors(out1))
 
 		if ctx.Err() == context.DeadlineExceeded {
 			_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar sistema", "operación cancelada por tiempo de espera agotado", ""), "system", uid)
 			return
 		}
-		if err != nil {
-			msg := fmt.Sprintf("Error en actualización del sistema (%s): %v", user, err)
-			if output != "" {
-				msg = msg + " | " + output
+
+		if err1 != nil {
+			msg := fmt.Sprintf("Error en actualización del sistema (%s): %v", user, err1)
+			if output1 != "" {
+				msg = msg + " | " + output1
+			}
+			_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar sistema", msg, ""), "system", uid)
+			return
+		}
+
+		upgradeCmd := exec.CommandContext(ctx, "sudo", "apt-get", "upgrade", "-y")
+		upgradeCmd.Env = env
+		out2, err2 := upgradeCmd.CombinedOutput()
+		output2 := strings.TrimSpace(filterSudoErrors(out2))
+
+		if err2 != nil {
+			msg := fmt.Sprintf("Error en actualización del sistema (%s): %v", user, err2)
+			if output2 != "" {
+				msg = msg + " | " + output2
 			}
 			_ = database.InsertLog("ERROR", database.LogMsgErr("actualizar sistema", msg, ""), "system", uid)
 			return
