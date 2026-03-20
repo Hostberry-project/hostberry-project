@@ -103,7 +103,7 @@ func SystemUpdatesHandler(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"success":           true,
-		"updates_available":  len(updates) > 0,
+		"updates_available": len(updates) > 0,
 		"update_count":      len(updates),
 		"updates":           updates,
 		"available":         len(updates) > 0, // compatibilidad con clientes antiguos
@@ -120,10 +120,10 @@ func SystemHttpsInfoHandler(c *fiber.Ctx) error {
 	isHttps := c.Secure() || strings.EqualFold(c.Get("X-Forwarded-Proto"), "https")
 
 	return c.JSON(fiber.Map{
-		"is_https":        isHttps,
-		"host":            config.AppConfig.Server.Host,
-		"port":            config.AppConfig.Server.Port,
-		"tls_cert_file":   config.AppConfig.Server.TLSCertFile,
-		"tls_key_file":    config.AppConfig.Server.TLSKeyFile,
+		"is_https":      isHttps,
+		"host":          config.AppConfig.Server.Host,
+		"port":          config.AppConfig.Server.Port,
+		"tls_cert_file": config.AppConfig.Server.TLSCertFile,
+		"tls_key_file":  config.AppConfig.Server.TLSKeyFile,
 	})
 }
