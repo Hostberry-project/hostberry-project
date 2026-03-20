@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	loginIPRateLimiter        = middleware.NewRateLimiter(20, 10*time.Minute)
-	loginUsernameRateLimiter  = middleware.NewRateLimiter(5, 10*time.Minute)
-	firstLoginIPRateLimiter   = middleware.NewRateLimiter(10, 10*time.Minute)
+	loginIPRateLimiter       = middleware.NewRateLimiter(20, 10*time.Minute)
+	loginUsernameRateLimiter = middleware.NewRateLimiter(5, 10*time.Minute)
+	firstLoginIPRateLimiter  = middleware.NewRateLimiter(10, 10*time.Minute)
 )
 
 func loginRateLimitKeyUsername(c *fiber.Ctx) string {

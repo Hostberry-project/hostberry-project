@@ -121,4 +121,3 @@ func RateLimitMiddleware(c *fiber.Ctx) error {
 
 	return c.Next()
 }
-

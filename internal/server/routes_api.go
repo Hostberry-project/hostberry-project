@@ -1,16 +1,16 @@
 package server
 
 import (
-	authHandlers "hostberry/internal/auth"
 	adblockHandlers "hostberry/internal/adblock"
+	authHandlers "hostberry/internal/auth"
 	health "hostberry/internal/health"
 	hostapdHandlers "hostberry/internal/hostapd"
+	i18n "hostberry/internal/i18n"
 	networkHandlers "hostberry/internal/network"
 	sys "hostberry/internal/system"
 	torHandlers "hostberry/internal/tor"
 	vpnHandlers "hostberry/internal/vpn"
 	wifiHandlers "hostberry/internal/wifi"
-	i18n "hostberry/internal/i18n"
 
 	middleware "hostberry/internal/middleware"
 
@@ -178,4 +178,3 @@ func setupApiRoutes(app *fiber.App) {
 	wifiLegacy.Get("/scan", wifiHandlers.WifiLegacyScanHandler)
 	wifiLegacy.Post("/disconnect", middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiLegacyDisconnectHandler)
 }
-
