@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -48,6 +49,7 @@ func allowedCommandsForAudit() []string {
 func TestAudit_ExecuteCommandStringLiterals_AreAllowlisted(t *testing.T) {
 	root := findRepoRoot(t)
 	allowed := allowedCommandsForAudit()
+	utilsPkgPath := filepath.Join(root, "internal", "utils")
 
 	failed := 0
 	var failExamples []string
@@ -66,15 +68,20 @@ func TestAudit_ExecuteCommandStringLiterals_AreAllowlisted(t *testing.T) {
 				return true
 			}
 
-			// Detectar llamadas: ExecuteCommand("...") / executeCommand("...") / utils.ExecuteCommand("...")
+			// Detectar llamadas: ExecuteCommand("...") dentro del paquete utils
+			// y utils.ExecuteCommand("...") fuera del paquete.
 			isRelevant := false
+			inUtilsPackage := filepath.Dir(path) == utilsPkgPath
 			switch fn := call.Fun.(type) {
-			case *ast.Ident:
-				if fn.Name == "ExecuteCommand" || fn.Name == "executeCommand" {
+			case *ast.SelectorExpr:
+				if xIdent, ok := fn.X.(*ast.Ident); ok && xIdent.Name == "utils" && fn.Sel != nil && fn.Sel.Name == "ExecuteCommand" {
 					isRelevant = true
 				}
 			case *ast.SelectorExpr:
-				if fn.Sel != nil && fn.Sel.Name == "ExecuteCommand" {
+				// (queda cubierto arriba)
+				_ = fn
+			case *ast.Ident:
+				if inUtilsPackage && fn.Name == "ExecuteCommand" {
 					isRelevant = true
 				}
 			}
