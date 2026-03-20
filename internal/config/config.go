@@ -65,7 +65,7 @@ var AppConfig *Config
 func GenerateRandomSecret() string {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
+		panic(fmt.Sprintf("crypto/rand unavailable while generating secret: %v", err))
 	}
 	return hex.EncodeToString(bytes)
 }
