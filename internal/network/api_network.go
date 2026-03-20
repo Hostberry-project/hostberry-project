@@ -22,7 +22,7 @@ func executeCommand(cmd string) (string, error) {
 }
 
 func NetworkRoutingHandler(c *fiber.Ctx) error {
-	out, err := exec.Command("sh", "-c", "ip route 2>/dev/null").CombinedOutput()
+	out, err := exec.Command("/bin/sh", "-c", "ip route 2>/dev/null").CombinedOutput()
 	if err != nil {
 		i18n.LogTf("logs.api_route_error", err, string(out))
 		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
@@ -87,12 +87,12 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			"dns2":     "",
 		}
 
-		hostnameCmd := exec.Command("sh", "-c", "hostnamectl --static 2>/dev/null || hostname 2>/dev/null || echo ''")
+		hostnameCmd := exec.Command("/bin/sh", "-c", "hostnamectl --static 2>/dev/null || hostname 2>/dev/null || echo ''")
 		if hostnameOut, err := hostnameCmd.Output(); err == nil {
 			config["hostname"] = strings.TrimSpace(string(hostnameOut))
 		}
 
-		gatewayCmd := exec.Command("sh", "-c", "ip route | grep default | awk '{print $3}' | head -1")
+		gatewayCmd := exec.Command("/bin/sh", "-c", "ip route | grep default | awk '{print $3}' | head -1")
 		if gatewayOut, err := gatewayCmd.Output(); err == nil {
 			gateway := strings.TrimSpace(string(gatewayOut))
 			if gateway != "" {
@@ -100,7 +100,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			}
 		}
 
-		dnsCmd := exec.Command("sh", "-c", "nmcli -t -f IP4.DNS connection show $(nmcli -t -f NAME connection show --active | head -1) 2>/dev/null | head -2")
+		dnsCmd := exec.Command("/bin/sh", "-c", "nmcli -t -f IP4.DNS connection show $(nmcli -t -f NAME connection show --active | head -1) 2>/dev/null | head -2")
 		if dnsOut, err := dnsCmd.Output(); err == nil {
 			dnsLines := strings.Split(strings.TrimSpace(string(dnsOut)), "\n")
 			for i, dns := range dnsLines {
@@ -126,7 +126,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 		}
 
 		if config["dns1"] == "" {
-			resolveCmd := exec.Command("sh", "-c", "resolvectl dns 2>/dev/null | grep -E '^[0-9]' | awk '{print $2}' | head -2")
+			resolveCmd := exec.Command("/bin/sh", "-c", "resolvectl dns 2>/dev/null | grep -E '^[0-9]' | awk '{print $2}' | head -2")
 			if resolveOut, err := resolveCmd.Output(); err == nil {
 				resolveLines := strings.Split(strings.TrimSpace(string(resolveOut)), "\n")
 				for i, dns := range resolveLines {
@@ -143,7 +143,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 		}
 
 		if config["dns1"] == "" {
-			resolvCmd := exec.Command("sh", "-c", "grep '^nameserver' /etc/resolv.conf 2>/dev/null | awk '{print $2}' | head -2")
+			resolvCmd := exec.Command("/bin/sh", "-c", "grep '^nameserver' /etc/resolv.conf 2>/dev/null | awk '{print $2}' | head -2")
 			if resolvOut, err := resolvCmd.Output(); err == nil {
 				resolvLines := strings.Split(strings.TrimSpace(string(resolvOut)), "\n")
 				for i, dns := range resolvLines {
@@ -195,7 +195,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 					cmd := fmt.Sprintf("sudo hostnamectl set-hostname %s", req.Hostname)
 					if out, err := executeCommand(cmd); err == nil {
 						time.Sleep(500 * time.Millisecond)
-						verifyCmd := exec.Command("sh", "-c", "hostnamectl --static 2>/dev/null || hostname 2>/dev/null || echo ''")
+						verifyCmd := exec.Command("/bin/sh", "-c", "hostnamectl --static 2>/dev/null || hostname 2>/dev/null || echo ''")
 						if verifyOut, err := verifyCmd.Output(); err == nil {
 							currentHostname := strings.TrimSpace(string(verifyOut))
 							if currentHostname == req.Hostname {
@@ -224,7 +224,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 					tmpHostname := "/tmp/hostname_hostberry_" + fmt.Sprintf("%d", time.Now().Unix())
 					if wErr := os.WriteFile(tmpHostname, []byte(req.Hostname+"\n"), 0644); wErr == nil {
 						defer os.Remove(tmpHostname)
-						cpCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo cp -f %s %s", tmpHostname, hostnameFile))
+						cpCmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo cp -f %s %s", tmpHostname, hostnameFile))
 						cpOut, cpErr := cpCmd.CombinedOutput()
 						out := strings.TrimSpace(string(cpOut))
 						if cpErr == nil {
@@ -383,7 +383,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 
 							if !copySuccess {
 								log.Printf("Trying alternative method: cat with tee")
-								catCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo cat %s | sudo tee %s > /dev/null", tmpFile, hostsFile))
+								catCmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("sudo cat %s | sudo tee %s > /dev/null", tmpFile, hostsFile))
 								catCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
 								if catOut, catErr := catCmd.CombinedOutput(); catErr != nil {
 									log.Printf("Error with cat/tee: %v, output: %s", catErr, string(catOut))
@@ -404,7 +404,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 
 							if !copySuccess {
 								log.Printf("Trying sh -c method with direct redirection")
-								writeCmd := exec.Command("sudo", "sh", "-c", fmt.Sprintf("cat %s > %s", tmpFile, hostsFile))
+								writeCmd := exec.Command("sudo", "/bin/sh", "-c", fmt.Sprintf("cat %s > %s", tmpFile, hostsFile))
 								writeCmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
 								if writeOut, writeErr := writeCmd.CombinedOutput(); writeErr != nil {
 									log.Printf("Error with sh -c: %v, output: %s", writeErr, string(writeOut))
@@ -541,7 +541,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 					}
 
 					newContent := strings.Join(newLines, "\n")
-					writeCmd := exec.Command("sudo", "sh", "-c", fmt.Sprintf("cat > %s", resolvedConf))
+					writeCmd := exec.Command("sudo", "/bin/sh", "-c", fmt.Sprintf("cat > %s", resolvedConf))
 					writeCmd.Stdin = strings.NewReader(newContent)
 					if err := writeCmd.Run(); err == nil {
 						executeCommand("sudo systemctl restart systemd-resolved 2>&1")
@@ -574,7 +574,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 				}
 
 				newContent := strings.Join(newLines, "\n")
-				writeCmd := exec.Command("sudo", "sh", "-c", fmt.Sprintf("cat > %s", resolvConf))
+				writeCmd := exec.Command("sudo", "/bin/sh", "-c", fmt.Sprintf("cat > %s", resolvConf))
 				writeCmd.Stdin = strings.NewReader(newContent)
 				if err := writeCmd.Run(); err == nil {
 					applied = append(applied, fmt.Sprintf("DNS set to %s (via /etc/resolv.conf)", strings.Join(dnsServers, ", ")))
@@ -599,7 +599,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			gatewayApplied := false
 
 			if !gatewayApplied {
-				connCmd := exec.Command("sh", "-c", "nmcli -t -f NAME connection show --active 2>/dev/null | head -1")
+			connCmd := exec.Command("/bin/sh", "-c", "nmcli -t -f NAME connection show --active 2>/dev/null | head -1")
 				if connOut, err := connCmd.Output(); err == nil {
 					connName := strings.TrimSpace(string(connOut))
 					if connName != "" {
@@ -621,7 +621,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			}
 
 			if !gatewayApplied {
-				ifaceCmd := exec.Command("sh", "-c", "ip route | grep default | awk '{print $5}' | head -1")
+				ifaceCmd := exec.Command("/bin/sh", "-c", "ip route | grep default | awk '{print $5}' | head -1")
 				iface := ""
 				if ifaceOut, err := ifaceCmd.Output(); err == nil {
 					iface = strings.TrimSpace(string(ifaceOut))
@@ -654,7 +654,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			}
 
 			if !gatewayApplied {
-				ifaceCmd := exec.Command("sh", "-c", "route -n | grep '^0.0.0.0' | awk '{print $8}' | head -1")
+				ifaceCmd := exec.Command("/bin/sh", "-c", "route -n | grep '^0.0.0.0' | awk '{print $8}' | head -1")
 				iface := ""
 				if ifaceOut, err := ifaceCmd.Output(); err == nil {
 					iface = strings.TrimSpace(string(ifaceOut))
