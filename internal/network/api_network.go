@@ -1,6 +1,7 @@
 package network
 
 import (
+	"io"
 	"fmt"
 	"log"
 	"os"
@@ -21,8 +22,110 @@ func executeCommand(cmd string) (string, error) {
 	return utils.ExecuteCommand(cmd)
 }
 
+var ipv4Re = regexp.MustCompile(`(?m)(\b(?:\d{1,3}\.){3}\d{1,3}\b)`)
+
+func getHostnameStatic() string {
+	// Preferimos hostnamectl si está disponible.
+	if out, err := exec.Command("hostnamectl", "--static").Output(); err == nil {
+		s := strings.TrimSpace(string(out))
+		if s != "" {
+			return s
+		}
+	}
+	if out, err := exec.Command("hostname").Output(); err == nil {
+		return strings.TrimSpace(string(out))
+	}
+	return ""
+}
+
+func extractIPv4s(s string) []string {
+	seen := map[string]struct{}{}
+	var res []string
+	for _, m := range ipv4Re.FindAllStringSubmatch(s, -1) {
+		ip := strings.TrimSpace(m[1])
+		if ip == "" {
+			continue
+		}
+		if validators.ValidateIP(ip) != nil {
+			continue
+		}
+		if _, ok := seen[ip]; ok {
+			continue
+		}
+		seen[ip] = struct{}{}
+		res = append(res, ip)
+	}
+	return res
+}
+
+func getDefaultRouteGatewayAndIface() (gateway string, iface string) {
+	out, err := exec.Command("ip", "route", "show", "default").Output()
+	if err != nil {
+		return "", ""
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		if !strings.HasPrefix(line, "default") {
+			continue
+		}
+		fields := strings.Fields(line)
+		for i := 0; i < len(fields)-1; i++ {
+			if fields[i] == "via" {
+				gateway = fields[i+1]
+			}
+			if fields[i] == "dev" {
+				iface = fields[i+1]
+			}
+		}
+		if gateway != "" && iface != "" {
+			iface = strings.TrimSpace(iface)
+			if validators.ValidateIfaceName(iface) == nil {
+				return gateway, iface
+			}
+		}
+	}
+	return gateway, iface
+}
+
+func nmcliFirstActiveConnectionName() string {
+	out, err := exec.Command("nmcli", "-t", "-f", "NAME", "connection", "show", "--active").Output()
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		name := strings.TrimSpace(line)
+		if name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
+func writeFileWithSudoTee(path string, content string) error {
+	cmd := exec.Command("sudo", "tee", path)
+	cmd.Stdin = strings.NewReader(content)
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
+	cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+	_, err := cmd.CombinedOutput()
+	return err
+}
+
+func writeFileBytesWithSudoTee(path string, content []byte) error {
+	cmd := exec.Command("sudo", "tee", path)
+	cmd.Stdin = strings.NewReader(string(content))
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
+	cmd.Env = append(os.Environ(), "SUDO_ASKPASS=/bin/false")
+	_, err := cmd.CombinedOutput()
+	return err
+}
+
 func NetworkRoutingHandler(c *fiber.Ctx) error {
-	out, err := exec.Command("/bin/sh", "-c", "ip route 2>/dev/null").CombinedOutput()
+	out, err := exec.Command("ip", "route").CombinedOutput()
 	if err != nil {
 		i18n.LogTf("logs.api_route_error", err, string(out))
 		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
@@ -87,74 +190,70 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			"dns2":     "",
 		}
 
-		hostnameCmd := exec.Command("/bin/sh", "-c", "hostnamectl --static 2>/dev/null || hostname 2>/dev/null || echo ''")
-		if hostnameOut, err := hostnameCmd.Output(); err == nil {
-			config["hostname"] = strings.TrimSpace(string(hostnameOut))
+		config["hostname"] = getHostnameStatic()
+
+		if gateway, iface := getDefaultRouteGatewayAndIface(); gateway != "" {
+			_ = iface
+			config["gateway"] = gateway
 		}
 
-		gatewayCmd := exec.Command("/bin/sh", "-c", "ip route | grep default | awk '{print $3}' | head -1")
-		if gatewayOut, err := gatewayCmd.Output(); err == nil {
-			gateway := strings.TrimSpace(string(gatewayOut))
-			if gateway != "" {
-				config["gateway"] = gateway
-			}
-		}
-
-		dnsCmd := exec.Command("/bin/sh", "-c", "nmcli -t -f IP4.DNS connection show $(nmcli -t -f NAME connection show --active | head -1) 2>/dev/null | head -2")
-		if dnsOut, err := dnsCmd.Output(); err == nil {
-			dnsLines := strings.Split(strings.TrimSpace(string(dnsOut)), "\n")
-			for i, dns := range dnsLines {
-				dns = strings.TrimSpace(dns)
-				if dns != "" && strings.Contains(dns, ":") {
-					parts := strings.Split(dns, ":")
-					if len(parts) > 1 {
-						dns = parts[len(parts)-1]
-					}
-					if i == 0 {
-						config["dns1"] = dns
-					} else if i == 1 {
-						config["dns2"] = dns
-					}
-				} else if dns != "" && !strings.Contains(dns, ":") {
-					if i == 0 {
-						config["dns1"] = dns
-					} else if i == 1 {
-						config["dns2"] = dns
-					}
+		// DNS: prioritizamos nmcli activo -> resolvectl -> /etc/resolv.conf
+		if connName := nmcliFirstActiveConnectionName(); connName != "" {
+			if dnsOut, err := exec.Command("nmcli", "-t", "-f", "IP4.DNS", "connection", "show", connName).Output(); err == nil {
+				ips := extractIPv4s(string(dnsOut))
+				if len(ips) > 0 {
+					config["dns1"] = ips[0]
+				}
+				if len(ips) > 1 {
+					config["dns2"] = ips[1]
 				}
 			}
 		}
 
 		if config["dns1"] == "" {
-			resolveCmd := exec.Command("/bin/sh", "-c", "resolvectl dns 2>/dev/null | grep -E '^[0-9]' | awk '{print $2}' | head -2")
-			if resolveOut, err := resolveCmd.Output(); err == nil {
-				resolveLines := strings.Split(strings.TrimSpace(string(resolveOut)), "\n")
-				for i, dns := range resolveLines {
-					dns = strings.TrimSpace(dns)
-					if dns != "" {
-						if i == 0 {
-							config["dns1"] = dns
-						} else if i == 1 {
-							config["dns2"] = dns
-						}
-					}
+			if resolveOut, err := exec.Command("resolvectl", "dns").Output(); err == nil {
+				ips := extractIPv4s(string(resolveOut))
+				if len(ips) > 0 {
+					config["dns1"] = ips[0]
+				}
+				if len(ips) > 1 {
+					config["dns2"] = ips[1]
 				}
 			}
 		}
 
 		if config["dns1"] == "" {
-			resolvCmd := exec.Command("/bin/sh", "-c", "grep '^nameserver' /etc/resolv.conf 2>/dev/null | awk '{print $2}' | head -2")
-			if resolvOut, err := resolvCmd.Output(); err == nil {
-				resolvLines := strings.Split(strings.TrimSpace(string(resolvOut)), "\n")
-				for i, dns := range resolvLines {
-					dns = strings.TrimSpace(dns)
-					if dns != "" && dns != "127.0.0.1" && dns != "127.0.0.53" {
-						if i == 0 {
-							config["dns1"] = dns
-						} else if i == 1 {
-							config["dns2"] = dns
-						}
+			if resolvOut, err := os.ReadFile("/etc/resolv.conf"); err == nil {
+				lines := strings.Split(string(resolvOut), "\n")
+				var ips []string
+				seen := map[string]struct{}{}
+				for _, line := range lines {
+					line = strings.TrimSpace(line)
+					if !strings.HasPrefix(line, "nameserver ") {
+						continue
 					}
+					fields := strings.Fields(line)
+					if len(fields) < 2 {
+						continue
+					}
+					ip := fields[1]
+					if ip == "127.0.0.1" || ip == "127.0.0.53" {
+						continue
+					}
+					if validators.ValidateIP(ip) != nil {
+						continue
+					}
+					if _, ok := seen[ip]; ok {
+						continue
+					}
+					seen[ip] = struct{}{}
+					ips = append(ips, ip)
+				}
+				if len(ips) > 0 {
+					config["dns1"] = ips[0]
+				}
+				if len(ips) > 1 {
+					config["dns2"] = ips[1]
 				}
 			}
 		}
