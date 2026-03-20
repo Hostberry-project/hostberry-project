@@ -92,4 +92,3 @@ func TestValidateShellCommandAllowList_Redirections(t *testing.T) {
 		})
 	}
 }
-
