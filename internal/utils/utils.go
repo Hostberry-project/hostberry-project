@@ -444,4 +444,3 @@ func MapBoolStatus(v string) string {
 	}
 	return "disconnected"
 }
-
