@@ -583,4 +583,3 @@ func getLastConnectedNetwork(interfaceName string) (string, string, error) {
 	// No retornamos password porque no podemos obtenerla del archivo (está hasheada)
 	return ssid, "", nil
 }
-

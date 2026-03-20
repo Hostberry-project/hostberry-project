@@ -390,7 +390,7 @@ func AutoConnectToLastNetwork(interfaceName string) {
 
 	i18n.LogTf("logs.wifi_auto_connect_start", interfaceName)
 
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", interfaceName))
+	cmd := exec.Command("ip", "link", "show", interfaceName)
 	if err := cmd.Run(); err != nil {
 		i18n.LogTf("logs.wifi_interface_not_exists", interfaceName)
 		return
@@ -450,9 +450,8 @@ func AutoConnectToLastNetwork(interfaceName string) {
 			if strings.Contains(statusOut, "wpa_state=COMPLETED") {
 				i18n.LogT("logs.wifi_already_connected")
 				go func() {
-					ipCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 | head -1", interfaceName))
-					if ipOut, _ := ipCmd.Output(); strings.TrimSpace(string(ipOut)) == "" {
-						utils.ExecuteCommand(fmt.Sprintf("sudo dhclient -v %s 2>&1 || sudo udhcpc -i %s -q -n 2>&1 || true", interfaceName, interfaceName))
+					if ip := ifaceIPv4(interfaceName); strings.TrimSpace(ip) == "" {
+						startDHCPForIface(interfaceName)
 					}
 				}()
 				return
@@ -675,9 +674,7 @@ func AutoConnectToLastNetwork(interfaceName string) {
 	var ip string
 	for ipAttempt := 0; ipAttempt < 5; ipAttempt++ {
 		time.Sleep(1 * time.Second)
-		ipCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | cut -d/ -f1 | head -1", interfaceName))
-		ipOut, _ := ipCmd.Output()
-		ip = strings.TrimSpace(string(ipOut))
+		ip = strings.TrimSpace(ifaceIPv4(interfaceName))
 		if ip != "" && ip != "N/A" && !strings.HasPrefix(ip, "169.254") {
 			log.Printf("✅✅ Autoconexión completa: %s (IP: %s)", ssid, ip)
 			return
@@ -690,4 +687,3 @@ func AutoConnectToLastNetwork(interfaceName string) {
 		log.Printf("⚠️  Autoconexión iniciada, puede tardar unos segundos más en completarse")
 	}
 }
-
