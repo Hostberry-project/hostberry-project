@@ -99,7 +99,7 @@ func isBcryptHash(hash string) bool {
 // CheckPassword compara contraseña con hash.
 func CheckPassword(password, hash string) bool {
 	if !isBcryptHash(hash) {
-		return password == hash
+		return false
 	}
 	normalized := hash
 	if strings.HasPrefix(hash, "$2y$") {
@@ -171,13 +171,6 @@ func Login(username, password string) (*models.User, string, error) {
 			return nil, "", &models.LoginError{Key: "auth.too_many_attempts", Default: "demasiados intentos fallidos. Intenta nuevamente más tarde"}
 		}
 		return nil, "", &models.LoginError{Key: "auth.invalid_credentials", Default: "usuario o contraseña incorrectos"}
-	}
-
-	if !strings.HasPrefix(user.Password, "$2a$") && !strings.HasPrefix(user.Password, "$2b$") {
-		if hashed, err := HashPassword(password); err == nil {
-			user.Password = hashed
-			_ = database.DB.Save(&user).Error
-		}
 	}
 
 	user.FailedAttempts = 0
