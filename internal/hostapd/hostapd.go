@@ -24,16 +24,6 @@ func strconvAtoiSafe(s string) (int, error) {
 	return utils.StrconvAtoiSafe(s)
 }
 
-func systemctlIsActive(service string) string {
-	out, _ := exec.Command("systemctl", "is-active", service).CombinedOutput()
-	return strings.TrimSpace(string(out))
-}
-
-func systemctlIsEnabled(service string) string {
-	out, _ := exec.Command("systemctl", "is-enabled", service).CombinedOutput()
-	return strings.TrimSpace(string(out))
-}
-
 func processRunning(procName string) bool {
 	return exec.Command("pgrep", procName).Run() == nil
 }
@@ -331,12 +321,11 @@ func HostapdCreateAp0Handler(c *fiber.Ctx) error {
 func HostapdToggleHandler(c *fiber.Ctx) error {
 	log.Printf("HostAPD toggle request received")
 
-	hostapdStatus := systemctlIsActive("hostapd")
-	// Mantener compatibilidad: si systemctl no lo marca como active pero pgrep encuentra procesos, lo consideramos active.
-	if hostapdStatus != "active" && processRunning("hostapd") {
+	isActive := hostapdProcessOrUnitActive()
+	hostapdStatus := "inactive"
+	if isActive {
 		hostapdStatus = "active"
 	}
-	isActive := hostapdStatus == "active"
 
 	log.Printf("Current HostAPD status: %s (isActive: %v)", hostapdStatus, isActive)
 
@@ -579,11 +568,11 @@ func HostapdToggleHandler(c *fiber.Ctx) error {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	hostapdStatus2 := systemctlIsActive("hostapd")
-	if hostapdStatus2 != "active" && processRunning("hostapd") {
+	actuallyActive := hostapdProcessOrUnitActive()
+	hostapdStatus2 := "inactive"
+	if actuallyActive {
 		hostapdStatus2 = "active"
 	}
-	actuallyActive := hostapdStatus2 == "active"
 
 	if action == "enable" && !actuallyActive {
 		log.Printf("HostAPD failed to start. Checking logs...")
@@ -693,7 +682,11 @@ func HostapdRestartHandler(c *fiber.Ctx) error {
 func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	diagnostics := make(map[string]interface{})
 
-	systemctlStatus := systemctlIsActive("hostapd")
+	systemctlActive := systemctlIsActive("hostapd")
+	systemctlStatus := "inactive"
+	if systemctlActive {
+		systemctlStatus = "active"
+	}
 	pgrepStatus := "inactive"
 	if processRunning("hostapd") {
 		pgrepStatus = "active"
@@ -774,8 +767,8 @@ func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	interfaceUp := strings.Contains(strings.ToLower(ipOut), "state up")
 	diagnostics["interface_up"] = interfaceUp
 
-	dnsmasqStatus := systemctlIsActive("dnsmasq")
-	diagnostics["dnsmasq_running"] = dnsmasqStatus == "active"
+	dnsmasqActive := systemctlIsActive("dnsmasq")
+	diagnostics["dnsmasq_running"] = dnsmasqActive
 
 	diagnostics["status"] = func() string {
 		if !serviceRunning {
