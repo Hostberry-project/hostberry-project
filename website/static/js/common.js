@@ -173,7 +173,10 @@
     return typeof cur === 'string' ? cur : (defaultValue || key);
   }
 
-  // Floating alert top right
+  // Tiempo hasta auto-cierre de notificaciones flotantes (ms)
+  var HB_ALERT_AUTO_DISMISS_MS = 8000;
+
+  // Floating alert top right: auto-cierra a los 8s y botón X manual
   function showAlert(type, message){
     const containerId = 'hb-alert-container';
     let container = document.getElementById(containerId);
@@ -187,14 +190,41 @@
       container.style.maxWidth = '360px';
       document.body.appendChild(container);
     }
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-' + (type || 'info') + ' shadow';
-    alert.style.marginBottom = '10px';
-    alert.innerText = message || '';
-    container.appendChild(alert);
-    setTimeout(function(){
-      if(alert && alert.parentNode){ alert.parentNode.removeChild(alert); }
-    }, 5000);
+    const alertEl = document.createElement('div');
+    alertEl.className = 'alert alert-' + (type || 'info') + ' alert-dismissible fade show shadow d-flex align-items-center';
+    alertEl.setAttribute('role', 'alert');
+    alertEl.style.marginBottom = '10px';
+
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'flex-grow-1 me-2';
+    msgSpan.textContent = message || '';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close flex-shrink-0';
+    closeBtn.setAttribute('aria-label', t('common.close', 'Close'));
+
+    var hideTimer = null;
+    function dismissAlert(){
+      if(hideTimer != null){
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
+      if(alertEl && alertEl.parentNode){
+        alertEl.parentNode.removeChild(alertEl);
+      }
+    }
+
+    closeBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      dismissAlert();
+    });
+
+    alertEl.appendChild(msgSpan);
+    alertEl.appendChild(closeBtn);
+    container.appendChild(alertEl);
+
+    hideTimer = setTimeout(dismissAlert, HB_ALERT_AUTO_DISMISS_MS);
   }
 
   // Fetch wrapper with JSON y detección básica de 401/403

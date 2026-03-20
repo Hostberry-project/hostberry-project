@@ -103,7 +103,7 @@
       if (alertDiv.parentNode) {
         alertDiv.remove();
       }
-    }, 5000);
+    }, 8000);
   }
 
   // Función para mostrar notificación de éxito
