@@ -18,6 +18,154 @@ func executeCommand(cmd string) (string, error) {
 	return utils.ExecuteCommand(cmd)
 }
 
+func readFirstMatchCPUInfo() string {
+	b, err := os.ReadFile("/proc/cpuinfo")
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		lower := strings.ToLower(line)
+		if strings.Contains(lower, "model name") || strings.Contains(lower, "processor") || strings.Contains(lower, "hardware") {
+			parts := strings.SplitN(line, ":", 2)
+			if len(parts) == 2 {
+				return strings.TrimSpace(parts[1])
+			}
+		}
+	}
+	return ""
+}
+
+func uptimeSeconds() int {
+	b, err := os.ReadFile("/proc/uptime")
+	if err != nil {
+		return 0
+	}
+	fields := strings.Fields(string(b))
+	if len(fields) == 0 {
+		return 0
+	}
+	f, err := strconv.ParseFloat(fields[0], 64)
+	if err != nil {
+		return 0
+	}
+	return int(f)
+}
+
+func loadAverageString() string {
+	b, err := os.ReadFile("/proc/loadavg")
+	if err != nil {
+		return "0.00, 0.00, 0.00"
+	}
+	fields := strings.Fields(string(b))
+	if len(fields) < 3 {
+		return "0.00, 0.00, 0.00"
+	}
+	// Mantener compatibilidad de formato (con comas + espacios).
+	return fmt.Sprintf("%s, %s, %s", fields[0], fields[1], fields[2])
+}
+
+func cpuUsagePercent() float64 {
+	b, err := os.ReadFile("/proc/stat")
+	if err != nil {
+		return 0.0
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		if !strings.HasPrefix(line, "cpu ") {
+			continue
+		}
+		fields := strings.Fields(line)
+		// cpu  user nice system idle iowait irq softirq steal guest guest_nice
+		if len(fields) < 5 {
+			return 0.0
+		}
+		user, err1 := strconv.ParseFloat(fields[1], 64)
+		niceV, err2 := strconv.ParseFloat(fields[2], 64)
+		systemV, err3 := strconv.ParseFloat(fields[3], 64)
+		idleV, err4 := strconv.ParseFloat(fields[4], 64)
+		if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+			return 0.0
+		}
+		den := user + niceV + systemV + idleV
+		if den <= 0 {
+			return 0.0
+		}
+		usage := (user + systemV) * 100.0 / den
+		if usage < 0 || usage > 100 {
+			return 0.0
+		}
+		return usage
+	}
+	return 0.0
+}
+
+func memoryUsagePercent() float64 {
+	b, err := os.ReadFile("/proc/meminfo")
+	if err != nil {
+		return 0.0
+	}
+	var totalKB, availKB float64
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "MemTotal:") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				totalKB, _ = strconv.ParseFloat(fields[1], 64)
+			}
+		}
+		if strings.HasPrefix(line, "MemAvailable:") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				availKB, _ = strconv.ParseFloat(fields[1], 64)
+			}
+		}
+	}
+	if totalKB <= 0 {
+		return 0.0
+	}
+	usedKB := totalKB - availKB
+	if usedKB < 0 {
+		usedKB = 0
+	}
+	usage := usedKB * 100.0 / totalKB
+	if usage < 0 || usage > 100 {
+		return 0.0
+	}
+	return usage
+}
+
+func diskUsagePercent(path string) float64 {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(path, &st); err != nil {
+		return 0.0
+	}
+	if st.Blocks == 0 {
+		return 0.0
+	}
+	used := float64(st.Blocks-st.Bfree) * 100.0 / float64(st.Blocks)
+	if used < 0 || used > 100 {
+		return 0.0
+	}
+	return used
+}
+
+func cpuTemperatureC() float64 {
+	b, err := os.ReadFile("/sys/class/thermal/thermal_zone0/temp")
+	if err != nil {
+		return 0.0
+	}
+	s := strings.TrimSpace(string(b))
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0.0
+	}
+	// En la mayoría de sistemas viene en miligrados.
+	return v / 1000.0
+}
+
 func getSystemInfo() map[string]interface{} {
 	result := make(map[string]interface{})
 
@@ -39,9 +187,8 @@ func getSystemInfo() map[string]interface{} {
 		result["architecture"] = "unknown"
 	}
 
-	processorCmd := exec.Command("sh", "-c", "cat /proc/cpuinfo | grep -m1 'model name\\|Processor\\|Hardware' | cut -d ':' -f 2 | sed 's/^[[:space:]]*//'")
-	if processor, err := processorCmd.Output(); err == nil {
-		result["processor"] = strings.TrimSpace(string(processor))
+	if processor := strings.TrimSpace(readFirstMatchCPUInfo()); processor != "" {
+		result["processor"] = processor
 	} else {
 		result["processor"] = "ARM Processor"
 	}
@@ -58,26 +205,11 @@ func getSystemInfo() map[string]interface{} {
 	}
 	result["os_version"] = osVersion
 
-	uptimeCmd := exec.Command("sh", "-c", "cat /proc/uptime | awk '{print int($1)}'")
-	if uptimeOut, err := uptimeCmd.Output(); err == nil {
-		if uptimeSeconds, err := strconv.Atoi(strings.TrimSpace(string(uptimeOut))); err == nil {
-			result["uptime_seconds"] = uptimeSeconds
-			result["boot_time"] = time.Now().Unix() - int64(uptimeSeconds)
-		} else {
-			result["uptime_seconds"] = 0
-			result["boot_time"] = time.Now().Unix()
-		}
-	} else {
-		result["uptime_seconds"] = 0
-		result["boot_time"] = time.Now().Unix()
-	}
+	uptimeS := uptimeSeconds()
+	result["uptime_seconds"] = uptimeS
+	result["boot_time"] = time.Now().Unix() - int64(uptimeS)
 
-	loadavgCmd := exec.Command("sh", "-c", "cat /proc/loadavg | awk '{print $1 \", \" $2 \", \" $3}'")
-	if loadavg, err := loadavgCmd.Output(); err == nil {
-		result["load_average"] = strings.TrimSpace(string(loadavg))
-	} else {
-		result["load_average"] = "0.00, 0.00, 0.00"
-	}
+	result["load_average"] = loadAverageString()
 
 	return result
 }
@@ -85,75 +217,15 @@ func getSystemInfo() map[string]interface{} {
 func getSystemStats() map[string]interface{} {
 	result := make(map[string]interface{})
 
-	cpuCmd := exec.Command("sh", "-c", "grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$3+$4+$5)} END {print usage}'")
-	if cpuOut, err := cpuCmd.Output(); err == nil {
-		cpuStr := strings.TrimSpace(string(cpuOut))
-		cpuStr = strings.ReplaceAll(cpuStr, ",", ".")
-		if cpuUsage, err := strconv.ParseFloat(cpuStr, 64); err == nil && cpuUsage >= 0 && cpuUsage <= 100 {
-			result["cpu_usage"] = cpuUsage
-		} else {
-			cpuCmd2 := exec.Command("sh", "-c", "top -bn1 | grep 'Cpu(s)' | awk -F'id,' '{split($1,a,\"%\"); for(i in a){if(a[i] ~ /^[0-9]/){print 100-a[i];break}}}'")
-			if cpuOut2, err2 := cpuCmd2.Output(); err2 == nil {
-				cpuStr2 := strings.TrimSpace(string(cpuOut2))
-				cpuStr2 = strings.ReplaceAll(cpuStr2, ",", ".")
-				if cpuUsage2, err2 := strconv.ParseFloat(cpuStr2, 64); err2 == nil && cpuUsage2 >= 0 && cpuUsage2 <= 100 {
-					result["cpu_usage"] = cpuUsage2
-				} else {
-					result["cpu_usage"] = 0.0
-				}
-			} else {
-				result["cpu_usage"] = 0.0
-			}
-		}
-	} else {
-		result["cpu_usage"] = 0.0
-	}
+	result["cpu_usage"] = cpuUsagePercent()
 
-	memCmd := exec.Command("sh", "-c", "free | grep Mem | awk '{printf \"%.2f\", $3/$2 * 100.0}'")
-	if memOut, err := memCmd.Output(); err == nil {
-		memStr := strings.TrimSpace(string(memOut))
-		memStr = strings.ReplaceAll(memStr, ",", ".")
-		if memUsage, err := strconv.ParseFloat(memStr, 64); err == nil && memUsage >= 0 && memUsage <= 100 {
-			result["memory_usage"] = memUsage
-		} else {
-			result["memory_usage"] = 0.0
-		}
-	} else {
-		result["memory_usage"] = 0.0
-	}
+	result["memory_usage"] = memoryUsagePercent()
 
-	diskCmd := exec.Command("sh", "-c", "df / | tail -1 | awk '{print $5}' | sed 's/%//'")
-	if diskOut, err := diskCmd.Output(); err == nil {
-		if diskUsage, err := strconv.ParseFloat(strings.TrimSpace(string(diskOut)), 64); err == nil && diskUsage >= 0 && diskUsage <= 100 {
-			result["disk_usage"] = diskUsage
-		} else {
-			result["disk_usage"] = 0.0
-		}
-	} else {
-		result["disk_usage"] = 0.0
-	}
+	result["disk_usage"] = diskUsagePercent("/")
 
-	uptimeCmd := exec.Command("sh", "-c", "cat /proc/uptime | awk '{print int($1)}'")
-	if uptimeOut, err := uptimeCmd.Output(); err == nil {
-		if uptimeSeconds, err := strconv.Atoi(strings.TrimSpace(string(uptimeOut))); err == nil {
-			result["uptime"] = uptimeSeconds
-		} else {
-			result["uptime"] = 0
-		}
-	} else {
-		result["uptime"] = 0
-	}
+	result["uptime"] = uptimeSeconds()
 
-	tempCmd := exec.Command("sh", "-c", "cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null | awk '{print $1/1000}'")
-	if tempOut, err := tempCmd.Output(); err == nil {
-		if temp, err := strconv.ParseFloat(strings.TrimSpace(string(tempOut)), 64); err == nil {
-			result["cpu_temperature"] = temp
-		} else {
-			result["cpu_temperature"] = 0.0
-		}
-	} else {
-		result["cpu_temperature"] = 0.0
-	}
+	result["cpu_temperature"] = cpuTemperatureC()
 
 	coresCmd := exec.Command("nproc")
 	if coresOut, err := coresCmd.Output(); err == nil {
@@ -184,14 +256,8 @@ func getSystemStats() map[string]interface{} {
 		result["architecture"] = "unknown"
 	}
 
-	processorCmd := exec.Command("sh", "-c", "cat /proc/cpuinfo | grep -m1 'model name\\|Processor\\|Hardware' | cut -d ':' -f 2 | sed 's/^[[:space:]]*//'")
-	if processor, err := processorCmd.Output(); err == nil {
-		processorStr := strings.TrimSpace(string(processor))
-		if processorStr != "" {
-			result["processor"] = processorStr
-		} else {
-			result["processor"] = "ARM Processor"
-		}
+	if processorStr := strings.TrimSpace(readFirstMatchCPUInfo()); processorStr != "" {
+		result["processor"] = processorStr
 	} else {
 		result["processor"] = "ARM Processor"
 	}
@@ -208,12 +274,7 @@ func getSystemStats() map[string]interface{} {
 	}
 	result["os_version"] = osVersion
 
-	loadavgCmd := exec.Command("sh", "-c", "cat /proc/loadavg | awk '{print $1 \", \" $2 \", \" $3}'")
-	if loadavg, err := loadavgCmd.Output(); err == nil {
-		result["load_average"] = strings.TrimSpace(string(loadavg))
-	} else {
-		result["load_average"] = "0.00, 0.00, 0.00"
-	}
+	result["load_average"] = loadAverageString()
 
 	return result
 }
