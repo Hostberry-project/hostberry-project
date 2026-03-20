@@ -2,6 +2,7 @@ package health
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -176,8 +177,13 @@ func wifiInterfaceUp() int {
 	if constants.DefaultWiFiInterface == "" {
 		return 0
 	}
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null | grep -q 'state UP'", constants.DefaultWiFiInterface))
-	if err := cmd.Run(); err == nil {
+	if state, err := os.ReadFile("/sys/class/net/" + constants.DefaultWiFiInterface + "/operstate"); err == nil {
+		if strings.EqualFold(strings.TrimSpace(string(state)), "up") {
+			return 1
+		}
+	}
+	out, err := exec.Command("ip", "link", "show", constants.DefaultWiFiInterface).Output()
+	if err == nil && strings.Contains(strings.ToUpper(string(out)), "STATE UP") {
 		return 1
 	}
 	return 0
