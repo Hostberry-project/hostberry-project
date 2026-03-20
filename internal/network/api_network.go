@@ -1,8 +1,8 @@
 package network
 
 import (
-	"io"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
