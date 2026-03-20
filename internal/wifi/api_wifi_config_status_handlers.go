@@ -134,4 +134,3 @@ func WifiConfigHandler(c *fiber.Ctx) error {
 func WifiStatusHandler(c *fiber.Ctx) error {
 	return WifiLegacyStatusHandler(c)
 }
-
