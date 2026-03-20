@@ -295,4 +295,3 @@ func GetWireGuardStatus() map[string]interface{} { return getWireGuardStatus() }
 func ConfigureWireGuard(config, user string) map[string]interface{} {
 	return configureWireGuard(config, user)
 }
-

@@ -416,4 +416,4 @@ func getNetworkStatus() map[string]interface{} {
 // ---- Exportados para el paquete principal ----
 
 func GetNetworkInterfaces() map[string]interface{} { return getNetworkInterfaces() }
-func GetNetworkStatus() map[string]interface{}    { return getNetworkStatus() }
+func GetNetworkStatus() map[string]interface{}     { return getNetworkStatus() }
