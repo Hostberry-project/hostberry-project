@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	middleware "hostberry/internal/middleware"
 )
 
 func TestLoginRateLimitMiddlewareLimitsByUsername(t *testing.T) {
-	loginIPRateLimiter = middleware.NewRateLimiter(10, time.Minute)
-	loginUsernameRateLimiter = middleware.NewRateLimiter(2, time.Minute)
+	loginIPRateLimiter = newAuthRateLimiter(10, time.Minute)
+	loginUsernameRateLimiter = newAuthRateLimiter(2, time.Minute)
 
 	app := fiber.New()
 	app.Post("/login", LoginRateLimitMiddleware, func(c *fiber.Ctx) error {
@@ -48,7 +47,7 @@ func TestLoginRateLimitMiddlewareLimitsByUsername(t *testing.T) {
 }
 
 func TestFirstLoginRateLimitMiddlewareLimitsByIP(t *testing.T) {
-	firstLoginIPRateLimiter = middleware.NewRateLimiter(2, time.Minute)
+	firstLoginIPRateLimiter = newAuthRateLimiter(2, time.Minute)
 
 	app := fiber.New()
 	app.Post("/first-login/change", FirstLoginRateLimitMiddleware, func(c *fiber.Ctx) error {
