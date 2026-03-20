@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,8 +21,11 @@ func WifiLegacyStoredNetworksHandler(c *fiber.Ctx) error {
 
 	interfaceName := "wlan0"
 
-	listCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo wpa_cli -i %s list_networks 2>/dev/null", interfaceName))
-	listOut, err := listCmd.CombinedOutput()
+	listOut, err := exec.Command("sudo", "wpa_cli", "-i", interfaceName, "list_networks").CombinedOutput()
+	if err != nil {
+		// Fallback por si se ejecuta como root o sin sudo.
+		listOut, err = exec.Command("wpa_cli", "-i", interfaceName, "list_networks").CombinedOutput()
+	}
 
 	if err == nil && len(listOut) > 0 {
 		lines := strings.Split(string(listOut), "\n")
@@ -44,13 +48,18 @@ func WifiLegacyStoredNetworksHandler(c *fiber.Ctx) error {
 						"status": "saved",
 					}
 
-					enabledCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo wpa_cli -i %s get_network %s disabled 2>/dev/null", interfaceName, networkID))
-					enabledOut, _ := enabledCmd.CombinedOutput()
-					if strings.TrimSpace(string(enabledOut)) == "0" {
-						network["enabled"] = true
-						lastConnected = append(lastConnected, ssid)
-					} else {
-						network["enabled"] = false
+					// networkID esperado numérico (wpa_cli ids).
+					if _, convErr := strconv.Atoi(networkID); convErr == nil {
+						enabledOut, _ := exec.Command("sudo", "wpa_cli", "-i", interfaceName, "get_network", networkID, "disabled").CombinedOutput()
+						if len(enabledOut) == 0 {
+							enabledOut, _ = exec.Command("wpa_cli", "-i", interfaceName, "get_network", networkID, "disabled").CombinedOutput()
+						}
+						if strings.TrimSpace(string(enabledOut)) == "0" {
+							network["enabled"] = true
+							lastConnected = append(lastConnected, ssid)
+						} else {
+							network["enabled"] = false
+						}
 					}
 
 					networks = append(networks, network)
@@ -188,4 +197,3 @@ func WifiLegacyDisconnectHandler(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"success": true, "message": "Disconnected from WiFi"})
 }
-
