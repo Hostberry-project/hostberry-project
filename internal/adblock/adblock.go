@@ -431,8 +431,10 @@ func enableDNSCrypt(user string) map[string]interface{} {
 	newLines = append(newLines, "nameserver ::1")
 
 	newContent := strings.Join(newLines, "\n")
-	writeCmd := exec.Command("sudo", "sh", "-c", fmt.Sprintf("cat > %s", resolvConf))
+	writeCmd := exec.Command("sudo", "tee", resolvConf)
 	writeCmd.Stdin = strings.NewReader(newContent)
+	writeCmd.Stdout = io.Discard
+	writeCmd.Stderr = io.Discard
 	if err := writeCmd.Run(); err != nil {
 		i18n.LogTf("logs.dnscrypt_resolv_error", err)
 		// No es crítico, continuar
@@ -469,8 +471,10 @@ func disableDNSCrypt(user string) map[string]interface{} {
 	} else {
 		// Si no hay backup, usar DNS públicos por defecto
 		content := "nameserver 8.8.8.8\nnameserver 8.8.4.4\n"
-		writeCmd := exec.Command("sudo", "sh", "-c", fmt.Sprintf("cat > %s", resolvConf))
+		writeCmd := exec.Command("sudo", "tee", resolvConf)
 		writeCmd.Stdin = strings.NewReader(content)
+		writeCmd.Stdout = io.Discard
+		writeCmd.Stderr = io.Discard
 		writeCmd.Run()
 	}
 
@@ -492,10 +496,10 @@ const blockyVersion = "v0.28.2"
 
 func blockyBinaryExists() bool {
 	// Servicio blocky o binario en path
-	if out, err := exec.Command("sh", "-c", "systemctl cat blocky 2>/dev/null | head -1").Output(); err == nil && strings.Contains(string(out), "blocky") {
+	if out, err := exec.Command("systemctl", "cat", "blocky").Output(); err == nil && strings.Contains(string(out), "blocky") {
 		return true
 	}
-	if checkCmd := exec.Command("sh", "-c", "command -v blocky 2>/dev/null"); checkCmd.Run() == nil {
+	if _, err := exec.LookPath("blocky"); err == nil {
 		return true
 	}
 	if _, err := os.Stat("/usr/local/bin/blocky"); err == nil {
