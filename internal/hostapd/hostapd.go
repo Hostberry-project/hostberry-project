@@ -24,6 +24,61 @@ func strconvAtoiSafe(s string) (int, error) {
 	return utils.StrconvAtoiSafe(s)
 }
 
+func systemctlIsActive(service string) string {
+	out, _ := exec.Command("systemctl", "is-active", service).CombinedOutput()
+	return strings.TrimSpace(string(out))
+}
+
+func systemctlIsEnabled(service string) string {
+	out, _ := exec.Command("systemctl", "is-enabled", service).CombinedOutput()
+	return strings.TrimSpace(string(out))
+}
+
+func processRunning(procName string) bool {
+	return exec.Command("pgrep", procName).Run() == nil
+}
+
+func firstIPv4FromIPAddrShow(iface string) string {
+	out, err := exec.Command("ip", "addr", "show", iface).Output()
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "inet ") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 {
+				return strings.TrimSpace(strings.SplitN(fields[1], "/", 2)[0])
+			}
+		}
+	}
+	return ""
+}
+
+func lastNLines(s string, n int) []string {
+	s = strings.TrimSpace(s)
+	if s == "" || n <= 0 {
+		return []string{}
+	}
+	lines := strings.Split(s, "\n")
+	if len(lines) <= n {
+		return lines
+	}
+	return lines[len(lines)-n:]
+}
+
+func firstNLines(s string, n int) []string {
+	s = strings.TrimSpace(s)
+	if s == "" || n <= 0 {
+		return []string{}
+	}
+	lines := strings.Split(s, "\n")
+	if len(lines) <= n {
+		return lines
+	}
+	return lines[:n]
+}
+
 func HostapdAccessPointsHandler(c *fiber.Ctx) error {
 	var aps []fiber.Map
 
