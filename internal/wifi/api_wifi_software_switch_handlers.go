@@ -18,8 +18,7 @@ func WifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 	}
 	userID := user.ID
 
-	rfkillCheck := exec.Command("sh", "-c", "command -v rfkill 2>/dev/null")
-	if rfkillCheck.Run() != nil {
+	if _, err := exec.LookPath("rfkill"); err != nil {
 		errorMsg := "rfkill no está disponible en el sistema"
 		database.InsertLog("ERROR", database.LogMsgErr("cambiar conmutador de software WiFi", errorMsg, user.Username), "wifi", &userID)
 		return c.Status(500).JSON(fiber.Map{"success": false, "error": errorMsg})
