@@ -150,8 +150,8 @@ func getDNSCryptStatus() map[string]interface{} {
 	result := make(map[string]interface{})
 
 	// Verificar si está instalado
-	checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null")
-	installed := checkCmd.Run() == nil
+	_, err := exec.LookPath("dnscrypt-proxy")
+	installed := err == nil
 	result["installed"] = installed
 
 	if !installed {
@@ -161,15 +161,13 @@ func getDNSCryptStatus() map[string]interface{} {
 	}
 
 	// Verificar estado del servicio
-	statusCmd := exec.Command("sh", "-c", "systemctl is-active dnscrypt-proxy 2>/dev/null || echo inactive")
-	statusOut, _ := statusCmd.Output()
+	statusOut, _ := exec.Command("systemctl", "is-active", "dnscrypt-proxy").Output()
 	status := strings.TrimSpace(string(statusOut))
 	result["active"] = status == "active"
 	result["status"] = status
 
 	// Verificar si está habilitado para iniciar al arranque
-	enabledCmd := exec.Command("sh", "-c", "systemctl is-enabled dnscrypt-proxy 2>/dev/null || echo disabled")
-	enabledOut, _ := enabledCmd.Output()
+	enabledOut, _ := exec.Command("systemctl", "is-enabled", "dnscrypt-proxy").Output()
 	enabled := strings.TrimSpace(string(enabledOut))
 	result["enabled"] = enabled == "enabled"
 
@@ -184,11 +182,18 @@ func getDNSCryptStatus() map[string]interface{} {
 
 	// Verificar qué servidor está usando
 	if result["active"] == true {
-		logCmd := exec.Command("sh", "-c", "journalctl -u dnscrypt-proxy -n 10 --no-pager 2>/dev/null | grep -i 'server' | tail -1")
-		if logOut, err := logCmd.Output(); err == nil {
-			logLine := strings.TrimSpace(string(logOut))
-			if logLine != "" {
-				result["current_server"] = logLine
+		logOut, err := exec.Command("journalctl", "-u", "dnscrypt-proxy", "-n", "10", "--no-pager").Output()
+		if err == nil {
+			matches := []string{}
+			for _, line := range strings.Split(string(logOut), "\n") {
+				if strings.Contains(strings.ToLower(line), "server") {
+					if s := strings.TrimSpace(line); s != "" {
+						matches = append(matches, s)
+					}
+				}
+			}
+			if len(matches) > 0 {
+				result["current_server"] = matches[len(matches)-1]
 			}
 		}
 	}
