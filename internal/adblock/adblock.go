@@ -263,10 +263,10 @@ func configureDNSCrypt(serverName string, blockAds bool, user string) map[string
 
 	// Servidores DNSCrypt recomendados que filtran publicidad
 	servers := map[string]string{
-		"adguard-dns":     "sdns://AQMAAAAAAAAAFDE3Ni4xMDMuMTMwLjEzMDo1NDQzINErR_JS3PLCu_iZEIbq95zkSV2LFsigxDIuUso_OQhzIjIuZG5zY3J5cHQuZGVmYXVsdC5uczEuYWRndWFyZC5jb20",
+		"adguard-dns":      "sdns://AQMAAAAAAAAAFDE3Ni4xMDMuMTMwLjEzMDo1NDQzINErR_JS3PLCu_iZEIbq95zkSV2LFsigxDIuUso_OQhzIjIuZG5zY3J5cHQuZGVmYXVsdC5uczEuYWRndWFyZC5jb20",
 		"adguard-dns-ipv6": "sdns://AQMAAAAAAAAAGVsyYTAwOjVhODA6MjIwMDo6XTo1NDQzINErR_JS3PLCu_iZEIbq95zkSV2LFsigxDIuUso_OQhzIjIuZG5zY3J5cHQuZGVmYXVsdC5uczEuYWRndWFyZC5jb20",
-		"quad9-dnscrypt":  "sdns://AQMAAAAAAAAADTkuOS45Ljk6ODQ0MyBnyEe4yHWM0SAkVUO-dWdG3zTfHYTAC4xHA2jfgh2GPhkyLmRuc2NyeXB0LXByb3h5LnF1YWQ5Lm5ldA",
-		"cloudflare":      "sdns://AgcAAAAAAAAABzEuMC4wLjEAEmRucy5jbG91ZGZsYXJlLmNvbQovZG5zLXF1ZXJ5",
+		"quad9-dnscrypt":   "sdns://AQMAAAAAAAAADTkuOS45Ljk6ODQ0MyBnyEe4yHWM0SAkVUO-dWdG3zTfHYTAC4xHA2jfgh2GPhkyLmRuc2NyeXB0LXByb3h5LnF1YWQ5Lm5ldA",
+		"cloudflare":       "sdns://AgcAAAAAAAAABzEuMC4wLjEAEmRucy5jbG91ZGZsYXJlLmNvbQovZG5zLXF1ZXJ5",
 	}
 
 	serverSDNS := servers["adguard-dns"] // Por defecto AdGuard que filtra publicidad
@@ -1082,20 +1082,20 @@ func blockyAPIProxy(method, path string, body []byte) (int, []byte) {
 
 // ---- Exportados para el paquete principal ----
 
-func GetAdBlockStatus() map[string]interface{}                     { return getAdBlockStatus() }
-func EnableAdBlock(user string) map[string]interface{}            { return enableAdBlock(user) }
-func DisableAdBlock(user string) map[string]interface{}           { return disableAdBlock(user) }
-func GetDNSCryptStatus() map[string]interface{}                   { return getDNSCryptStatus() }
-func InstallDNSCrypt(user string) map[string]interface{}          { return installDNSCrypt(user) }
+func GetAdBlockStatus() map[string]interface{}           { return getAdBlockStatus() }
+func EnableAdBlock(user string) map[string]interface{}   { return enableAdBlock(user) }
+func DisableAdBlock(user string) map[string]interface{}  { return disableAdBlock(user) }
+func GetDNSCryptStatus() map[string]interface{}          { return getDNSCryptStatus() }
+func InstallDNSCrypt(user string) map[string]interface{} { return installDNSCrypt(user) }
 func ConfigureDNSCrypt(serverName string, blockAds bool, user string) map[string]interface{} {
 	return configureDNSCrypt(serverName, blockAds, user)
 }
 func EnableDNSCrypt(user string) map[string]interface{}  { return enableDNSCrypt(user) }
 func DisableDNSCrypt(user string) map[string]interface{} { return disableDNSCrypt(user) }
 
-func GetBlockyStatus() map[string]interface{}                    { return getBlockyStatus() }
-func GetBlockyConfig() map[string]interface{}                    { return getBlockyConfig() }
-func InstallBlocky(user string) map[string]interface{}           { return installBlocky(user) }
+func GetBlockyStatus() map[string]interface{}          { return getBlockyStatus() }
+func GetBlockyConfig() map[string]interface{}          { return getBlockyConfig() }
+func InstallBlocky(user string) map[string]interface{} { return installBlocky(user) }
 func ConfigureBlocky(upstreams []string, blockLists []string, user string) map[string]interface{} {
 	return configureBlocky(upstreams, blockLists, user)
 }
