@@ -49,9 +49,9 @@ func SystemLogsHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"logs":  logs,
-		"total": total,
-		"limit": limit,
+		"logs":   logs,
+		"total":  total,
+		"limit":  limit,
 		"offset": offset,
 	})
 }
@@ -177,4 +177,3 @@ func SystemShutdownHandler(c *fiber.Ctx) error {
 
 	return c.Status(500).JSON(fiber.Map{"error": "Error desconocido"})
 }
-
