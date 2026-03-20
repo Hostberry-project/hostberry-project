@@ -141,19 +141,19 @@ func MetricsSummaryHandler(c *fiber.Ctx) error {
 	wifiIfaceUp := wifiInterfaceUp()
 
 	return c.JSON(fiber.Map{
-		"up":           true,
-		"version":      "2.0.0",
-		"go_version":   runtime.Version(),
-		"unix_time":    time.Now().Unix(),
-		"mem_bytes":    m.Alloc,
-		"goroutines":   runtime.NumGoroutine(),
-		"http_2xx":     req2xx,
-		"http_4xx":     req4xx,
-		"http_5xx":     req5xx,
-		"hostapd_up":   hostapdUp == 1,
-		"dnsmasq_up":   dnsmasqUp == 1,
-		"wifi_iface":   constants.DefaultWiFiInterface,
-		"wifi_up":      wifiIfaceUp == 1,
+		"up":         true,
+		"version":    "2.0.0",
+		"go_version": runtime.Version(),
+		"unix_time":  time.Now().Unix(),
+		"mem_bytes":  m.Alloc,
+		"goroutines": runtime.NumGoroutine(),
+		"http_2xx":   req2xx,
+		"http_4xx":   req4xx,
+		"http_5xx":   req5xx,
+		"hostapd_up": hostapdUp == 1,
+		"dnsmasq_up": dnsmasqUp == 1,
+		"wifi_iface": constants.DefaultWiFiInterface,
+		"wifi_up":    wifiIfaceUp == 1,
 	})
 }
 
@@ -182,4 +182,3 @@ func wifiInterfaceUp() int {
 	}
 	return 0
 }
-
