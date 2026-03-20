@@ -14,87 +14,67 @@ import (
 	"hostberry/internal/metrics"
 )
 
-type HealthCheckResponse struct {
-	Status    string            `json:"status"`
-	Timestamp time.Time         `json:"timestamp"`
-	Version   string            `json:"version"`
-	Services  map[string]string `json:"services"`
-}
-
 func HealthCheckHandler(c *fiber.Ctx) error {
-	response := HealthCheckResponse{
-		Status:    "healthy",
-		Timestamp: time.Now(),
-		Version:   "2.0.0",
-		Services:  make(map[string]string),
-	}
+	status := "healthy"
 
 	if database.DB != nil {
 		sqlDB, err := database.DB.DB()
 		if err == nil {
-			if err := sqlDB.Ping(); err == nil {
-				response.Services["database"] = "healthy"
-			} else {
-				response.Services["database"] = "unhealthy"
-				response.Status = "degraded"
+			if err := sqlDB.Ping(); err != nil {
+				status = "degraded"
 			}
 		} else {
-			response.Services["database"] = "unhealthy"
-			response.Status = "degraded"
+			status = "degraded"
 		}
 	} else {
-		response.Services["database"] = "not_configured"
-		response.Status = "degraded"
+		status = "degraded"
 	}
 
-	if i18n.Ready() {
-		response.Services["i18n"] = "healthy"
-	} else {
-		response.Services["i18n"] = "unhealthy"
-		response.Status = "degraded"
+	if !i18n.Ready() {
+		status = "degraded"
 	}
 
+	c.Set(fiber.HeaderCacheControl, "no-store")
 	statusCode := 200
-	if response.Status == "degraded" {
+	if status == "degraded" {
 		statusCode = 503
 	}
 
-	return c.Status(statusCode).JSON(response)
+	return c.Status(statusCode).JSON(fiber.Map{
+		"status": status,
+	})
 }
 
 func ReadinessCheckHandler(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderCacheControl, "no-store")
 	if database.DB == nil {
 		return c.Status(503).JSON(fiber.Map{
-			"status":  "not_ready",
-			"message": "Database not initialized",
+			"status": "not_ready",
 		})
 	}
 
 	sqlDB, err := database.DB.DB()
 	if err != nil {
 		return c.Status(503).JSON(fiber.Map{
-			"status":  "not_ready",
-			"message": "Database connection error",
+			"status": "not_ready",
 		})
 	}
 
 	if err := sqlDB.Ping(); err != nil {
 		return c.Status(503).JSON(fiber.Map{
-			"status":  "not_ready",
-			"message": "Database ping failed",
+			"status": "not_ready",
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"status":  "ready",
-		"message": "Application is ready",
+		"status": "ready",
 	})
 }
 
 func LivenessCheckHandler(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderCacheControl, "no-store")
 	return c.JSON(fiber.Map{
-		"status":  "alive",
-		"message": "Application is running",
+		"status": "alive",
 	})
 }
 
