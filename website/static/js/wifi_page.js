@@ -494,16 +494,6 @@
     
     try {
       let url = '/api/v1/wifi/scan';
-      
-      // Verificar token antes de escanear
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        showAlert('warning', t('auth.session_expired', 'Session expired. Please log in again.'));
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
-        return;
-      }
       const selectedInterface = interfaceSelect ? interfaceSelect.value : '';
       if (selectedInterface) {
         url += '?interface=' + encodeURIComponent(selectedInterface);
@@ -573,7 +563,6 @@
           // Para otros errores 401, cerrar sesión normalmente
           showAlert('warning', t('auth.session_expired', 'Session expired. Please log in again.'));
           setTimeout(() => {
-            localStorage.removeItem('access_token');
             window.location.href = '/login?error=session_expired';
           }, 2000);
           return;
@@ -952,7 +941,6 @@
           showAlert('warning', t('wifi.connect_session_lost', 'Session lost during connection. This may happen if the network connection was interrupted. Please log in again and check if the WiFi connection was successful.'));
           // Esperar un momento antes de redirigir para dar tiempo a que el usuario vea el mensaje
           setTimeout(() => {
-            localStorage.removeItem('access_token');
             window.location.href = '/login?error=session_expired';
           }, 3000);
           buttonElement.disabled = false;
@@ -1017,7 +1005,6 @@
       if (resp.status === 401) {
         showAlert('warning', t('wifi.connect_session_lost', 'Session lost during connection. This may happen if the network connection was interrupted. Please log in again and check if the WiFi connection was successful.'));
         setTimeout(() => {
-          localStorage.removeItem('access_token');
           window.location.href = '/login?error=session_expired';
         }, 3000);
         return;

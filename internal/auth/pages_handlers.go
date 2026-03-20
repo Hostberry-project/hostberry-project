@@ -40,6 +40,7 @@ func LoginPageHandler(c *fiber.Ctx) error {
 
 func SettingsPageHandler(c *fiber.Ctx) error {
 	configs, _ := database.GetAllConfigs()
+	delete(configs, "smtp_password")
 
 	if _, exists := configs["max_login_attempts"]; !exists || configs["max_login_attempts"] == "" {
 		configs["max_login_attempts"] = "3"

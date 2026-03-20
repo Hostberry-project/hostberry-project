@@ -83,6 +83,7 @@ func ProfilePageHandler(c *fiber.Ctx) error {
 
 	// settings para render de la página.
 	configs, _ := database.GetAllConfigs()
+	delete(configs, "smtp_password")
 	configsJSON, _ := json.Marshal(configs)
 
 	return webtemplates.RenderTemplate(c, "profile", fiber.Map{

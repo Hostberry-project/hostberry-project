@@ -89,7 +89,6 @@ func LoginAPIHandler(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(fiber.Map{
-		"access_token":            token,
 		"password_change_required": passwordChangeRequired,
 		"user": fiber.Map{
 			"id":       user.ID,
@@ -335,7 +334,6 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message":      i18n.T(c, "auth.credentials_updated_redirect", "Credenciales actualizadas. Redirigiendo al dashboard."),
-		"access_token": newToken,
 		"user": fiber.Map{
 			"id":       user.ID,
 			"username": user.Username,

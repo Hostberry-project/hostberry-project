@@ -31,11 +31,10 @@ func WifiConfigHandler(c *fiber.Ctx) error {
 	}
 
 	if req.Region != "" {
-		if len(req.Region) != 2 {
-			return c.Status(400).JSON(fiber.Map{"error": "Código de región inválido. Debe ser de 2 letras (ej: US, ES, GB)"})
+		req.Region = strings.ToUpper(strings.TrimSpace(req.Region))
+		if err := validators.ValidateCountryCode(req.Region); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 		}
-
-		req.Region = strings.ToUpper(req.Region)
 
 		iwCheck := exec.Command("sh", "-c", "command -v iw 2>/dev/null")
 		if iwCheck.Run() == nil {

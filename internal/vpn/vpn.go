@@ -48,7 +48,7 @@ func saveOpenVPNConfig(config, user string) map[string]interface{} {
 	if user == "" {
 		user = "unknown"
 	}
-	if err := os.WriteFile(openvpnClientConfigPath, []byte(config), 0644); err != nil {
+	if err := os.WriteFile(openvpnClientConfigPath, []byte(config), 0600); err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error guardando configuración: %v", err)
 		return result
@@ -138,7 +138,7 @@ func connectVPN(config, vpnType, user string) map[string]interface{} {
 
 	if vpnType == "openvpn" {
 		configFile := "/etc/openvpn/client.conf"
-		if err := os.WriteFile(configFile, []byte(config), 0644); err != nil {
+		if err := os.WriteFile(configFile, []byte(config), 0600); err != nil {
 			result["success"] = false
 			result["error"] = fmt.Sprintf("Error guardando configuración: %v", err)
 			return result

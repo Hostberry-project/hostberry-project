@@ -20,7 +20,9 @@ database:
   # database: "hostberry"
 
 security:
-  jwt_secret: "cambiar-este-secreto-en-produccion-usar-secretos-seguros"
+  # Obligatorio en producción: deja vacío para que la app genere uno aleatorio en arranque,
+  # o define aquí un secreto largo y único gestionado fuera del repositorio.
+  jwt_secret: ""
   token_expiry: 60  # minutos (1 hora)
   bcrypt_cost: 10
   rate_limit_rps: 10
@@ -30,7 +32,7 @@ security:
   # Opcional: token para API WiFi sin sesión (status/scan/connect/disconnect).
   # Vacío = se genera uno aleatorio en cada arranque (aparece en los logs del servicio).
   # Con valor fijo = mismo token hasta que cambies config (útil para scripts).
-  # Cabecera: X-HostBerry-WiFi-Setup-Token, o query: ?wifi_setup_token=
+  # Cabecera: X-HostBerry-WiFi-Setup-Token
   # wifi_setup_token: ""
   # Orígenes CORS adicionales con credenciales (además del mismo Host que la petición y localhost).
   # cors_allow_origins:

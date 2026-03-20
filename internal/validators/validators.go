@@ -172,6 +172,21 @@ func ValidateIfaceName(iface string) error {
 
 const maxConfigSize = 64 * 1024 // 64 KB
 
+func firstDirectiveToken(line string) string {
+	line = strings.TrimSpace(line)
+	if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
+		return ""
+	}
+	if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+		return ""
+	}
+	fields := strings.Fields(line)
+	if len(fields) == 0 {
+		return ""
+	}
+	return strings.ToLower(strings.TrimSpace(fields[0]))
+}
+
 func ValidateWireGuardConfig(config string) error {
 	if len(config) == 0 {
 		return fiber.NewError(400, "Configuración requerida")
@@ -185,6 +200,20 @@ func ValidateWireGuardConfig(config string) error {
 	lower := strings.ToLower(config)
 	if !strings.Contains(lower, "[interface]") && !strings.Contains(lower, "privatekey") {
 		return fiber.NewError(400, "Configuración WireGuard inválida: debe contener [Interface] y PrivateKey")
+	}
+	// wg-quick ejecuta estos hooks como shell; no aceptamos configs arbitrarias con comandos.
+	dangerous := map[string]struct{}{
+		"preup":    {},
+		"postup":   {},
+		"predown":  {},
+		"postdown": {},
+	}
+	for _, line := range strings.Split(config, "\n") {
+		if tok := firstDirectiveToken(line); tok != "" {
+			if _, blocked := dangerous[tok]; blocked {
+				return fiber.NewError(400, "Configuración WireGuard inválida: contiene directivas de ejecución no permitidas")
+			}
+		}
 	}
 	return nil
 }
@@ -202,6 +231,29 @@ func ValidateVPNConfig(config string) error {
 	lower := strings.ToLower(config)
 	if !strings.Contains(lower, "client") && !strings.Contains(lower, "dev ") && !strings.Contains(lower, "remote ") {
 		return fiber.NewError(400, "Configuración OpenVPN inválida: debe parecer un config cliente válido")
+	}
+	// OpenVPN puede ejecutar scripts/plugins desde el config; rechazamos directivas peligrosas.
+	dangerous := map[string]struct{}{
+		"up":                    {},
+		"down":                  {},
+		"route-up":              {},
+		"ipchange":              {},
+		"learn-address":         {},
+		"tls-verify":            {},
+		"auth-user-pass-verify": {},
+		"client-connect":        {},
+		"client-disconnect":     {},
+		"plugin":                {},
+		"script-security":       {},
+		"setenv":                {},
+		"setenv-safe":           {},
+	}
+	for _, line := range strings.Split(config, "\n") {
+		if tok := firstDirectiveToken(line); tok != "" {
+			if _, blocked := dangerous[tok]; blocked {
+				return fiber.NewError(400, "Configuración OpenVPN inválida: contiene directivas de ejecución no permitidas")
+			}
+		}
 	}
 	return nil
 }

@@ -67,23 +67,18 @@ func CreateDefaultAdmin() {
 		}
 
 		adminPassword := strings.TrimSpace(os.Getenv("HOSTBERRY_DEFAULT_ADMIN_PASSWORD"))
-		useBootstrap := false
 		if adminPassword == "" {
-			adminPassword = "admin"
-			useBootstrap = true
-			log.Printf("SECURITY: Primer arranque. Usuario admin creado con contraseña por defecto. Cámbiala en Ajustes tras el primer acceso.")
-		} else if err := validators.ValidatePassword(adminPassword); err != nil {
+			log.Printf("SECURITY: No se creó el usuario admin inicial porque falta HOSTBERRY_DEFAULT_ADMIN_PASSWORD. Define una contraseña fuerte y reinicia el servicio.")
+			return
+		}
+		if err := validators.ValidatePassword(adminPassword); err != nil {
 			i18n.LogTf("logs.utils_admin_error", fmt.Errorf("HOSTBERRY_DEFAULT_ADMIN_PASSWORD inválida: %w", err))
 			return
 		}
 
 		var admin *models.User
 		var err error
-		if useBootstrap {
-			admin, err = auth.RegisterBootstrap("admin", adminPassword, "admin@hostberry.local")
-		} else {
-			admin, err = auth.Register("admin", adminPassword, "admin@hostberry.local")
-		}
+		admin, err = auth.Register("admin", adminPassword, "admin@hostberry.local")
 		if err != nil {
 			i18n.LogTf("logs.utils_admin_error", err)
 		} else {
@@ -188,7 +183,11 @@ func validateShellCommandAllowList(cmd string, allowedCommands []string) error {
 		allowed[a] = struct{}{}
 	}
 
-	tokens := strings.Fields(cmd)
+	tokens := shellTokenizeForAllowList(cmd)
+	if tokens == nil {
+		// Quoting no balanceado o tokenización inválida.
+		return exec.ErrNotFound
+	}
 	if len(tokens) == 0 {
 		return nil
 	}
@@ -233,6 +232,85 @@ func validateShellCommandAllowList(cmd string, allowedCommands []string) error {
 	}
 
 	return nil
+}
+
+// shellTokenizeForAllowList separa tokens respetando comillas simples y dobles para que
+// validateShellCommandAllowList no dependa de strings.Fields (que rompe tokens dentro de quotes).
+//
+// No es un parser de shell completo: solo necesita aislar comandos base y operadores |, ||, && fuera de quotes.
+func shellTokenizeForAllowList(cmd string) []string {
+	var tokens []string
+	var cur strings.Builder
+
+	inSingle := false
+	inDouble := false
+
+	flush := func() {
+		if cur.Len() > 0 {
+			tokens = append(tokens, cur.String())
+			cur.Reset()
+		}
+	}
+
+	// Nota: iteramos por bytes porque este validator trabaja con ASCII de comandos.
+	for i := 0; i < len(cmd); i++ {
+		ch := cmd[i]
+
+		if inSingle {
+			if ch == '\'' {
+				inSingle = false
+				continue
+			}
+			cur.WriteByte(ch)
+			continue
+		}
+
+		if inDouble {
+			if ch == '"' {
+				inDouble = false
+				continue
+			}
+			// Dentro de dobles comillas mantenemos el contenido tal cual; el allowlist
+			// valida solo comandos base y operadores.
+			cur.WriteByte(ch)
+			continue
+		}
+
+		switch ch {
+		case '\'':
+			inSingle = true
+		case '"':
+			inDouble = true
+		case ' ', '\t', '\r', '\n':
+			flush()
+		case '|':
+			flush()
+			if i+1 < len(cmd) && cmd[i+1] == '|' {
+				tokens = append(tokens, "||")
+				i++
+			} else {
+				tokens = append(tokens, "|")
+			}
+		case '&':
+			flush()
+			if i+1 < len(cmd) && cmd[i+1] == '&' {
+				tokens = append(tokens, "&&")
+				i++
+			} else {
+				// `&` suelto puede aparecer en redirecciones tipo `2>&1`.
+				// Lo tratamos como carácter normal del token.
+				cur.WriteByte('&')
+			}
+		default:
+			cur.WriteByte(ch)
+		}
+	}
+
+	if inSingle || inDouble {
+		return nil
+	}
+	flush()
+	return tokens
 }
 
 // FilterSudoErrors filtra líneas típicas de errores de `sudo`.

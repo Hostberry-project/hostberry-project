@@ -75,3 +75,42 @@ func TestValidateWPAPSK(t *testing.T) {
 		t.Fatal("expected invalid control char")
 	}
 }
+
+func TestValidateWireGuardConfigRejectsHooks(t *testing.T) {
+	valid := `[Interface]
+PrivateKey = abcdef
+Address = 10.0.0.2/32
+
+[Peer]
+PublicKey = qwerty
+AllowedIPs = 0.0.0.0/0`
+	if err := ValidateWireGuardConfig(valid); err != nil {
+		t.Fatalf("expected valid config, got %v", err)
+	}
+
+	dangerous := `[Interface]
+PrivateKey = abcdef
+PostUp = iptables -A FORWARD -j ACCEPT`
+	if ValidateWireGuardConfig(dangerous) == nil {
+		t.Fatal("expected invalid wireguard config with PostUp")
+	}
+}
+
+func TestValidateVPNConfigRejectsScriptDirectives(t *testing.T) {
+	valid := `client
+dev tun
+remote 1.2.3.4 1194
+proto udp`
+	if err := ValidateVPNConfig(valid); err != nil {
+		t.Fatalf("expected valid config, got %v", err)
+	}
+
+	dangerous := `client
+dev tun
+remote 1.2.3.4 1194
+script-security 2
+up /tmp/pwn.sh`
+	if ValidateVPNConfig(dangerous) == nil {
+		t.Fatal("expected invalid openvpn config with script directives")
+	}
+}

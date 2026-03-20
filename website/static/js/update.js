@@ -5,11 +5,10 @@
   const api = (url, opts) => {
     if (HB.apiRequest) return HB.apiRequest(url, opts);
     const o = Object.assign({}, opts);
-    const token = localStorage.getItem('access_token');
     const headers = new Headers(o.headers || {});
-    if (token && !headers.has('Authorization')) headers.set('Authorization', 'Bearer ' + token);
     if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
     o.headers = headers;
+    o.credentials = 'include';
     if (o.body && typeof o.body === 'object' && !(o.body instanceof FormData)) o.body = JSON.stringify(o.body);
     return fetch(url, o);
   };

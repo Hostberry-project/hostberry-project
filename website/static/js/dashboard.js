@@ -3,10 +3,8 @@
     const apiRequestFn = window.HostBerry && window.HostBerry.apiRequest
         ? window.HostBerry.apiRequest
         : async function(url) {
-            const token = localStorage.getItem('access_token');
             const headers = { 'Content-Type': 'application/json' };
-            if (token) headers['Authorization'] = 'Bearer ' + token;
-            return fetch(url, { headers: headers });
+            return fetch(url, { headers: headers, credentials: 'include' });
         };
 
     const formatUptime = (seconds) => {

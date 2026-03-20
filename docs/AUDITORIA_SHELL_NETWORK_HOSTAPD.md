@@ -63,19 +63,19 @@ Pendiente (volumen alto): refactor similar en **`internal/hostapd/hostapd.go`**.
 
 ### 2.4 `internal/network/network.go` y `api_network_interfaces_handler.go`
 
-- Múltiples `sh -c` + `fmt.Sprintf` con **`ifaceName`** en bucles (`ip`, `cat /sys/...`, `wpa_cli`, `grep` sobre `ps`, etc.).  
-- **Origen típico:** interfaces listadas por el SO (`ip -o link`, etc.), no el cuerpo JSON directo.  
-- **Riesgo:** bajo en uso normal; si el kernel/NM expusiera un nombre anómalo, habría superficie teórica.  
+- Múltiples `sh -c` + `fmt.Sprintf` con **`ifaceName`** en bucles (`ip`, `cat /sys/...`, `wpa_cli`, `grep` sobre `ps`, etc.).
+- **Origen típico:** interfaces listadas por el SO (`ip -o link`, etc.), no el cuerpo JSON directo.
+- **Riesgo:** bajo en uso normal; si el kernel/NM expusiera un nombre anómalo, habría superficie teórica.
 - **Recomendación:** Validar `ifaceName` con regexp estricta (`^[a-zA-Z0-9._@-]{1,15}$` o similar) antes de interpolar.
 
 ---
 
 ## 3. `internal/hostapd/hostapd.go`
 
-- **Muchísimas** cadenas `fmt.Sprintf` pasadas a `executeCommand` (que usa `sh -c`) **o** a `exec.Command("sh", "-c", fmt.Sprintf(...))`.  
-- Variables interpoladas típicas: `interfaceName`, `phyInterface`, `phyName`, `apInterface`, `gatewayIP`, `req.Gateway`, rutas bajo `/etc`, `/tmp`, reglas `iptables`, contenidos de config.  
-- **Lectura de interfaz desde `/etc/hostapd/hostapd.conf`:** si un atacante con acceso al fichero (root o despliegue malicioso) pone `interface=…` arbitrario, esa cadena acaba en `iw`, `hostapd_cli`, `ip`, etc.  
-- **Handlers HTTP:** comprobar que todos los campos que llegan al body y terminan en shell estén validados (SSID, interfaz, IP, etc.); en una búsqueda rápida **no** hay uso evidente de `validators` en este paquete — **revisión manual de cada handler recomendada**.  
+- **Muchísimas** cadenas `fmt.Sprintf` pasadas a `executeCommand` (que usa `sh -c`) **o** a `exec.Command("sh", "-c", fmt.Sprintf(...))`.
+- Variables interpoladas típicas: `interfaceName`, `phyInterface`, `phyName`, `apInterface`, `gatewayIP`, `req.Gateway`, rutas bajo `/etc`, `/tmp`, reglas `iptables`, contenidos de config.
+- **Lectura de interfaz desde `/etc/hostapd/hostapd.conf`:** si un atacante con acceso al fichero (root o despliegue malicioso) pone `interface=…` arbitrario, esa cadena acaba en `iw`, `hostapd_cli`, `ip`, etc.
+- **Handlers HTTP:** comprobar que todos los campos que llegan al body y terminan en shell estén validados (SSID, interfaz, IP, etc.); en una búsqueda rápida **no** hay uso evidente de `validators` en este paquete — **revisión manual de cada handler recomendada**.
 - **Prioridad refactor:** sustituir progresivamente  
   `executeCommand(fmt.Sprintf("sudo ip … %s …", x))`  
   por  
@@ -86,18 +86,18 @@ Pendiente (volumen alto): refactor similar en **`internal/hostapd/hostapd.go`**.
 
 ## 4. Prioridades de remediación
 
-1. **Alta (diseño):** Dejar de interpolar en `sh -c` para valores que puedan tener espacios o comillas (**`connName` de nmcli**, nombres de interfaz, SSID si aplica). Usar `exec.Command` con argumentos.  
-2. **Media:** Validar **siempre** nombres de interfaz antes de `fmt.Sprintf` en `network.go` / `api_network_interfaces_handler.go`.  
-3. **Media:** En **hostapd**, auditar cada handler que parsea JSON y enlazar con `internal/validators` (SSID, interfaz, IP, canal).  
+1. **Alta (diseño):** Dejar de interpolar en `sh -c` para valores que puedan tener espacios o comillas (**`connName` de nmcli**, nombres de interfaz, SSID si aplica). Usar `exec.Command` con argumentos.
+2. **Media:** Validar **siempre** nombres de interfaz antes de `fmt.Sprintf` en `network.go` / `api_network_interfaces_handler.go`.
+3. **Media:** En **hostapd**, auditar cada handler que parsea JSON y enlazar con `internal/validators` (SSID, interfaz, IP, canal).
 4. **Baja:** Sustituir `sh -c` de solo lectura (`ip route`, `systemctl is-active`, …) por llamadas con argumentos cuando sea posible (legibilidad y menos shell).
 
 ---
 
 ## 5. Inventario rápido por archivo (grep `sh` + `Sprintf`)
 
-- **`network.go`:** ~15+ `sh -c` con `fmt.Sprintf` (mayoría `ifaceName`).  
-- **`api_network_interfaces_handler.go`:** Patrón duplicado respecto a `network.go` (considerar DRY + validación centralizada).  
-- **`api_network.go`:** Mezcla de `sh -c` fijos, interpolación segura de rutas temp, y `nmcli`/`executeCommand` con `connName`.  
+- **`network.go`:** ~15+ `sh -c` con `fmt.Sprintf` (mayoría `ifaceName`).
+- **`api_network_interfaces_handler.go`:** Patrón duplicado respecto a `network.go` (considerar DRY + validación centralizada).
+- **`api_network.go`:** Mezcla de `sh -c` fijos, interpolación segura de rutas temp, y `nmcli`/`executeCommand` con `connName`.
 - **`hostapd.go`:** Decenas de `fmt.Sprintf` + `executeCommand` o `sh -c` (el mayor volumen del proyecto en esta categoría).
 
 ---
@@ -112,3 +112,4 @@ Pendiente (volumen alto): refactor similar en **`internal/hostapd/hostapd.go`**.
 - **Interfaces:** `ValidateIfaceName` en bucles de `network.go` y `api_network_interfaces_handler.go`; gateway vía `ip route` valida interfaz antes de `executeCommand`.
 - **HostAPD:** `internal/hostapd/config_validate.go` — validación centralizada del POST de configuración (interfaz, SSID, IPs, país, lease, WPA-PSK, canal). `ValidatePhyName` tras detección de `phy`. `HostapdCreateAp0Handler` usa `sanitizeIfaceOrDefault`. `HostapdToggleHandler` lee interfaz con `ifaceFromHostapdConf` y valida `interface=` del fichero.
 - **Validadores nuevos:** `ValidateWPAPSK`, `ValidateCountryCode`, `ValidateDhcpLeaseTime`, `ValidatePhyName` en `internal/validators/validators.go`.
+

@@ -279,7 +279,7 @@
 
                         <div class="mb-3">
                             <label for="smtp_password" class="form-label text-white">{{ call .t "settings.smtp_password" "SMTP Password" }}</label>
-                            <input type="password" class="form-control bg-dark text-white border-secondary" id="smtp_password" name="smtp_password" value="{{ index .settings "smtp_password" }}" autocomplete="new-password">
+                            <input type="password" class="form-control bg-dark text-white border-secondary" id="smtp_password" name="smtp_password" value="" autocomplete="new-password" placeholder="{{ call .t "settings.smtp_password_placeholder" "Leave blank to keep current password" }}">
                             <small class="text-white-50">{{ call .t "settings.smtp_password_hint" "If you use Gmail, use an App Password" }}</small>
                         </div>
 

@@ -45,7 +45,8 @@ func main() {
 	i18n.LogTln("logs.checking_admin")
 	utils.CreateDefaultAdmin()
 
-	i18n.LogTf("logs.wifi_setup_token_info", wifisetup.HeaderName, wifisetup.QueryParam, wifisetup.TokenForDisplay())
+	// No mostrar el token en claro: solo mostramos el mecanismo (cabecera/query) habilitado para recovery o automatización.
+	i18n.LogTf("logs.wifi_setup_token_info", wifisetup.HeaderName)
 
 	wifi.StartWiFiAutoConnectDaemon()
 

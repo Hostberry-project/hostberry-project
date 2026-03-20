@@ -17,10 +17,8 @@
 
   const apiRequest = async (url, options) => {
     if (window.HostBerry?.apiRequest) return window.HostBerry.apiRequest(url, options);
-    const token = localStorage.getItem('access_token');
     const headers = Object.assign({ 'Content-Type': 'application/json' }, (options && options.headers) || {});
-    if (token) headers.Authorization = `Bearer ${token}`;
-    return fetch(url, Object.assign({ method: 'GET', headers }, options || {}));
+    return fetch(url, Object.assign({ method: 'GET', headers, credentials: 'include' }, options || {}));
   };
 
   function bindForm(formId, endpoint) {

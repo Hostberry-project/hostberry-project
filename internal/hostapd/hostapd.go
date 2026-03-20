@@ -653,6 +653,11 @@ func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 				parts := strings.SplitN(line, "=", 2)
 				if len(parts) == 2 {
 					interfaceName = strings.TrimSpace(parts[1])
+					// `hostapd.conf` es local y puede no estar en formato "seguro";
+					// validamos antes de interpolar en comandos.
+					if validators.ValidateIfaceName(interfaceName) != nil {
+						interfaceName = "wlan0"
+					}
 					break
 				}
 			}
@@ -660,13 +665,15 @@ func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	}
 	diagnostics["interface"] = interfaceName
 
-	iwOut, _ := exec.Command("sh", "-c", fmt.Sprintf("iw dev %s info 2>/dev/null | grep -i 'type AP' || iwconfig %s 2>/dev/null | grep -i 'mode:master' || echo ''", interfaceName, interfaceName)).CombinedOutput()
-	iwStatus := strings.TrimSpace(string(iwOut))
+	iwCmd := fmt.Sprintf("iw dev %s info 2>/dev/null | grep -i 'type AP' || iwconfig %s 2>/dev/null | grep -i 'mode:master' || echo ''", interfaceName, interfaceName)
+	iwOut, _ := executeCommand(iwCmd)
+	iwStatus := strings.TrimSpace(iwOut)
 	transmitting := iwStatus != ""
 
 	if !transmitting && serviceRunning {
-		cliStatusOut, _ := exec.Command("sh", "-c", fmt.Sprintf("hostapd_cli -i %s status 2>/dev/null | grep -i 'state=ENABLED' || echo ''", interfaceName)).CombinedOutput()
-		cliStatus := strings.TrimSpace(string(cliStatusOut))
+		cliCmd := fmt.Sprintf("hostapd_cli -i %s status 2>/dev/null | grep -i 'state=ENABLED' || echo ''", interfaceName)
+		cliStatusOut, _ := executeCommand(cliCmd)
+		cliStatus := strings.TrimSpace(cliStatusOut)
 		if cliStatus != "" {
 			transmitting = true
 		}
@@ -700,8 +707,9 @@ func HostapdDiagnosticsHandler(c *fiber.Ctx) error {
 	diagnostics["errors"] = errors
 	diagnostics["has_errors"] = len(errors) > 0
 
-	ipOut, _ := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep -i 'state UP' || echo ''", interfaceName)).CombinedOutput()
-	interfaceUp := strings.Contains(strings.ToLower(string(ipOut)), "state up")
+	ipCmd := fmt.Sprintf("ip addr show %s 2>/dev/null | grep -i 'state UP' || echo ''", interfaceName)
+	ipOut, _ := executeCommand(ipCmd)
+	interfaceUp := strings.Contains(strings.ToLower(ipOut), "state up")
 	diagnostics["interface_up"] = interfaceUp
 
 	dnsmasqOut, _ := exec.Command("sh", "-c", "systemctl is-active dnsmasq 2>/dev/null || echo inactive").CombinedOutput()
@@ -767,7 +775,8 @@ func HostapdGetConfigHandler(c *fiber.Ctx) error {
 			"interface": interfaceForDisplay, // Mostrar interfaz física al usuario
 			"ssid":      config["ssid"],
 			"channel":   config["channel"],
-			"password":  config["wpa_passphrase"], // Devolver la contraseña para que el usuario pueda verla/editarla
+			// No devolvemos el PSK / password: es un secreto en /etc/hostapd/hostapd.conf
+			// y no debe exfiltrarse por la API (aunque el panel tenga auth).
 		},
 	}
 
@@ -930,8 +939,8 @@ func HostapdConfigHandler(c *fiber.Ctx) error {
 	log.Printf("Detected phy name: %s for interface %s", phyName, phyInterface)
 
 	macAddress := ""
-	macCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /sys/class/net/%s/address 2>/dev/null", phyInterface))
-	if macOut, err := macCmd.Output(); err == nil {
+	macPath := fmt.Sprintf("/sys/class/net/%s/address", phyInterface)
+	if macOut, err := exec.Command("cat", macPath).Output(); err == nil {
 		macAddress = strings.TrimSpace(string(macOut))
 	}
 	if macAddress == "" {
@@ -945,9 +954,12 @@ func HostapdConfigHandler(c *fiber.Ctx) error {
 		log.Printf("Creating udev rule for automatic ap0 interface creation (TheWalrus method - Raspberry Pi 3 B+)")
 		udevRulePath := "/etc/udev/rules.d/70-persistent-net.rules"
 
-		checkCmd := exec.Command("sh", "-c", fmt.Sprintf("grep -q 'ap0' %s 2>/dev/null && echo 'exists' || echo 'not_exists'", udevRulePath))
-		checkOut, _ := checkCmd.Output()
-		if strings.TrimSpace(string(checkOut)) != "exists" {
+		hasAp0 := false
+		// Si el archivo no existe o no contiene la regla, grep devuelve error => no existe.
+		if err := exec.Command("grep", "-q", "ap0", udevRulePath).Run(); err == nil {
+			hasAp0 = true
+		}
+		if !hasAp0 {
 			udevRuleContent := fmt.Sprintf(`# Regla para crear interfaz virtual ap0 automáticamente (método TheWalrus - Raspberry Pi 3 B+)
 SUBSYSTEM=="ieee80211", ACTION=="add|change", ATTR{macaddress}=="%s", KERNEL=="%s", \
 RUN+="/sbin/iw phy %s interface add ap0 type __ap", \

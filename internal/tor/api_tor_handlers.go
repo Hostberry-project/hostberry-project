@@ -59,6 +59,29 @@ func TorConfigureHandler(c *fiber.Ctx) error {
 		req.DNSPort = 53
 	}
 
+	// Validación estricta de puertos (estabilidad y evitar estados inconsistentes).
+	validatePort := func(port int, field string) error {
+		if port < 1 || port > 65535 {
+			return c.Status(400).JSON(fiber.Map{
+				"error":   "Puerto fuera de rango para " + field,
+				"success": false,
+			})
+		}
+		return nil
+	}
+	if err := validatePort(req.SocksPort, "socks_port"); err != nil {
+		return err
+	}
+	if err := validatePort(req.ControlPort, "control_port"); err != nil {
+		return err
+	}
+	if err := validatePort(req.TransPort, "trans_port"); err != nil {
+		return err
+	}
+	if err := validatePort(req.DNSPort, "dns_port"); err != nil {
+		return err
+	}
+
 	opts := TorConfigOptions{
 		User:                  user.Username,
 		EnableSocks:           req.EnableSocks,

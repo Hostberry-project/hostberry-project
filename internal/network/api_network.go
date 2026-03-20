@@ -320,7 +320,6 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 						i18n.LogTf("logs.api_hosts_temp_error", err)
 					} else {
 						log.Printf("Created new hosts file in /tmp: %s", tmpFile)
-						log.Printf("File content:\n%s", newContent)
 
 						if _, err := os.Stat(tmpFile); os.IsNotExist(err) {
 							log.Printf("Error: Temp file does not exist after creation")
@@ -349,7 +348,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 									} else {
 										log.Printf("cp command executed but hostname not found in /etc/hosts")
 									}
-									log.Printf("Current /etc/hosts content:\n%s", string(content))
+									log.Printf("Verification failed after cp: hostname not found in /etc/hosts")
 
 									if strings.Contains(string(cpOut), "Read-only file system") || strings.Contains(string(cpOut), "Read-only") {
 										log.Printf("Warning: /etc/hosts appears to be on a read-only file system")
@@ -397,7 +396,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 											copySuccess = true
 										} else {
 											log.Printf("cat/tee executed but hostname not found in /etc/hosts")
-											log.Printf("Current /etc/hosts content:\n%s", string(content))
+											log.Printf("Verification failed after cat/tee: hostname not found in /etc/hosts")
 										}
 									}
 								}
@@ -418,7 +417,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 											copySuccess = true
 										} else {
 											log.Printf("sh -c executed but hostname not found in /etc/hosts")
-											log.Printf("Current /etc/hosts content:\n%s", string(content))
+											log.Printf("Verification failed after sh -c: hostname not found in /etc/hosts")
 										}
 									}
 								}

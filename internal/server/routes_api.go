@@ -15,6 +15,8 @@ import (
 	middleware "hostberry/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
+
+	"time"
 )
 
 func setupApiRoutes(app *fiber.App) {
@@ -57,10 +59,10 @@ func setupApiRoutes(app *fiber.App) {
 			network.Get("/status", networkHandlers.NetworkStatusHandler)
 			network.Get("/interfaces", networkHandlers.NetworkInterfacesHandler)
 			network.Get("/routing", networkHandlers.NetworkRoutingHandler)
-			network.Post("/firewall/toggle", middleware.RequireAdmin, networkHandlers.NetworkFirewallToggleHandler)
-			network.Post("/speedtest", middleware.RequireAdmin, networkHandlers.NetworkSpeedtestHandler)
+			network.Post("/firewall/toggle", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), networkHandlers.NetworkFirewallToggleHandler)
+			network.Post("/speedtest", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), networkHandlers.NetworkSpeedtestHandler)
 			network.Get("/config", networkHandlers.NetworkConfigHandler)
-			network.Post("/config", networkHandlers.NetworkConfigHandler)
+			network.Post("/config", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), networkHandlers.NetworkConfigHandler)
 		}
 
 		wifi := api.Group("/wifi", middleware.RequireAuth)
@@ -69,28 +71,28 @@ func setupApiRoutes(app *fiber.App) {
 			wifi.Get("/scan", wifiHandlers.WifiScanHandler)
 			wifi.Post("/scan", wifiHandlers.WifiScanHandler)
 			wifi.Get("/interfaces", wifiHandlers.WifiInterfacesHandler)
-			wifi.Post("/connect", wifiHandlers.WifiConnectHandler)
-			wifi.Post("/disconnect", wifiHandlers.WifiLegacyDisconnectHandler)
+			wifi.Post("/connect", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiConnectHandler)
+			wifi.Post("/disconnect", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiLegacyDisconnectHandler)
 			wifi.Get("/networks", wifiHandlers.WifiNetworksHandler)
 			wifi.Get("/clients", wifiHandlers.WifiClientsHandler)
-			wifi.Post("/toggle", middleware.RequireAdmin, wifiHandlers.WifiToggleHandler)
-			wifi.Post("/unblock", middleware.RequireAdmin, wifiHandlers.WifiUnblockHandler)
-			wifi.Post("/software-switch", middleware.RequireAdmin, wifiHandlers.WifiSoftwareSwitchHandler)
-			wifi.Post("/config", middleware.RequireAdmin, wifiHandlers.WifiConfigHandler)
+			wifi.Post("/toggle", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiToggleHandler)
+			wifi.Post("/unblock", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiUnblockHandler)
+			wifi.Post("/software-switch", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiSoftwareSwitchHandler)
+			wifi.Post("/config", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiConfigHandler)
 		}
 
 		vpn := api.Group("/vpn", middleware.RequireAuth)
 		{
 			vpn.Get("/status", vpnHandlers.VpnStatusHandler)
-			vpn.Get("/config", vpnHandlers.VpnGetConfigHandler)
-			vpn.Post("/connect", vpnHandlers.VpnConnectHandler)
+			vpn.Get("/config", middleware.RequireAdmin, vpnHandlers.VpnGetConfigHandler)
+			vpn.Post("/connect", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), vpnHandlers.VpnConnectHandler)
 			vpn.Get("/connections", vpnHandlers.VpnConnectionsHandler)
 			vpn.Get("/servers", vpnHandlers.VpnServersHandler)
 			vpn.Get("/clients", vpnHandlers.VpnClientsHandler)
-			vpn.Post("/toggle", middleware.RequireAdmin, vpnHandlers.VpnToggleHandler)
-			vpn.Post("/config", middleware.RequireAdmin, vpnHandlers.VpnConfigHandler)
-			vpn.Post("/connections/:name/toggle", middleware.RequireAdmin, vpnHandlers.VpnConnectionToggleHandler)
-			vpn.Post("/certificates/generate", middleware.RequireAdmin, vpnHandlers.VpnCertificatesGenerateHandler)
+			vpn.Post("/toggle", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), vpnHandlers.VpnToggleHandler)
+			vpn.Post("/config", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), vpnHandlers.VpnConfigHandler)
+			vpn.Post("/connections/:name/toggle", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), vpnHandlers.VpnConnectionToggleHandler)
+			vpn.Post("/certificates/generate", middleware.RequireAdmin, middleware.MutationLock("network_stack", 10*time.Second), vpnHandlers.VpnCertificatesGenerateHandler)
 		}
 
 		hostapd := api.Group("/hostapd", middleware.RequireAuth)
@@ -99,10 +101,10 @@ func setupApiRoutes(app *fiber.App) {
 			hostapd.Get("/clients", hostapdHandlers.HostapdClientsHandler)
 			hostapd.Get("/config", hostapdHandlers.HostapdGetConfigHandler)
 			hostapd.Get("/diagnostics", hostapdHandlers.HostapdDiagnosticsHandler)
-			hostapd.Post("/create-ap0", middleware.RequireAdmin, hostapdHandlers.HostapdCreateAp0Handler)
-			hostapd.Post("/toggle", middleware.RequireAdmin, hostapdHandlers.HostapdToggleHandler)
-			hostapd.Post("/restart", middleware.RequireAdmin, hostapdHandlers.HostapdRestartHandler)
-			hostapd.Post("/config", middleware.RequireAdmin, hostapdHandlers.HostapdConfigHandler)
+			hostapd.Post("/create-ap0", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), hostapdHandlers.HostapdCreateAp0Handler)
+			hostapd.Post("/toggle", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), hostapdHandlers.HostapdToggleHandler)
+			hostapd.Post("/restart", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), hostapdHandlers.HostapdRestartHandler)
+			hostapd.Post("/config", middleware.RequireAdmin, middleware.MutationLock("radio", 10*time.Second), hostapdHandlers.HostapdConfigHandler)
 		}
 
 		help := api.Group("/help", middleware.RequireAuth)
@@ -118,7 +120,7 @@ func setupApiRoutes(app *fiber.App) {
 			wireguard.Get("/status", vpnHandlers.WireguardStatusHandler)
 			wireguard.Get("/interfaces", vpnHandlers.WireguardInterfacesHandler)
 			wireguard.Get("/peers", vpnHandlers.WireguardPeersHandler)
-			wireguard.Get("/config", vpnHandlers.WireguardGetConfigHandler)
+			wireguard.Get("/config", middleware.RequireAdmin, vpnHandlers.WireguardGetConfigHandler)
 			wireguard.Post("/config", middleware.RequireAdmin, vpnHandlers.WireguardConfigHandler)
 			wireguard.Post("/toggle", middleware.RequireAdmin, vpnHandlers.WireguardToggleHandler)
 			wireguard.Post("/restart", middleware.RequireAdmin, vpnHandlers.WireguardRestartHandler)
@@ -151,8 +153,8 @@ func setupApiRoutes(app *fiber.App) {
 			adblock.Post("/blocky/configure", middleware.RequireAdmin, adblockHandlers.BlockyConfigureHandler)
 			adblock.Post("/blocky/enable", middleware.RequireAdmin, adblockHandlers.BlockyEnableHandler)
 			adblock.Post("/blocky/disable", middleware.RequireAdmin, adblockHandlers.BlockyDisableHandler)
-			adblock.Get("/blocky/api/*", adblockHandlers.BlockyAPIProxyHandler)
-			adblock.Post("/blocky/api/*", adblockHandlers.BlockyAPIProxyHandler)
+			adblock.Get("/blocky/api/*", middleware.RequireAdmin, adblockHandlers.BlockyAPIProxyHandler)
+			adblock.Post("/blocky/api/*", middleware.RequireAdmin, adblockHandlers.BlockyAPIProxyHandler)
 		}
 
 		tor := api.Group("/tor", middleware.RequireAuth)
@@ -163,8 +165,8 @@ func setupApiRoutes(app *fiber.App) {
 			tor.Post("/enable", middleware.RequireAdmin, torHandlers.TorEnableHandler)
 			tor.Post("/disable", middleware.RequireAdmin, torHandlers.TorDisableHandler)
 			tor.Get("/circuit", torHandlers.TorCircuitHandler)
-			tor.Post("/iptables-enable", middleware.RequireAdmin, torHandlers.TorIptablesEnableHandler)
-			tor.Post("/iptables-disable", middleware.RequireAdmin, torHandlers.TorIptablesDisableHandler)
+			tor.Post("/iptables-enable", middleware.RequireAdmin, middleware.MutationLock("iptables", 10*time.Second), torHandlers.TorIptablesEnableHandler)
+			tor.Post("/iptables-disable", middleware.RequireAdmin, middleware.MutationLock("iptables", 10*time.Second), torHandlers.TorIptablesDisableHandler)
 		}
 	}
 
@@ -174,6 +176,6 @@ func setupApiRoutes(app *fiber.App) {
 	wifiLegacy.Get("/stored_networks", wifiHandlers.WifiLegacyStoredNetworksHandler)
 	wifiLegacy.Get("/autoconnect", wifiHandlers.WifiLegacyAutoconnectHandler)
 	wifiLegacy.Get("/scan", wifiHandlers.WifiLegacyScanHandler)
-	wifiLegacy.Post("/disconnect", wifiHandlers.WifiLegacyDisconnectHandler)
+	wifiLegacy.Post("/disconnect", middleware.MutationLock("radio", 10*time.Second), wifiHandlers.WifiLegacyDisconnectHandler)
 }
 

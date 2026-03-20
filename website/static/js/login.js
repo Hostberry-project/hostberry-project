@@ -63,8 +63,7 @@
         });
         const result = await resp.json().catch(function(){ return {}; });
         if(resp && resp.ok){
-          // Guardar token en localStorage (para navegadores que no guardan cookies)
-          localStorage.setItem('access_token', result.access_token);
+          // Sesión basada en cookie HTTPOnly (back activa "access_token" como HTTPOnly).
           showAlert('success', i18n.login_success);
           setTimeout(()=>{
             const lang = (document.documentElement && document.documentElement.lang === 'es') ? 'es' : 'en';

@@ -253,14 +253,10 @@
       
       try{
         const currentLang = (document.documentElement && (document.documentElement.lang || document.documentElement.getAttribute('lang'))) || 'es';
-        const token = localStorage.getItem('access_token');
         const headers = {
           'Content-Type': 'application/json',
           'Accept-Language': currentLang
         };
-        if (token && token !== 'null' && token !== 'undefined') {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
 
         const resp = await fetch('/api/v1/auth/first-login/change', {
           method: 'POST',
@@ -294,9 +290,6 @@
             successMessage = t('auth.credentials_updated_redirect', 'Credenciales actualizadas. Redirigiendo al dashboard.');
           }
           showSuccess(successMessage);
-          if (data && typeof data === 'object' && data !== null && typeof data.access_token === 'string') {
-            localStorage.setItem('access_token', data.access_token);
-          }
           setTimeout(function(){
             window.location.href = `/setup-wizard?lang=${encodeURIComponent(currentLang)}`;
           }, 1200);

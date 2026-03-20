@@ -2,13 +2,16 @@ package tor
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"hostberry/internal/i18n"
+	"hostberry/internal/validators"
 	"hostberry/internal/utils"
 )
 
@@ -418,6 +421,55 @@ func getTorCircuitInfo() map[string]interface{} {
 
 const torIptablesComment = "HostBerry-Tor"
 
+func runCommandWithOptionalSudo(bin string, args ...string) *exec.Cmd {
+	cmd := exec.Command(bin, args...)
+	if os.Geteuid() != 0 {
+		// Evitamos prompts: si sudo requiere contraseña, fallará (y manejaremos el error).
+		allArgs := append([]string{bin}, args...)
+		cmd = exec.Command("sudo", allArgs...)
+	}
+	// Mantener comportamiento similar al helper utils.ExecuteCommand.
+	cmd.Env = append(os.Environ(),
+		"SUDO_ASKPASS=/bin/false",
+		"SUDO_LOG_FILE=",
+	)
+	return cmd
+}
+
+func iptablesListPREROUTING() (string, error) {
+	// Sin shell: la salida se parsea en Go.
+	cmd := runCommandWithOptionalSudo("iptables", "-t", "nat", "-L", "PREROUTING", "-n", "-v")
+	out, err := cmd.Output()
+	return string(out), err
+}
+
+func runIptablesRule(args ...string) error {
+	cmd := runCommandWithOptionalSudo("iptables", args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("iptables failed: %v: %s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+func persistIptablesRules() {
+	// Guardar con netfilter-persistent cuando exista. Ignoramos errores para no bloquear la funcionalidad principal.
+	_ = runCommandWithOptionalSudo("netfilter-persistent", "save").Run()
+
+	// Volcar reglas a /etc/iptables/rules.v4 (estilo heredado del proyecto).
+	rulesCmd := runCommandWithOptionalSudo("iptables-save")
+	rules, err := rulesCmd.Output()
+	if err != nil {
+		return
+	}
+
+	teeCmd := runCommandWithOptionalSudo("tee", "/etc/iptables/rules.v4")
+	teeCmd.Stdin = strings.NewReader(string(rules))
+	teeCmd.Stdout = io.Discard
+	teeCmd.Stderr = io.Discard
+	_ = teeCmd.Run()
+}
+
 func getHostapdInterface() string {
 	configPath := "/etc/hostapd/hostapd.conf"
 	data, err := os.ReadFile(configPath)
@@ -431,7 +483,10 @@ func getHostapdInterface() string {
 			if len(parts) == 2 {
 				iface := strings.TrimSpace(parts[1])
 				if iface != "" {
-					return iface
+					if validators.ValidateIfaceName(iface) == nil {
+						return iface
+					}
+					return "ap0"
 				}
 			}
 			break
@@ -446,14 +501,12 @@ func getTorIptablesStatus() map[string]interface{} {
 	result["interface"] = getHostapdInterface()
 	result["success"] = true
 
-	cmd := exec.Command("sh", "-c", "iptables -t nat -L PREROUTING -n -v 2>/dev/null | grep -c '"+torIptablesComment+"' || true")
-	out, err := cmd.Output()
+	out, err := iptablesListPREROUTING()
 	if err != nil {
 		return result
 	}
-	count := 0
-	fmt.Sscanf(strings.TrimSpace(string(out)), "%d", &count)
-	result["active"] = count > 0
+	// Similar a grep -c "...": basta con saber si existe al menos una regla marcada.
+	result["active"] = strings.Contains(out, torIptablesComment)
 	return result
 }
 
@@ -496,26 +549,48 @@ func enableTorIptables(user string) map[string]interface{} {
 	disableTorIptables("")
 
 	// DNS (UDP 53 -> DNSPort)
-	addDNS := fmt.Sprintf("sudo iptables -t nat -A PREROUTING -i %s -p udp --dport 53 -j REDIRECT --to-ports %d -m comment --comment %s 2>&1", iface, dnsPort, torIptablesComment)
-	if out, err := executeCommand(addDNS); err != nil {
+	if err := runIptablesRule(
+		"-t", "nat", "-A", "PREROUTING",
+		"-i", iface,
+		"-p", "udp",
+		"--dport", "53",
+		"-j", "REDIRECT",
+		"--to-ports", strconv.Itoa(dnsPort),
+		"-m", "comment", "--comment", torIptablesComment,
+	); err != nil {
 		result["success"] = false
-		result["error"] = "Error añadiendo regla DNS: " + strings.TrimSpace(out)
-		i18n.LogTf("logs.tor_iptables_error", out)
+		result["error"] = "Error añadiendo regla DNS: " + err.Error()
+		i18n.LogTf("logs.tor_iptables_error", err.Error())
 		return result
 	}
 
 	// TCP (SYN -> TransPort)
-	addTCP := fmt.Sprintf("sudo iptables -t nat -A PREROUTING -i %s -p tcp --syn -j REDIRECT --to-ports %d -m comment --comment %s 2>&1", iface, transPort, torIptablesComment)
-	if out, err := executeCommand(addTCP); err != nil {
-		executeCommand(fmt.Sprintf("sudo iptables -t nat -D PREROUTING -i %s -p udp --dport 53 -j REDIRECT --to-ports %d -m comment --comment %s 2>/dev/null", iface, dnsPort, torIptablesComment))
+	if err := runIptablesRule(
+		"-t", "nat", "-A", "PREROUTING",
+		"-i", iface,
+		"-p", "tcp",
+		"--syn",
+		"-j", "REDIRECT",
+		"--to-ports", strconv.Itoa(transPort),
+		"-m", "comment", "--comment", torIptablesComment,
+	); err != nil {
+		// Intentamos deshacer la regla DNS si existe.
+		_ = runIptablesRule(
+			"-t", "nat", "-D", "PREROUTING",
+			"-i", iface,
+			"-p", "udp",
+			"--dport", "53",
+			"-j", "REDIRECT",
+			"--to-ports", strconv.Itoa(dnsPort),
+			"-m", "comment", "--comment", torIptablesComment,
+		)
 		result["success"] = false
-		result["error"] = "Error añadiendo regla TCP: " + strings.TrimSpace(out)
+		result["error"] = "Error añadiendo regla TCP: " + err.Error()
 		return result
 	}
 
 	// Persistir reglas si netfilter-persistent está disponible
-	executeCommand("sudo netfilter-persistent save 2>/dev/null || true")
-	executeCommand("sudo iptables-save | sudo tee /etc/iptables/rules.v4 >/dev/null 2>&1 || true")
+	persistIptablesRules()
 
 	result["success"] = true
 	result["message"] = fmt.Sprintf("Tráfico de la red Hostberry (%s) redirigido a Tor. Los clientes WiFi usarán Tor.", iface)
@@ -545,22 +620,38 @@ func disableTorIptables(user string) map[string]interface{} {
 		}
 	}
 
-	// Eliminar reglas (pueden estar duplicadas si se activó dos veces)
+	// Eliminar reglas (pueden estar duplicadas si se activó dos veces).
+	// Repetimos para cubrir casos donde haya más de una regla idéntica.
 	for i := 0; i < 5; i++ {
-		delDNS := fmt.Sprintf("sudo iptables -t nat -D PREROUTING -i %s -p udp --dport 53 -j REDIRECT --to-ports %d -m comment --comment %s 2>&1", iface, dnsPort, torIptablesComment)
-		if _, err := executeCommand(delDNS); err != nil {
+		err := runIptablesRule(
+			"-t", "nat", "-D", "PREROUTING",
+			"-i", iface,
+			"-p", "udp",
+			"--dport", "53",
+			"-j", "REDIRECT",
+			"--to-ports", strconv.Itoa(dnsPort),
+			"-m", "comment", "--comment", torIptablesComment,
+		)
+		if err != nil {
 			break
 		}
 	}
 	for i := 0; i < 5; i++ {
-		delTCP := fmt.Sprintf("sudo iptables -t nat -D PREROUTING -i %s -p tcp --syn -j REDIRECT --to-ports %d -m comment --comment %s 2>&1", iface, transPort, torIptablesComment)
-		if _, err := executeCommand(delTCP); err != nil {
+		err := runIptablesRule(
+			"-t", "nat", "-D", "PREROUTING",
+			"-i", iface,
+			"-p", "tcp",
+			"--syn",
+			"-j", "REDIRECT",
+			"--to-ports", strconv.Itoa(transPort),
+			"-m", "comment", "--comment", torIptablesComment,
+		)
+		if err != nil {
 			break
 		}
 	}
 
-	executeCommand("sudo netfilter-persistent save 2>/dev/null || true")
-	executeCommand("sudo iptables-save | sudo tee /etc/iptables/rules.v4 >/dev/null 2>&1 || true")
+	persistIptablesRules()
 
 	result["success"] = true
 	result["message"] = "Redirección de la red Hostberry a Tor desactivada."

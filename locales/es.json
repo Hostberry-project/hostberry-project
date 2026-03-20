@@ -294,7 +294,7 @@
     "used_of": "Usado de"
   },
   "auth": {
-    "default_credentials_notice": "Usuario: admin, Contraseña: admin. Cámbiala tras iniciar sesión.",
+    "default_credentials_notice": "Se han detectado credenciales por defecto activas. Cámbialas inmediatamente tras iniciar sesión.",
     "login_info": "Inicia sesión para continuar",
     "login": "Iniciar Sesión",
     "logout": "Cerrar Sesión",
@@ -1106,6 +1106,7 @@
     "smtp_port": "Puerto SMTP",
     "smtp_user": "Usuario SMTP",
     "smtp_password": "Contraseña SMTP",
+    "smtp_password_placeholder": "Déjalo vacío para mantener la contraseña actual",
     "smtp_password_hint": "Si usas Gmail, utiliza una contraseña de aplicación",
     "smtp_from": "Email Remitente",
     "smtp_tls": "Usar TLS (STARTTLS)",
@@ -1678,7 +1679,7 @@
     "wifi_interface_wait": "⏳ Esperando interfaz WiFi... (intento %d/3)",
     "wifi_auto_start": "🔄 Iniciando autoconexión WiFi en interfaz: %s",
     "wifi_interface_not_found": "⚠️  No se detectó interfaz WiFi después de 3 intentos, omitiendo autoconexión",
-    "wifi_setup_token_info": "🔑 API WiFi sin sesión: usa cabecera %s o ?%s=… con el valor de este arranque: %s (secreto; con login en el panel no hace falta).",
+    "wifi_setup_token_info": "🔑 API WiFi sin sesión: usa la cabecera %s (token configurado/generado; no se muestra).",
     "server_starting": "🚀 HostBerry iniciando en %s",
     "server_config": "📋 Configuración: Debug=%v, Timeout=%ds/%ds",
     "server_stopping": "🛑 Deteniendo servidor...",

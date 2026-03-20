@@ -11,10 +11,8 @@ import (
 )
 
 const (
-	// HeaderName es la cabecera HTTP aceptada junto a wifi_setup_token (query).
+	// HeaderName es la cabecera HTTP aceptada para el token de setup WiFi.
 	HeaderName = "X-HostBerry-WiFi-Setup-Token"
-	// QueryParam es el nombre del parámetro de consulta alternativo.
-	QueryParam = "wifi_setup_token"
 )
 
 var (
@@ -41,7 +39,7 @@ func TokenForDisplay() string {
 	return string(tokenRaw)
 }
 
-// Valid comprueba el token proporcionado (cabecera o query) con comparación en tiempo constante.
+// Valid comprueba el token proporcionado con comparación en tiempo constante.
 func Valid(provided string) bool {
 	provided = strings.TrimSpace(provided)
 	if provided == "" {
@@ -59,15 +57,10 @@ func Valid(provided string) bool {
 	return subtle.ConstantTimeCompare([]byte(provided), tokenRaw) == 1
 }
 
-// ExtractFromRequest obtiene el candidato a token de cabecera o query.
+// ExtractFromRequest obtiene el candidato a token solo desde cabecera.
 func ExtractFromRequest(getHeader func(string) string, getQuery func(string) string) string {
 	if getHeader != nil {
 		if v := strings.TrimSpace(getHeader(HeaderName)); v != "" {
-			return v
-		}
-	}
-	if getQuery != nil {
-		if v := strings.TrimSpace(getQuery(QueryParam)); v != "" {
 			return v
 		}
 	}

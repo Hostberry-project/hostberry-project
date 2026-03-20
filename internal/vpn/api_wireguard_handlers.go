@@ -1,6 +1,7 @@
 package vpn
 
 import (
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -114,9 +115,9 @@ func WireguardPeersHandler(c *fiber.Ctx) error {
 }
 
 func WireguardGetConfigHandler(c *fiber.Ctx) error {
-	out, err := exec.Command("sh", "-c", "cat /etc/wireguard/wg0.conf 2>/dev/null").CombinedOutput()
+	out, err := os.ReadFile("/etc/wireguard/wg0.conf")
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": strings.TrimSpace(string(out))})
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"config": string(out)})
 }

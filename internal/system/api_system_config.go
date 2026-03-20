@@ -15,6 +15,33 @@ import (
 	middleware "hostberry/internal/middleware"
 )
 
+var allowedSystemConfigKeys = map[string]struct{}{
+	"language":           {},
+	"theme":              {},
+	"timezone":           {},
+	"dhcp_enabled":       {},
+	"dhcp_interface":     {},
+	"dhcp_range_start":   {},
+	"dhcp_range_end":     {},
+	"dhcp_gateway":       {},
+	"dhcp_lease_time":    {},
+	"dns_server":         {},
+	"max_login_attempts": {},
+	"session_timeout":    {},
+	"cache_enabled":      {},
+	"cache_size":         {},
+	"compression_enabled": {},
+	"email_notifications": {},
+	"email_address":       {},
+	"smtp_host":           {},
+	"smtp_port":           {},
+	"smtp_user":           {},
+	"smtp_password":       {},
+	"smtp_from":           {},
+	"smtp_tls":            {},
+	"system_alerts":       {},
+}
+
 // SystemConfigHandler guarda la configuración del sistema recibida desde la UI.
 func SystemConfigHandler(c *fiber.Ctx) error {
 	var req map[string]interface{}
@@ -34,6 +61,11 @@ func SystemConfigHandler(c *fiber.Ctx) error {
 	errors := []string{}
 
 	for key, value := range req {
+		if _, ok := allowedSystemConfigKeys[key]; !ok {
+			errors = append(errors, fmt.Sprintf("Clave no permitida: %s", key))
+			continue
+		}
+
 		var valueStr string
 		switch v := value.(type) {
 		case string:
@@ -46,6 +78,12 @@ func SystemConfigHandler(c *fiber.Ctx) error {
 			continue
 		default:
 			valueStr = fmt.Sprintf("%v", v)
+		}
+
+		// No sobreescribir secretos con cadena vacía cuando la UI deja el campo en blanco
+		// para indicar "mantener valor actual".
+		if key == "smtp_password" && strings.TrimSpace(valueStr) == "" {
+			continue
 		}
 
 		if err := database.SetConfig(key, valueStr); err != nil {

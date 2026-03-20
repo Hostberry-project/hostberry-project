@@ -205,12 +205,6 @@
     if (!('credentials' in opts)) opts.credentials = 'include';
     const headers = new Headers(opts.headers);
     
-    // Auth token
-    if(!headers.has('Authorization')){
-      let token = localStorage.getItem('access_token');
-      if(token) headers.set('Authorization', 'Bearer ' + token);
-    }
-    
     // JSON body handling
     if(opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)){
       if(!headers.has('Content-Type')){
@@ -260,12 +254,10 @@
             if(errorMsg.includes('token') || errorMsg.includes('Token') || 
                errorMsg.includes('autorizado') || errorMsg.includes('authorized') ||
                errorMsg.includes('expirado') || errorMsg.includes('expired')){
-              localStorage.removeItem('access_token');
               window.location.href = '/login?error=session_expired';
             }
           } catch(_e) {
             // Si no se puede parsear el error, asumir que es un error de autenticación real
-            localStorage.removeItem('access_token');
             window.location.href = '/login?error=session_expired';
           }
         }
@@ -367,9 +359,10 @@
 
   // Verificar y mantener la sesión activa
   function setupSessionKeepAlive(){
-    const token = localStorage.getItem('access_token');
-    if(!token) return;
-    
+    const page = document.body && document.body.getAttribute ? document.body.getAttribute('data-page') : '';
+    const isAuthPage = (page === 'login' || page === 'first_login');
+    if(isAuthPage) return;
+
     let consecutiveErrors = 0;
     const maxConsecutiveErrors = 3; // Permitir hasta 3 errores consecutivos antes de cerrar sesión
     
@@ -377,16 +370,8 @@
     // Verificar cada 2 minutos (si el token expira en 1 hora, esto es seguro)
     setInterval(async function(){
       try{
-        const token = localStorage.getItem('access_token');
-        if(!token) return;
-        
-        // Hacer una petición simple para verificar si el token sigue válido
-        const resp = await fetch('/api/v1/auth/me', {
-          method: 'GET',
-          headers: {
-            'Authorization': 'Bearer ' + token
-          }
-        });
+        // Hacer una petición simple para verificar si el token sigue válido (usa cookie HTTPOnly)
+        const resp = await fetch('/api/v1/auth/me', { method: 'GET', credentials: 'include' });
         
         if(resp && resp.status === 401){
           // Verificar que realmente es un error de autenticación y no de red
@@ -412,7 +397,6 @@
               consecutiveErrors++;
               if(consecutiveErrors >= maxConsecutiveErrors){
                 console.warn('Token expirado después de múltiples intentos, redirigiendo a login...');
-                localStorage.removeItem('access_token');
                 window.location.href = '/login?error=session_expired';
               }
             } else {
@@ -499,8 +483,9 @@
     }catch(_e){}
     
     const el = document.getElementById('hb-current-username');
-    const token = localStorage.getItem('access_token');
-    if(el && token){
+    const page = document.body && document.body.getAttribute ? document.body.getAttribute('data-page') : '';
+    const isAuthPage = (page === 'login' || page === 'first_login');
+    if(el && !isAuthPage){
       try{
         const resp = await apiRequest('/api/v1/auth/me');
         if(resp && resp.ok){

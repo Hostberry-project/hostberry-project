@@ -37,9 +37,10 @@ func isSameOriginForCookieAuth(c *fiber.Ctx) bool {
 	origin := strings.TrimSpace(c.Get("Origin"))
 	referer := strings.TrimSpace(c.Get("Referer"))
 
-	// Si no hay cabeceras de origen/referer no bloqueamos para no romper clientes legacy (curl, integraciones).
+	// Para acciones "unsafe" con auth por cookie, exigir Origin o Referer
+	// reduce el riesgo de CSRF desde formularios o peticiones cross-site.
 	if origin == "" && referer == "" {
-		return true
+		return false
 	}
 
 	host := strings.ToLower(strings.TrimSpace(c.Hostname()))
@@ -114,7 +115,7 @@ func RequireAuth(c *fiber.Ctx) error {
 		return c.Next()
 	}
 
-	// API WiFi de asistente: ya no es pública; aceptar JWT/cookie o token de setup (cabecera/query).
+	// API WiFi de asistente: ya no es pública; aceptar JWT/cookie o token de setup por cabecera.
 	if strings.HasPrefix(path, "/api/") && isWifiSetupAPIPath(path) {
 		candidate := wifisetup.ExtractFromRequest(
 			func(k string) string { return c.Get(k) },

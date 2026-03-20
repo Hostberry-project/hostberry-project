@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/gofiber/fiber/v2"
 	health "hostberry/internal/health"
+	middleware "hostberry/internal/middleware"
 )
 
 func setupHealthRoutes(app *fiber.App) {
@@ -11,6 +12,6 @@ func setupHealthRoutes(app *fiber.App) {
 	app.Get("/health/live", health.LivenessCheckHandler)
 
 	// Métricas: endpoint público pero sin información sensible (para Prometheus/monitorización).
-	app.Get("/metrics", health.MetricsHandler)
+	app.Get("/metrics", middleware.RequireAdmin, health.MetricsHandler)
 }
 
