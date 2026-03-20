@@ -65,4 +65,3 @@ func WifiSoftwareSwitchHandler(c *fiber.Ctx) error {
 		"blocked": newIsBlocked,
 	})
 }
-

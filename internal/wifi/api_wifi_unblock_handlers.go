@@ -86,4 +86,3 @@ func WifiUnblockHandler(c *fiber.Ctx) error {
 	database.InsertLog("ERROR", database.LogMsgErr("desbloquear WiFi", errorDetails, user.Username), "wifi", &userID)
 	return c.Status(500).JSON(fiber.Map{"error": errorDetails})
 }
-
