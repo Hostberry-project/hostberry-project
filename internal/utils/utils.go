@@ -177,6 +177,50 @@ func validateShellCommandAllowList(cmd string, allowedCommands []string) error {
 		return exec.ErrNotFound
 	}
 
+	// Hardening extra: desactivar redirecciones arbitrarias.
+	// Permitimos únicamente:
+	// - `>/dev/null`, `2>/dev/null`, `1>/dev/null` (con o sin espacios)
+	// - `2>&1` (combinación típica de stderr->stdout)
+	// Prohibimos:
+	// - cualquier uso de `>>` (append)
+	// - cualquier uso de `<` (input redirect)
+	if strings.Contains(cmd, "<") {
+		return exec.ErrNotFound
+	}
+	if strings.Contains(cmd, ">>") {
+		return exec.ErrNotFound
+	}
+	// Recorremos cada '>' y validamos su destino.
+	for i := 0; ; {
+		relIdx := strings.IndexByte(cmd[i:], '>')
+		if relIdx < 0 {
+			break
+		}
+		idx := i + relIdx
+
+		// Permitir únicamente el patrón exacto `2>&1` (sin espacios).
+		// Ej: " ... 2>&1"
+		if idx > 0 &&
+			cmd[idx-1] == '2' &&
+			idx+2 < len(cmd) &&
+			cmd[idx+1] == '&' &&
+			cmd[idx+2] == '1' {
+			i = idx + 1
+			continue
+		}
+
+		// Permitir redirect a /dev/null.
+		j := idx + 1
+		for j < len(cmd) && (cmd[j] == ' ' || cmd[j] == '\t') {
+			j++
+		}
+		if !strings.HasPrefix(cmd[j:], "/dev/null") {
+			return exec.ErrNotFound
+		}
+
+		i = idx + 1
+	}
+
 	// Construimos set para validar tokens base por átomo.
 	allowed := make(map[string]struct{}, len(allowedCommands))
 	for _, a := range allowedCommands {
