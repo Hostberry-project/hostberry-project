@@ -18,7 +18,7 @@
     {{ if .ShowDefaultCredentialsNotice }}
     <div id="first-login-credential-notice" class="alert alert-warning alert-default-credentials mb-3" role="alert" style="display: block; visibility: visible; min-height: 2.5rem;">
         <i class="bi bi-exclamation-triangle me-2"></i>
-        {{ call .t "auth.default_credentials_notice" "Usuario: admin, Contraseña: admin. Cámbiala tras iniciar sesión." }}
+        {{ call .t "auth.default_credentials_notice" "Se han detectado credenciales por defecto activas. Cámbialas inmediatamente tras iniciar sesión." }}
     </div>
     {{ end }}
 

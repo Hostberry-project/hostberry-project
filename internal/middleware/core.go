@@ -343,20 +343,12 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 
 	if strings.HasPrefix(c.Path(), "/api/") {
 		resp := fiber.Map{
-			"error":   message,
-			"path":    c.Path(),
-			"method":  c.Method(),
-		}
-		if config.AppConfig.Server.Debug {
-			resp["details"] = err.Error()
+			"error": message,
 		}
 		return c.Status(code).JSON(resp)
 	}
 
 	renderDetails := ""
-	if config.AppConfig.Server.Debug {
-		renderDetails = err.Error()
-	}
 
 	if renderErr := webtemplates.RenderTemplate(c, "error", fiber.Map{
 		"Title":   "Error",
