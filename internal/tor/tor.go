@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"hostberry/internal/i18n"
-	"hostberry/internal/validators"
 	"hostberry/internal/utils"
+	"hostberry/internal/validators"
 )
 
 // TorConfigOptions agrupa todas las opciones de configuración de Tor (incl. estilo Onion Pi).
@@ -40,9 +40,8 @@ func executeCommand(cmd string) (string, error) {
 }
 
 func isTorInstalled() bool {
-	// Primero: command -v tor (PATH del shell)
-	checkCmd := exec.Command("sh", "-c", "command -v tor 2>/dev/null")
-	if checkCmd.Run() == nil {
+	// Primero: PATH (sin shell).
+	if _, err := exec.LookPath("tor"); err == nil {
 		return true
 	}
 	// Segundo: comprobar rutas conocidas (útil cuando el proceso no tiene /usr/bin en PATH, p. ej. systemd)
@@ -69,16 +68,18 @@ func getTorStatus() map[string]interface{} {
 	}
 
 	// Verificar estado del servicio
-	statusCmd := exec.Command("sh", "-c", "systemctl is-active tor 2>/dev/null || echo inactive")
-	statusOut, _ := statusCmd.Output()
-	status := strings.TrimSpace(string(statusOut))
+	status := "inactive"
+	if statusOut, err := exec.Command("systemctl", "is-active", "tor").Output(); err == nil {
+		status = strings.TrimSpace(string(statusOut))
+	}
 	result["active"] = status == "active"
 	result["status"] = status
 
 	// Verificar si está habilitado para iniciar al arranque
-	enabledCmd := exec.Command("sh", "-c", "systemctl is-enabled tor 2>/dev/null || echo disabled")
-	enabledOut, _ := enabledCmd.Output()
-	enabled := strings.TrimSpace(string(enabledOut))
+	enabled := "disabled"
+	if enabledOut, err := exec.Command("systemctl", "is-enabled", "tor").Output(); err == nil {
+		enabled = strings.TrimSpace(string(enabledOut))
+	}
 	result["enabled"] = enabled == "enabled"
 
 	// Leer configuración si existe
@@ -92,24 +93,35 @@ func getTorStatus() map[string]interface{} {
 
 	// Verificar puerto SOCKS si está activo
 	if result["active"] == true {
-		// Intentar conectar al puerto SOCKS por defecto (9050)
-		socksCheckCmd := exec.Command("sh", "-c", "netstat -tuln 2>/dev/null | grep ':9050' || ss -tuln 2>/dev/null | grep ':9050'")
-		if socksOut, err := socksCheckCmd.Output(); err == nil {
-			socksLine := strings.TrimSpace(string(socksOut))
-			if socksLine != "" {
-				result["socks_port"] = "9050"
-				result["socks_listening"] = true
-			} else {
-				result["socks_listening"] = false
+		// Intentar conectar al puerto SOCKS por defecto (9050) sin pipeline.
+		socksListening := false
+		if out, err := exec.Command("netstat", "-tuln").Output(); err == nil {
+			if strings.Contains(string(out), ":9050") {
+				socksListening = true
 			}
 		}
+		if !socksListening {
+			if out, err := exec.Command("ss", "-tuln").Output(); err == nil {
+				if strings.Contains(string(out), ":9050") {
+					socksListening = true
+				}
+			}
+		}
+		result["socks_port"] = "9050"
+		result["socks_listening"] = socksListening
 	}
 
 	// Verificar IP actual a través de Tor (si está activo)
 	if result["active"] == true && result["socks_listening"] == true {
 		// Intentar obtener IP a través de Tor usando curl
-		ipCheckCmd := exec.Command("sh", "-c", "curl -s --socks5-hostname 127.0.0.1:9050 https://api.ipify.org 2>/dev/null || echo ''")
-		if ipOut, err := ipCheckCmd.Output(); err == nil {
+		ipOut, err := exec.Command(
+			"curl",
+			"-s",
+			"--socks5-hostname",
+			"127.0.0.1:9050",
+			"https://api.ipify.org",
+		).Output()
+		if err == nil {
 			ip := strings.TrimSpace(string(ipOut))
 			if ip != "" && !strings.Contains(ip, "error") {
 				result["tor_ip"] = ip
@@ -276,9 +288,10 @@ AvoidDiskWrites 0
 `, socksBlock, controlBlock, transBlock, dnsBlock, clientOnlyLine, automapLines, hiddenBlock)
 
 	// Escribir configuración
-	writeCmd := fmt.Sprintf("sudo tee %s > /dev/null", configPath)
-	cmd := exec.Command("sh", "-c", writeCmd)
+	cmd := exec.Command("sudo", "tee", configPath)
 	cmd.Stdin = strings.NewReader(configContent)
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
 	if err := cmd.Run(); err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error escribiendo configuración: %v", err)
@@ -386,9 +399,10 @@ func disableTor(user string) map[string]interface{} {
 func getTorCircuitInfo() map[string]interface{} {
 	result := make(map[string]interface{})
 
-	statusCmd := exec.Command("sh", "-c", "systemctl is-active tor 2>/dev/null || echo inactive")
-	statusOut, _ := statusCmd.Output()
-	status := strings.TrimSpace(string(statusOut))
+	status := "inactive"
+	if statusOut, err := exec.Command("systemctl", "is-active", "tor").Output(); err == nil {
+		status = strings.TrimSpace(string(statusOut))
+	}
 
 	if status != "active" {
 		result["active"] = false
@@ -397,8 +411,10 @@ func getTorCircuitInfo() map[string]interface{} {
 	}
 
 	// Intentar obtener información del circuito usando control port
-	controlCmd := exec.Command("sh", "-c", "echo 'GETINFO circuit-status' | nc 127.0.0.1 9051 2>/dev/null || echo ''")
-	if controlOut, err := controlCmd.Output(); err == nil {
+	controlCmd := exec.Command("nc", "127.0.0.1", "9051")
+	controlCmd.Stdin = strings.NewReader("GETINFO circuit-status\n")
+	controlOut, err := controlCmd.Output()
+	if err == nil {
 		controlOutput := strings.TrimSpace(string(controlOut))
 		if controlOutput != "" {
 			result["circuit_info"] = controlOutput
@@ -406,8 +422,14 @@ func getTorCircuitInfo() map[string]interface{} {
 	}
 
 	// Intentar obtener IP a través de Tor
-	ipCheckCmd := exec.Command("sh", "-c", "curl -s --socks5-hostname 127.0.0.1:9050 https://api.ipify.org 2>/dev/null || echo ''")
-	if ipOut, err := ipCheckCmd.Output(); err == nil {
+	ipOut, err := exec.Command(
+		"curl",
+		"-s",
+		"--socks5-hostname",
+		"127.0.0.1:9050",
+		"https://api.ipify.org",
+	).Output()
+	if err == nil {
 		ip := strings.TrimSpace(string(ipOut))
 		if ip != "" && !strings.Contains(ip, "error") {
 			result["tor_ip"] = ip
@@ -661,13 +683,12 @@ func disableTorIptables(user string) map[string]interface{} {
 
 // ---- wrappers exportados ----
 
-func GetTorStatus() map[string]interface{} { return getTorStatus() }
-func InstallTor(user string) map[string]interface{} { return installTor(user) }
+func GetTorStatus() map[string]interface{}                      { return getTorStatus() }
+func InstallTor(user string) map[string]interface{}             { return installTor(user) }
 func ConfigureTor(opts TorConfigOptions) map[string]interface{} { return configureTor(opts) }
-func EnableTor(user string) map[string]interface{} { return enableTor(user) }
-func DisableTor(user string) map[string]interface{} { return disableTor(user) }
-func GetTorCircuitInfo() map[string]interface{} { return getTorCircuitInfo() }
-func GetTorIptablesStatus() map[string]interface{} { return getTorIptablesStatus() }
-func EnableTorIptables(user string) map[string]interface{} { return enableTorIptables(user) }
-func DisableTorIptables(user string) map[string]interface{} { return disableTorIptables(user) }
-
+func EnableTor(user string) map[string]interface{}              { return enableTor(user) }
+func DisableTor(user string) map[string]interface{}             { return disableTor(user) }
+func GetTorCircuitInfo() map[string]interface{}                 { return getTorCircuitInfo() }
+func GetTorIptablesStatus() map[string]interface{}              { return getTorIptablesStatus() }
+func EnableTorIptables(user string) map[string]interface{}      { return enableTorIptables(user) }
+func DisableTorIptables(user string) map[string]interface{}     { return disableTorIptables(user) }
