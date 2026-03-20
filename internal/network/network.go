@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -10,12 +11,184 @@ import (
 	"hostberry/internal/validators"
 )
 
+func listInterfaceNames() ([]string, error) {
+	out, err := exec.Command("ip", "-o", "link", "show").Output()
+	if err != nil {
+		return nil, err
+	}
+	var names []string
+	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, ": ", 3)
+		if len(parts) < 2 {
+			continue
+		}
+		name := strings.TrimSpace(parts[1])
+		if idx := strings.Index(name, "@"); idx >= 0 {
+			name = name[:idx]
+		}
+		if name != "" {
+			names = append(names, name)
+		}
+	}
+	return names, nil
+}
+
+func readTrimmedFile(path string) string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
+func ipLinkShow(iface string, useSudo bool) (string, error) {
+	if useSudo {
+		out, err := exec.Command("sudo", "ip", "link", "show", iface).Output()
+		return string(out), err
+	}
+	out, err := exec.Command("ip", "link", "show", iface).Output()
+	return string(out), err
+}
+
+func ipAddrShow(iface string, useSudo bool) (string, error) {
+	if useSudo {
+		out, err := exec.Command("sudo", "ip", "addr", "show", iface).Output()
+		return string(out), err
+	}
+	out, err := exec.Command("ip", "addr", "show", iface).Output()
+	return string(out), err
+}
+
+func parseLinkState(output string) string {
+	for _, field := range strings.Fields(output) {
+		if field == "state" {
+			continue
+		}
+	}
+	parts := strings.Fields(output)
+	for i := 0; i < len(parts)-1; i++ {
+		if parts[i] == "state" {
+			return strings.ToLower(strings.TrimSpace(parts[i+1]))
+		}
+	}
+	return ""
+}
+
+func parseFirstIPv4FromIPAddr(output string) (string, string) {
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "inet ") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+		parts := strings.SplitN(fields[1], "/", 2)
+		ip := strings.TrimSpace(parts[0])
+		mask := ""
+		if len(parts) == 2 {
+			mask = strings.TrimSpace(parts[1])
+		}
+		return ip, mask
+	}
+	return "", ""
+}
+
+func parseFirstIPv4FromIfconfig(output string) string {
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.Contains(line, "inet ") {
+			continue
+		}
+		fields := strings.Fields(line)
+		for i := 0; i < len(fields)-1; i++ {
+			if fields[i] == "inet" {
+				return strings.TrimPrefix(strings.TrimSpace(fields[i+1]), "addr:")
+			}
+		}
+	}
+	return ""
+}
+
+func firstHostnameIP() string {
+	out, err := exec.Command("hostname", "-I").Output()
+	if err != nil {
+		return ""
+	}
+	fields := strings.Fields(string(out))
+	if len(fields) == 0 {
+		return ""
+	}
+	return strings.TrimSpace(fields[0])
+}
+
+func processOutputContainsIface(processName, iface string) bool {
+	out, err := exec.Command("pgrep", "-a", processName).Output()
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(out), iface)
+}
+
+func parseWPAState(output string) string {
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "wpa_state=") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "wpa_state="))
+		}
+	}
+	return ""
+}
+
+func getWPAState(iface string) string {
+	if validators.ValidateIfaceName(iface) != nil {
+		return ""
+	}
+	out, err := exec.Command("sudo", "wpa_cli", "-i", iface, "status").Output()
+	if err != nil {
+		out, err = exec.Command("wpa_cli", "-i", iface, "status").Output()
+		if err != nil {
+			return ""
+		}
+	}
+	return parseWPAState(string(out))
+}
+
+func parseDefaultGateway(routeOutput, iface string) string {
+	for _, line := range strings.Split(routeOutput, "\n") {
+		fields := strings.Fields(strings.TrimSpace(line))
+		if len(fields) < 3 || fields[0] != "default" {
+			continue
+		}
+		var via, dev string
+		for i := 0; i < len(fields)-1; i++ {
+			if fields[i] == "via" {
+				via = fields[i+1]
+			}
+			if fields[i] == "dev" {
+				dev = fields[i+1]
+			}
+		}
+		if via == "" {
+			continue
+		}
+		if iface == "" || dev == iface {
+			return via
+		}
+	}
+	return ""
+}
+
 func getNetworkInterfaces() map[string]interface{} {
 	result := make(map[string]interface{})
 	interfaces := []map[string]interface{}{}
 
-	cmd := exec.Command("sh", "-c", "ip -o link show | awk -F': ' '{print $2}'")
-	output, err := cmd.Output()
+	lines, err := listInterfaceNames()
 	if err != nil {
 		i18n.LogTf("logs.network_interfaces_error", err)
 		result["interfaces"] = interfaces
@@ -24,7 +197,6 @@ func getNetworkInterfaces() map[string]interface{} {
 		return result
 	}
 
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 	i18n.LogTf("logs.network_interfaces_found", lines)
 
 	for _, ifaceName := range lines {
@@ -37,8 +209,7 @@ func getNetworkInterfaces() map[string]interface{} {
 			continue
 		}
 
-		ifaceCheckCmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null", ifaceName))
-		if ifaceCheckErr := ifaceCheckCmd.Run(); ifaceCheckErr != nil {
+		if _, ifaceCheckErr := ipLinkShow(ifaceName, false); ifaceCheckErr != nil {
 			i18n.LogTf("logs.network_interface_skip", ifaceName)
 			continue
 		}
@@ -52,18 +223,13 @@ func getNetworkInterfaces() map[string]interface{} {
 			"state": "unknown",
 		}
 
-		stateCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /sys/class/net/%s/operstate 2>/dev/null", ifaceName))
-		if stateOut, err := stateCmd.Output(); err == nil {
-			state := strings.TrimSpace(string(stateOut))
-			if state == "" {
-				ipStateCmd := exec.Command("sh", "-c", fmt.Sprintf("ip link show %s 2>/dev/null | grep -o 'state [A-Z]*' | awk '{print $2}'", ifaceName))
-				if ipStateOut, ipStateErr := ipStateCmd.Output(); ipStateErr == nil {
-					state = strings.TrimSpace(string(ipStateOut))
-				}
-				if state == "" {
-					state = "unknown"
-				}
+		state := readTrimmedFile("/sys/class/net/" + ifaceName + "/operstate")
+		if state == "" {
+			if linkOut, err := ipLinkShow(ifaceName, false); err == nil {
+				state = parseLinkState(linkOut)
 			}
+		}
+		if state != "" {
 			iface["state"] = state
 		}
 
@@ -71,25 +237,20 @@ func getNetworkInterfaces() map[string]interface{} {
 			i18n.LogTf("logs.network_ap0_found", iface["state"])
 			if iface["state"] == "down" || iface["state"] == "unknown" {
 				i18n.LogT("logs.network_ap0_down")
-				activateCmd := exec.Command("sh", "-c", "sudo ip link set ap0 up 2>/dev/null")
+				activateCmd := exec.Command("sudo", "ip", "link", "set", "ap0", "up")
 				if activateErr := activateCmd.Run(); activateErr == nil {
 					time.Sleep(500 * time.Millisecond)
-					stateCmd2 := exec.Command("sh", "-c", "cat /sys/class/net/ap0/operstate 2>/dev/null")
-					if stateOut2, err2 := stateCmd2.Output(); err2 == nil {
-						newState := strings.TrimSpace(string(stateOut2))
-						if newState != "" {
-							iface["state"] = newState
-							i18n.LogTf("logs.network_ap0_activated", newState)
-						}
+					newState := readTrimmedFile("/sys/class/net/ap0/operstate")
+					if newState != "" {
+						iface["state"] = newState
+						i18n.LogTf("logs.network_ap0_activated", newState)
 					}
 				}
 			}
 		}
 
 		if strings.HasPrefix(ifaceName, "wlan") {
-			wpaStatusCmd := exec.Command("sh", "-c", fmt.Sprintf("sudo wpa_cli -i %s status 2>/dev/null | grep 'wpa_state=' | cut -d= -f2", ifaceName))
-			if wpaStateOut, err := wpaStatusCmd.Output(); err == nil {
-				wpaState := strings.TrimSpace(string(wpaStateOut))
+			if wpaState := getWPAState(ifaceName); wpaState != "" {
 				iface["wpa_state"] = wpaState
 				if wpaState == "COMPLETED" {
 					iface["state"] = "up"
@@ -101,37 +262,32 @@ func getNetworkInterfaces() map[string]interface{} {
 			}
 		}
 
-		ipCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | head -1", ifaceName))
-		if ipOut, err := ipCmd.Output(); err == nil {
-			ipLine := strings.TrimSpace(string(ipOut))
+		if ipOut, err := ipAddrShow(ifaceName, false); err == nil {
+			ipLine, mask := parseFirstIPv4FromIPAddr(ipOut)
 			if ipLine != "" {
-				parts := strings.Split(ipLine, "/")
-				iface["ip"] = parts[0]
-				if len(parts) > 1 {
-					iface["netmask"] = parts[1]
+				iface["ip"] = ipLine
+				if mask != "" {
+					iface["netmask"] = mask
 				}
 			}
 		}
 
 		if iface["ip"] == "N/A" || iface["ip"] == "" {
-			ipCmdSudo := exec.Command("sh", "-c", fmt.Sprintf("sudo ip addr show %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | head -1", ifaceName))
-			if ipOutSudo, err := ipCmdSudo.Output(); err == nil {
-				ipLineSudo := strings.TrimSpace(string(ipOutSudo))
+			if ipOutSudo, err := ipAddrShow(ifaceName, true); err == nil {
+				ipLineSudo, mask := parseFirstIPv4FromIPAddr(ipOutSudo)
 				if ipLineSudo != "" {
-					parts := strings.Split(ipLineSudo, "/")
-					iface["ip"] = parts[0]
-					if len(parts) > 1 {
-						iface["netmask"] = parts[1]
+					iface["ip"] = ipLineSudo
+					if mask != "" {
+						iface["netmask"] = mask
 					}
 				}
 			}
 		}
 
 		if iface["ip"] == "N/A" || iface["ip"] == "" {
-			ifconfigCmd := exec.Command("sh", "-c", fmt.Sprintf("ifconfig %s 2>/dev/null | grep 'inet ' | awk '{print $2}' | head -1", ifaceName))
+			ifconfigCmd := exec.Command("ifconfig", ifaceName)
 			if ifconfigOut, err := ifconfigCmd.Output(); err == nil {
-				ifconfigLine := strings.TrimSpace(string(ifconfigOut))
-				ifconfigLine = strings.TrimPrefix(ifconfigLine, "addr:")
+				ifconfigLine := parseFirstIPv4FromIfconfig(string(ifconfigOut))
 				if ifconfigLine != "" {
 					iface["ip"] = ifconfigLine
 				}
@@ -139,28 +295,17 @@ func getNetworkInterfaces() map[string]interface{} {
 		}
 
 		if iface["ip"] == "N/A" || iface["ip"] == "" {
-			hostnameCmd := exec.Command("sh", "-c", "hostname -I 2>/dev/null | awk '{print $1}'")
-			if hostnameOut, err := hostnameCmd.Output(); err == nil {
-				hostnameIP := strings.TrimSpace(string(hostnameOut))
-				if hostnameIP != "" && validators.ValidateIP(hostnameIP) == nil {
-					checkCmd := exec.Command("sh", "-c", fmt.Sprintf("ip addr show %s 2>/dev/null | grep -q '%s' && echo '%s'", ifaceName, hostnameIP, hostnameIP))
-					if checkOut, err := checkCmd.Output(); err == nil {
-						checkIP := strings.TrimSpace(string(checkOut))
-						if checkIP != "" {
-							iface["ip"] = checkIP
-						}
-					}
+			hostnameIP := firstHostnameIP()
+			if hostnameIP != "" && validators.ValidateIP(hostnameIP) == nil {
+				if ipOut, err := ipAddrShow(ifaceName, false); err == nil && strings.Contains(ipOut, hostnameIP) {
+					iface["ip"] = hostnameIP
 				}
 			}
 		}
 
 		if (iface["state"] == "up" || iface["state"] == "connected" || iface["state"] == "connecting") && (iface["ip"] == "N/A" || iface["ip"] == "") {
-			dhcpCheck := exec.Command("sh", "-c", fmt.Sprintf("ps aux | grep -E '[d]hclient|udhcpc' | grep %s", ifaceName))
-			if dhcpOut, err := dhcpCheck.Output(); err == nil {
-				dhcpLine := strings.TrimSpace(string(dhcpOut))
-				if dhcpLine != "" {
-					iface["ip"] = "Obtaining IP..."
-				}
+			if processOutputContainsIface("dhclient", ifaceName) || processOutputContainsIface("udhcpc", ifaceName) {
+				iface["ip"] = "Obtaining IP..."
 			}
 		}
 
@@ -193,27 +338,19 @@ func getNetworkInterfaces() map[string]interface{} {
 			}
 		}
 
-		macCmd := exec.Command("sh", "-c", fmt.Sprintf("cat /sys/class/net/%s/address 2>/dev/null", ifaceName))
-		if macOut, err := macCmd.Output(); err == nil {
-			mac := strings.TrimSpace(string(macOut))
-			if mac != "" {
-				iface["mac"] = mac
-			}
+		if mac := readTrimmedFile("/sys/class/net/" + ifaceName + "/address"); mac != "" {
+			iface["mac"] = mac
 		}
 
 		if iface["connected"] == true && iface["ip"] != "N/A" {
-			gatewayCmd := exec.Command("sh", "-c", fmt.Sprintf("ip route | grep %s | grep default | awk '{print $3}' | head -1", ifaceName))
-			if gatewayOut, err := gatewayCmd.Output(); err == nil {
-				gateway := strings.TrimSpace(string(gatewayOut))
-				if gateway != "" {
+			if routeOut, err := exec.Command("ip", "route").Output(); err == nil {
+				if gateway := parseDefaultGateway(string(routeOut), ifaceName); gateway != "" {
 					iface["gateway"] = gateway
 				}
 			}
 			if iface["gateway"] == nil || iface["gateway"] == "" {
-				defaultGatewayCmd := exec.Command("sh", "-c", "ip route | grep default | awk '{print $3}' | head -1")
-				if defaultGatewayOut, err := defaultGatewayCmd.Output(); err == nil {
-					defaultGateway := strings.TrimSpace(string(defaultGatewayOut))
-					if defaultGateway != "" {
+				if defaultGatewayOut, err := exec.Command("ip", "route").Output(); err == nil {
+					if defaultGateway := parseDefaultGateway(string(defaultGatewayOut), ""); defaultGateway != "" {
 						iface["gateway"] = defaultGateway
 					}
 				}
@@ -235,9 +372,8 @@ func getNetworkInterfaces() map[string]interface{} {
 func getNetworkStatus() map[string]interface{} {
 	result := make(map[string]interface{})
 
-	gatewayCmd := exec.Command("sh", "-c", "ip route | grep default | awk '{print $3}' | head -1")
-	if gatewayOut, err := gatewayCmd.Output(); err == nil {
-		gateway := strings.TrimSpace(string(gatewayOut))
+	if gatewayOut, err := exec.Command("ip", "route").Output(); err == nil {
+		gateway := parseDefaultGateway(string(gatewayOut), "")
 		if gateway != "" {
 			result["gateway"] = gateway
 		} else {
@@ -247,14 +383,16 @@ func getNetworkStatus() map[string]interface{} {
 		result["gateway"] = "N/A"
 	}
 
-	dnsCmd := exec.Command("sh", "-c", "cat /etc/resolv.conf 2>/dev/null | grep '^nameserver' | awk '{print $2}' | head -2")
-	if dnsOut, err := dnsCmd.Output(); err == nil {
+	if dnsOut, err := os.ReadFile("/etc/resolv.conf"); err == nil {
 		dnsServers := strings.Split(strings.TrimSpace(string(dnsOut)), "\n")
 		dnsList := []string{}
 		for _, dns := range dnsServers {
 			dns = strings.TrimSpace(dns)
-			if dns != "" {
-				dnsList = append(dnsList, dns)
+			if strings.HasPrefix(dns, "nameserver ") {
+				fields := strings.Fields(dns)
+				if len(fields) >= 2 && fields[1] != "" {
+					dnsList = append(dnsList, fields[1])
+				}
 			}
 		}
 		if len(dnsList) > 0 {
