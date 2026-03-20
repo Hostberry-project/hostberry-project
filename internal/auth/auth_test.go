@@ -1,6 +1,10 @@
 package auth
 
-import "testing"
+import (
+	"testing"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 func TestCheckPasswordRejectsPlaintextStoredPassword(t *testing.T) {
 	if CheckPassword("admin", "admin") {
@@ -9,10 +13,11 @@ func TestCheckPasswordRejectsPlaintextStoredPassword(t *testing.T) {
 }
 
 func TestCheckPasswordAcceptsBcryptHash(t *testing.T) {
-	hash, err := HashPassword("s3cret-pass")
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte("s3cret-pass"), bcrypt.DefaultCost)
 	if err != nil {
-		t.Fatalf("HashPassword failed: %v", err)
+		t.Fatalf("GenerateFromPassword failed: %v", err)
 	}
+	hash := string(hashBytes)
 	if !CheckPassword("s3cret-pass", hash) {
 		t.Fatal("expected bcrypt hash to validate")
 	}
