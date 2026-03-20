@@ -62,3 +62,34 @@ func TestValidateShellCommandAllowList_Denies(t *testing.T) {
 	}
 }
 
+func TestValidateShellCommandAllowList_Redirections(t *testing.T) {
+	allowed := []string{"echo", "systemctl"}
+
+	cases := []struct {
+		name string
+		cmd  string
+		ok   bool
+	}{
+		{"redirect_stdout_devnull", "echo ok > /dev/null", true},
+		{"redirect_stderr_devnull", "echo ok 2> /dev/null", true},
+		{"redirect_stderr_to_stdout", "echo ok 2>&1", true},
+		{"redirect_append_forbidden", "echo ok >> /dev/null", false},
+		{"redirect_in_forbidden", "echo ok < /etc/passwd", false},
+		{"redirect_to_other_file_forbidden", "echo ok > /tmp/x", false},
+		// Espaciado variable alrededor del 2>&1.
+		{"stderr_to_stdout_no_space", "systemctl restart dnsmasq 2>&1", true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateShellCommandAllowList(tc.cmd, allowed)
+			if tc.ok && err != nil {
+				t.Fatalf("expected allow, got err=%v", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatalf("expected deny, got allow")
+			}
+		})
+	}
+}
+
