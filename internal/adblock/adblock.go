@@ -212,8 +212,7 @@ func installDNSCrypt(user string) map[string]interface{} {
 	i18n.LogTf("logs.dnscrypt_installing", user)
 
 	// Verificar si ya está instalado
-	checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null")
-	if checkCmd.Run() == nil {
+	if _, err := exec.LookPath("dnscrypt-proxy"); err == nil {
 		result["success"] = true
 		result["message"] = "DNSCrypt ya está instalado"
 		result["already_installed"] = true
@@ -250,8 +249,7 @@ func configureDNSCrypt(serverName string, blockAds bool, user string) map[string
 	i18n.LogTf("logs.dnscrypt_configuring", user)
 
 	// Verificar si está instalado
-	checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null")
-	if checkCmd.Run() != nil {
+	if _, err := exec.LookPath("dnscrypt-proxy"); err != nil {
 		result["success"] = false
 		result["error"] = "DNSCrypt no está instalado. Instálalo primero."
 		return result
@@ -321,9 +319,10 @@ timeout = 5000
 	}())
 
 	// Escribir configuración
-	writeCmd := fmt.Sprintf("sudo tee %s > /dev/null", configPath)
-	cmd := exec.Command("sh", "-c", writeCmd)
+	cmd := exec.Command("sudo", "tee", configPath)
 	cmd.Stdin = strings.NewReader(configContent)
+	cmd.Stdout = io.Discard
+	cmd.Stderr = io.Discard
 	if err := cmd.Run(); err != nil {
 		result["success"] = false
 		result["error"] = fmt.Sprintf("Error escribiendo configuración: %v", err)
@@ -345,9 +344,10 @@ googleadservices.*
 googlesyndication.*
 `
 
-		writeBlocklistCmd := fmt.Sprintf("sudo tee %s > /dev/null", blocklistPath)
-		blocklistCmd := exec.Command("sh", "-c", writeBlocklistCmd)
+		blocklistCmd := exec.Command("sudo", "tee", blocklistPath)
 		blocklistCmd.Stdin = strings.NewReader(blocklistContent)
+		blocklistCmd.Stdout = io.Discard
+		blocklistCmd.Stderr = io.Discard
 		blocklistCmd.Run() // Ignorar errores
 	}
 
