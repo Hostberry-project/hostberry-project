@@ -4,8 +4,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"hostberry/internal/validators"
 )
 
 func firstWirelessIface() string {
@@ -26,7 +24,7 @@ func firstWirelessIface() string {
 		if idx := strings.Index(iface, "@"); idx >= 0 {
 			iface = iface[:idx]
 		}
-		if (strings.HasPrefix(iface, "wlan") || strings.HasPrefix(iface, "wl")) && validators.ValidateIfaceName(iface) == nil {
+		if (strings.HasPrefix(iface, "wlan") || strings.HasPrefix(iface, "wl")) && validateInterfaceName(iface) == nil {
 			return iface
 		}
 	}
@@ -48,7 +46,7 @@ func anyWirelessInterfaceUp() bool {
 }
 
 func readInterfaceFile(iface, name string) string {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return ""
 	}
 	data, err := os.ReadFile("/sys/class/net/" + iface + "/" + name)
@@ -59,7 +57,7 @@ func readInterfaceFile(iface, name string) string {
 }
 
 func wpaCliStatus(iface string) ([]byte, error) {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return nil, exec.ErrNotFound
 	}
 	out, err := exec.Command("sudo", "wpa_cli", "-i", iface, "status").CombinedOutput()
@@ -70,7 +68,7 @@ func wpaCliStatus(iface string) ([]byte, error) {
 }
 
 func iwDevLink(iface string) ([]byte, error) {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return nil, exec.ErrNotFound
 	}
 	out, err := exec.Command("sudo", "iw", "dev", iface, "link").CombinedOutput()
@@ -81,7 +79,7 @@ func iwDevLink(iface string) ([]byte, error) {
 }
 
 func iwStationDump(iface string) ([]byte, error) {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return nil, exec.ErrNotFound
 	}
 	out, err := exec.Command("sudo", "iw", "dev", iface, "station", "dump").CombinedOutput()
@@ -92,7 +90,7 @@ func iwStationDump(iface string) ([]byte, error) {
 }
 
 func ifaceIPv4(iface string) string {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return ""
 	}
 	cmds := [][]string{
@@ -120,7 +118,7 @@ func ifaceIPv4(iface string) string {
 }
 
 func dhcpClientRunningForIface(iface string) bool {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return false
 	}
 	for _, proc := range []string{"dhclient", "udhcpc"} {
@@ -136,7 +134,7 @@ func dhcpClientRunningForIface(iface string) bool {
 }
 
 func startDHCPForIface(iface string) {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return
 	}
 	if out, err := exec.Command("sudo", "dhclient", "-v", iface).CombinedOutput(); err == nil || len(out) > 0 {
@@ -146,7 +144,7 @@ func startDHCPForIface(iface string) {
 }
 
 func wirelessProcLine(iface string) string {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return ""
 	}
 	data, err := os.ReadFile("/proc/net/wireless")
@@ -170,7 +168,7 @@ func nmcliFirstWifiDevice() string {
 		fields := strings.Split(line, ":")
 		if len(fields) >= 2 && strings.EqualFold(strings.TrimSpace(fields[1]), "wifi") {
 			device := strings.TrimSpace(fields[0])
-			if validators.ValidateIfaceName(device) == nil {
+			if validateInterfaceName(device) == nil {
 				return device
 			}
 		}
@@ -188,7 +186,7 @@ func defaultRouteIface() string {
 		for i := 0; i < len(fields)-1; i++ {
 			if fields[i] == "dev" {
 				iface := strings.TrimSpace(fields[i+1])
-				if validators.ValidateIfaceName(iface) == nil {
+				if validateInterfaceName(iface) == nil {
 					return iface
 				}
 			}
@@ -198,7 +196,7 @@ func defaultRouteIface() string {
 }
 
 func iwconfigOutput(iface string) string {
-	if validators.ValidateIfaceName(iface) != nil {
+	if validateInterfaceName(iface) != nil {
 		return ""
 	}
 	out, err := exec.Command("iwconfig", iface).CombinedOutput()
