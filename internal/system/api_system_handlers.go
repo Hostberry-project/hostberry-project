@@ -66,28 +66,41 @@ func SystemServicesHandler(c *fiber.Ctx) error {
 		"active": wgActive,
 	}
 
-	openvpnOut, _ := exec.Command("sh", "-c", "systemctl is-active openvpn 2>/dev/null || pgrep openvpn > /dev/null && echo active || echo inactive").CombinedOutput()
-	openvpnStatus := strings.TrimSpace(string(openvpnOut))
-	openvpnActive := openvpnStatus == "active"
+	openvpnActive := false
+	if out, _ := exec.Command("systemctl", "is-active", "openvpn").CombinedOutput(); strings.TrimSpace(string(out)) == "active" {
+		openvpnActive = true
+	} else if err := exec.Command("pgrep", "openvpn").Run(); err == nil {
+		openvpnActive = true
+	}
+	openvpnStatus := "inactive"
+	if openvpnActive {
+		openvpnStatus = "active"
+	}
 	services["openvpn"] = map[string]interface{}{
 		"status": openvpnStatus,
 		"active": openvpnActive,
 	}
 
-	pgrepOut, _ := exec.Command("sh", "-c", "pgrep hostapd > /dev/null 2>&1 && echo active || echo inactive").CombinedOutput()
-	pgrepStatus := strings.TrimSpace(string(pgrepOut))
+	hostapdServiceActive := strings.TrimSpace(string(func() []byte {
+		out, _ := exec.Command("systemctl", "is-active", "hostapd").CombinedOutput()
+		return out
+	}()))
+	hostapdPgrepActive := exec.Command("pgrep", "hostapd").Run() == nil
+	hostapdActive := hostapdServiceActive == "active" || hostapdPgrepActive
 
-	hostapdOut, _ := exec.Command("sh", "-c", "systemctl is-active hostapd 2>/dev/null || echo inactive").CombinedOutput()
-	hostapdStatus := strings.TrimSpace(string(hostapdOut))
-
-	hostapdEnabledOut, _ := exec.Command("sh", "-c", "systemctl is-enabled hostapd 2>/dev/null || echo disabled").CombinedOutput()
-	hostapdEnabledStatus := strings.TrimSpace(string(hostapdEnabledOut))
-	hostapdEnabled := hostapdEnabledStatus == "enabled"
-
-	hostapdActive := hostapdStatus == "active" || pgrepStatus == "active"
-	if hostapdStatus == "inactive" && pgrepStatus == "active" {
+	hostapdStatus := "inactive"
+	if hostapdActive {
 		hostapdStatus = "active"
 	}
+
+	hostapdEnabledStatus := strings.TrimSpace(string(func() []byte {
+		out, _ := exec.Command("systemctl", "is-enabled", "hostapd").CombinedOutput()
+		return out
+	}()))
+	if hostapdEnabledStatus == "" {
+		hostapdEnabledStatus = "disabled"
+	}
+	hostapdEnabled := hostapdEnabledStatus == "enabled"
 
 	services["hostapd"] = map[string]interface{}{
 		"status":  hostapdStatus,
@@ -95,10 +108,14 @@ func SystemServicesHandler(c *fiber.Ctx) error {
 		"enabled": hostapdEnabled,
 	}
 
-	dnsmasqOut, _ := exec.Command("sh", "-c", "systemctl is-active dnsmasq 2>/dev/null || echo inactive").CombinedOutput()
-	dnsmasqStatus := strings.TrimSpace(string(dnsmasqOut))
-	piholeOut, _ := exec.Command("sh", "-c", "systemctl is-active pihole-FTL 2>/dev/null || echo inactive").CombinedOutput()
-	piholeStatus := strings.TrimSpace(string(piholeOut))
+	dnsmasqStatus := strings.TrimSpace(func() string {
+		out, _ := exec.Command("systemctl", "is-active", "dnsmasq").CombinedOutput()
+		return strings.TrimSpace(string(out))
+	}())
+	piholeStatus := strings.TrimSpace(func() string {
+		out, _ := exec.Command("systemctl", "is-active", "pihole-FTL").CombinedOutput()
+		return strings.TrimSpace(string(out))
+	}())
 	adblockActive := dnsmasqStatus == "active" || piholeStatus == "active"
 	services["adblock"] = map[string]interface{}{
 		"status": adblockActive,
