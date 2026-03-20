@@ -1,8 +1,6 @@
 package network
 
 import (
-	
-
 	"github.com/gofiber/fiber/v2"
 )
 
