@@ -29,41 +29,35 @@ func executeCommand(cmd string) (string, error) {
 func getAdBlockStatus() map[string]interface{} {
 	result := make(map[string]interface{})
 
-	dnsmasqCmd := exec.Command("sh", "-c", "systemctl is-active dnsmasq 2>/dev/null || echo inactive")
-	dnsmasqOut, _ := dnsmasqCmd.Output()
+	dnsmasqOut, _ := exec.Command("systemctl", "is-active", "dnsmasq").Output()
 	dnsmasqStatus := strings.TrimSpace(string(dnsmasqOut))
 	if dnsmasqStatus == "" {
 		dnsmasqStatus = "inactive"
 	}
 
-	piholeCmd := exec.Command("sh", "-c", "systemctl is-active pihole-FTL 2>/dev/null || echo inactive")
-	piholeOut, _ := piholeCmd.Output()
+	piholeOut, _ := exec.Command("systemctl", "is-active", "pihole-FTL").Output()
 	piholeStatus := strings.TrimSpace(string(piholeOut))
 	if piholeStatus == "" {
 		piholeStatus = "inactive"
 	}
 
 	// Verificar DNSCrypt
-	dnscryptCmd := exec.Command("sh", "-c", "systemctl is-active dnscrypt-proxy 2>/dev/null || echo inactive")
-	dnscryptOut, _ := dnscryptCmd.Output()
+	dnscryptOut, _ := exec.Command("systemctl", "is-active", "dnscrypt-proxy").Output()
 	dnscryptStatus := strings.TrimSpace(string(dnscryptOut))
 	if dnscryptStatus == "" {
 		dnscryptStatus = "inactive"
 	}
 
 	// Verificar Blocky
-	blockyCmd := exec.Command("sh", "-c", "systemctl is-active blocky 2>/dev/null || echo inactive")
-	blockyOut, _ := blockyCmd.Output()
+	blockyOut, _ := exec.Command("systemctl", "is-active", "blocky").Output()
 	blockyStatus := strings.TrimSpace(string(blockyOut))
 	if blockyStatus == "" {
 		blockyStatus = "inactive"
 	}
 
 	// Verificar si dnscrypt-proxy está instalado
-	dnscryptInstalled := false
-	if checkCmd := exec.Command("sh", "-c", "command -v dnscrypt-proxy 2>/dev/null"); checkCmd.Run() == nil {
-		dnscryptInstalled = true
-	}
+	_, dnscryptLookErr := exec.LookPath("dnscrypt-proxy")
+	dnscryptInstalled := dnscryptLookErr == nil
 
 	blockyInstalled := blockyBinaryExists()
 
