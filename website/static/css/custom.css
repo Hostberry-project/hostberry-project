@@ -339,6 +339,15 @@ body.light-theme .alert-warning {
   color: #1e40af !important;
 }
 
+/* Botón X en notificaciones flotantes (visible en tema oscuro) */
+body.dark-theme .alert .btn-close {
+  filter: invert(1) grayscale(100%) brightness(1.15);
+  opacity: 0.85;
+}
+body.dark-theme .alert .btn-close:hover {
+  opacity: 1;
+}
+
 /* Progress */
 .progress {
   height: 8px;

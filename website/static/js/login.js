@@ -36,11 +36,26 @@
       window.HostBerry.showAlert(type, message);
     } else {
       const alertDiv = document.createElement('div');
-      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed d-flex align-items-center`;
       alertDiv.style.cssText = 'top:20px; right:20px; z-index:9999; min-width:300px;';
-      alertDiv.textContent = String(message ?? '');
+      alertDiv.setAttribute('role', 'alert');
+      const msg = document.createElement('span');
+      msg.className = 'flex-grow-1 me-2';
+      msg.textContent = String(message ?? '');
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'btn-close flex-shrink-0';
+      closeBtn.setAttribute('aria-label', 'Close');
+      let tmr = null;
+      const dismiss = () => {
+        if (tmr) clearTimeout(tmr);
+        alertDiv.remove();
+      };
+      closeBtn.addEventListener('click', (e) => { e.preventDefault(); dismiss(); });
+      alertDiv.appendChild(msg);
+      alertDiv.appendChild(closeBtn);
       document.body.appendChild(alertDiv);
-      setTimeout(() => alertDiv.remove(), 5000);
+      tmr = setTimeout(dismiss, 8000);
     }
   };
 
