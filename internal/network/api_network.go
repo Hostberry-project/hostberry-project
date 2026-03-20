@@ -598,22 +598,19 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 		dnsStr := strings.Join(dnsServers, " ")
 
 		if !dnsApplied {
-			connCmd := exec.Command("/bin/sh", "-c", "nmcli -t -f NAME connection show --active 2>/dev/null | head -1")
-			if connOut, err := connCmd.Output(); err == nil {
-				connName := strings.TrimSpace(string(connOut))
-				if connName != "" {
-					out, err := runSudoNmcli("connection", "modify", connName, "ipv4.dns", dnsStr)
-					if err == nil {
-						if _, upErr := runSudoNmcli("connection", "up", connName); upErr != nil {
-							log.Printf("nmcli connection up after DNS: %v", upErr)
-						}
-						applied = append(applied, fmt.Sprintf("DNS set to %s (via NetworkManager)", strings.Join(dnsServers, ", ")))
-						dnsApplied = true
-						log.Printf("DNS configured via nmcli: %s", dnsStr)
-						_ = out
-					} else {
-						log.Printf("nmcli DNS configuration failed: %v, output: %s", err, out)
+			connName := nmcliFirstActiveConnectionName()
+			if connName != "" {
+				out, err := runSudoNmcli("connection", "modify", connName, "ipv4.dns", dnsStr)
+				if err == nil {
+					if _, upErr := runSudoNmcli("connection", "up", connName); upErr != nil {
+						log.Printf("nmcli connection up after DNS: %v", upErr)
 					}
+					applied = append(applied, fmt.Sprintf("DNS set to %s (via NetworkManager)", strings.Join(dnsServers, ", ")))
+					dnsApplied = true
+					log.Printf("DNS configured via nmcli: %s", dnsStr)
+					_ = out
+				} else {
+					log.Printf("nmcli DNS configuration failed: %v, output: %s", err, out)
 				}
 			}
 		}
@@ -645,9 +642,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 					}
 
 					newContent := strings.Join(newLines, "\n")
-					writeCmd := exec.Command("sudo", "/bin/sh", "-c", fmt.Sprintf("cat > %s", resolvedConf))
-					writeCmd.Stdin = strings.NewReader(newContent)
-					if err := writeCmd.Run(); err == nil {
+					if err := writeFileWithSudoTee(resolvedConf, newContent); err == nil {
 						executeCommand("sudo systemctl restart systemd-resolved 2>&1")
 						applied = append(applied, fmt.Sprintf("DNS set to %s (via systemd-resolved)", strings.Join(dnsServers, ", ")))
 						dnsApplied = true
@@ -678,9 +673,7 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 				}
 
 				newContent := strings.Join(newLines, "\n")
-				writeCmd := exec.Command("sudo", "/bin/sh", "-c", fmt.Sprintf("cat > %s", resolvConf))
-				writeCmd.Stdin = strings.NewReader(newContent)
-				if err := writeCmd.Run(); err == nil {
+				if err := writeFileWithSudoTee(resolvConf, newContent); err == nil {
 					applied = append(applied, fmt.Sprintf("DNS set to %s (via /etc/resolv.conf)", strings.Join(dnsServers, ", ")))
 					dnsApplied = true
 					log.Printf("DNS configured via /etc/resolv.conf: %s", dnsStr)
@@ -703,35 +696,28 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			gatewayApplied := false
 
 			if !gatewayApplied {
-				connCmd := exec.Command("/bin/sh", "-c", "nmcli -t -f NAME connection show --active 2>/dev/null | head -1")
-				if connOut, err := connCmd.Output(); err == nil {
-					connName := strings.TrimSpace(string(connOut))
-					if connName != "" {
-						out, err := runSudoNmcli("connection", "modify", connName, "ipv4.gateway", req.Gateway)
-						if err == nil {
-							if _, upErr := runSudoNmcli("connection", "up", connName); upErr == nil {
-								applied = append(applied, fmt.Sprintf("Gateway set to %s (via NetworkManager)", req.Gateway))
-								gatewayApplied = true
-								log.Printf("Gateway configured via nmcli: %s", req.Gateway)
-							} else {
-								log.Printf("Failed to apply gateway via nmcli: %v", upErr)
-							}
-							_ = out
+				connName := nmcliFirstActiveConnectionName()
+				if connName != "" {
+					out, err := runSudoNmcli("connection", "modify", connName, "ipv4.gateway", req.Gateway)
+					if err == nil {
+						if _, upErr := runSudoNmcli("connection", "up", connName); upErr == nil {
+							applied = append(applied, fmt.Sprintf("Gateway set to %s (via NetworkManager)", req.Gateway))
+							gatewayApplied = true
+							log.Printf("Gateway configured via nmcli: %s", req.Gateway)
 						} else {
-							log.Printf("nmcli gateway configuration failed: %v, output: %s", err, out)
+							log.Printf("Failed to apply gateway via nmcli: %v", upErr)
 						}
+						_ = out
+					} else {
+						log.Printf("nmcli gateway configuration failed: %v, output: %s", err, out)
 					}
 				}
 			}
 
 			if !gatewayApplied {
-				ifaceCmd := exec.Command("/bin/sh", "-c", "ip route | grep default | awk '{print $5}' | head -1")
-				iface := ""
-				if ifaceOut, err := ifaceCmd.Output(); err == nil {
-					iface = strings.TrimSpace(string(ifaceOut))
-					if validators.ValidateIfaceName(iface) != nil {
-						iface = ""
-					}
+				_, iface := getDefaultRouteGatewayAndIface()
+				if iface != "" && validators.ValidateIfaceName(iface) != nil {
+					iface = ""
 				}
 
 				if iface != "" {
@@ -758,13 +744,23 @@ func NetworkConfigHandler(c *fiber.Ctx) error {
 			}
 
 			if !gatewayApplied {
-				ifaceCmd := exec.Command("/bin/sh", "-c", "route -n | grep '^0.0.0.0' | awk '{print $8}' | head -1")
 				iface := ""
-				if ifaceOut, err := ifaceCmd.Output(); err == nil {
-					iface = strings.TrimSpace(string(ifaceOut))
-					if validators.ValidateIfaceName(iface) != nil {
-						iface = ""
+				if out, err := exec.Command("route", "-n").Output(); err == nil {
+					for _, line := range strings.Split(string(out), "\n") {
+						line = strings.TrimSpace(line)
+						if line == "" || !strings.HasPrefix(line, "0.0.0.0") {
+							continue
+						}
+						fields := strings.Fields(line)
+						// route -n: Destination Gateway Genmask Flags Metric Ref Use Iface
+						if len(fields) >= 8 {
+							iface = fields[7]
+							break
+						}
 					}
+				}
+				if iface != "" && validators.ValidateIfaceName(iface) != nil {
+					iface = ""
 				}
 
 				if iface != "" {
