@@ -4,11 +4,11 @@ import "testing"
 
 func TestNormalizeSystemConfigValue(t *testing.T) {
 	tests := []struct {
-		name    string
-		key     string
-		value   interface{}
-		want    string
-		wantErr bool
+		name     string
+		key      string
+		value    interface{}
+		want     string
+		wantErr  bool
 		wantSkip bool
 	}{
 		{name: "language ok", key: "language", value: "ES", want: "es"},
