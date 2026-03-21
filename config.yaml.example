@@ -1,13 +1,17 @@
 server:
   host: "0.0.0.0"  # Escuchar en todas las interfaces (permite acceso por IP de red)
   port: 8000
+  # Si usas TLS (mkcert o certificados propios), suele usarse 8443 para HTTPS y 8000 para HTTP→HTTPS.
   debug: false
   read_timeout: 30
   write_timeout: 30
+  # Opcional: listener HTTP que sólo redirige a HTTPS (mismo host, puerto = server.port).
+  # 0 = desactivado. El instalador con mkcert suele dejar 8000 y HTTPS en 8443.
+  http_redirect_port: 0
   # Opcional: TLS integrado (HTTPS directo, sin proxy inverso).
-  # Si dejas estos campos vacíos, el servidor arrancará sólo en HTTP.
-  #tls_cert_file: "/opt/hostberry/certs/fullchain.pem"
-  #tls_key_file: "/opt/hostberry/certs/privkey.pem"
+  # Vacío = sólo HTTP. install.sh puede generar certificados con mkcert en /opt/hostberry/certs/.
+  #tls_cert_file: "/opt/hostberry/certs/hostberry.pem"
+  #tls_key_file: "/opt/hostberry/certs/hostberry-key.pem"
 
 database:
   type: "sqlite"  # sqlite, postgres, mysql
@@ -28,6 +32,7 @@ security:
   rate_limit_rps: 10
   # Si es true y hay HTTPS (TLS propio o proxy con X-Forwarded-Proto=https),
   # la aplicación redirigirá automáticamente HTTP -> HTTPS (excepto /health y /metrics).
+  # Con http_redirect_port y mkcert, la redirección la hace el listener HTTP dedicado; esto ayuda detrás de proxy.
   enforce_https: false
   # Opcional: token para API WiFi sin sesión (status/scan/connect/disconnect).
   # Vacío = se genera uno aleatorio en cada arranque (aparece en los logs del servicio).
