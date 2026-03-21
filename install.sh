@@ -886,7 +886,8 @@ show_build_progress() {
         if [ "$pct" -gt 100 ]; then
             pct=100
         fi
-        printf '\r\033[K%s[%3d%%] %s%s' "${DIM}" "$pct" "$line" "${NC}" >&2
+        # %b interpreta \033 en DIM/NC (definidos con comillas simples, son literales hasta %b/echo -e)
+        printf '\r\033[K%b[%3d%%] %s%b' "$DIM" "$pct" "$line" "${NC}" >&2
     done
     echo "" >&2
 }
