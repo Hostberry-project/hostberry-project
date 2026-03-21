@@ -1,13 +1,13 @@
 server:
   host: "0.0.0.0"  # Escuchar en todas las interfaces (permite acceso por IP de red)
-  # En LAN puedes usar también https://hostberry.local:<puerto> si Avahi (mDNS) está activo (install.sh lo configura).
+  # En LAN: https://hostberry.local (sin puerto si usas 443) con Avahi/mDNS (install.sh).
   port: 8000
-  # Si usas TLS (mkcert o certificados propios), suele usarse 8443 para HTTPS y 8000 para HTTP→HTTPS.
+  # Con TLS (mkcert): el instalador suele dejar HTTPS en 443 y redirección HTTP en 80 (sin :puerto en el navegador).
   debug: false
   read_timeout: 30
   write_timeout: 30
-  # Opcional: listener HTTP que sólo redirige a HTTPS (mismo host, puerto = server.port).
-  # 0 = desactivado. El instalador con mkcert suele dejar 8000 y HTTPS en 8443.
+  # Opcional: listener HTTP que sólo redirige a HTTPS (puerto TLS = server.port).
+  # 0 = desactivado. Con mkcert el instalador suele poner 80.
   http_redirect_port: 0
   # Opcional: TLS integrado (HTTPS directo, sin proxy inverso).
   # Vacío = sólo HTTP. install.sh puede generar certificados con mkcert en /opt/hostberry/certs/.

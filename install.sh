@@ -2080,10 +2080,9 @@ EOF
         fi
     fi
     
-    # Preparar hostapd y dnsmasq pero sin arrancarlos automáticamente
-    # (en Raspberry Pi usada como router, iniciar AP + dnsmasq podría cortar la conexión actual)
-    print_info "HostAPD y dnsmasq configurados. No se arrancan automáticamente para no interrumpir la red actual."
-    print_info "Podrás habilitarlos desde el panel (HostBerry) o con: sudo systemctl enable --now hostapd dnsmasq"
+    # Quedan habilitados para el arranque; el inicio en caliente lo hace enable_and_start_hostberry_wifi_ap
+    # (omite hostapd si la ruta por defecto es WiFi, para no cortar SSH).
+    print_info "HostAPD y dnsmasq configurados; se habilitarán para arrancar con el sistema y, si es seguro, se iniciarán al final del instalador."
     if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
         systemctl daemon-reload 2>/dev/null || true
     else
