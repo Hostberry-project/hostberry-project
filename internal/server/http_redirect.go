@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"hostberry/internal/config"
