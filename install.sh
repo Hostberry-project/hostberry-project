@@ -978,7 +978,7 @@ setup_mkcert_tls() {
     fi
 
     local san=()
-    san+=(localhost 127.0.0.1 ::1)
+    san+=(localhost 127.0.0.1 ::1 hostberry.local)
     [ -n "$(hostname -s 2>/dev/null)" ] && san+=("$(hostname -s)")
     [ -n "$(hostname -f 2>/dev/null)" ] && san+=("$(hostname -f)")
     local ip
