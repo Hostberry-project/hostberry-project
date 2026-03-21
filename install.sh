@@ -949,7 +949,7 @@ install_mkcert_binary() {
     return 1
 }
 
-# Genera certificados con mkcert y ajusta config (HTTPS 8443 + HTTP 8000 → HTTPS).
+# Genera certificados con mkcert y ajusta config (HTTPS 443 + HTTP 80 → HTTPS, sin puerto en la URL).
 # HOSTBERRY_SKIP_MKCERT=1 lo omite. En --update: no regenera si ya existen (salvo HOSTBERRY_REGENERATE_MKCERT=1).
 setup_mkcert_tls() {
     if [ "${HOSTBERRY_SKIP_MKCERT:-0}" = "1" ]; then
@@ -1009,17 +1009,17 @@ setup_mkcert_tls() {
         fi
         if grep -q '^  write_timeout:' "$CONFIG_FILE"; then
             sed -i '/^  write_timeout:/a\
-  http_redirect_port: 8000\
+  http_redirect_port: 80\
   tls_cert_file: "'"${INSTALL_DIR}/certs/hostberry.pem"'"\
   tls_key_file: "'"${INSTALL_DIR}/certs/hostberry-key.pem"'"' "$CONFIG_FILE"
         elif grep -q '^  read_timeout:' "$CONFIG_FILE"; then
             sed -i '/^  read_timeout:/a\
-  http_redirect_port: 8000\
+  http_redirect_port: 80\
   tls_cert_file: "'"${INSTALL_DIR}/certs/hostberry.pem"'"\
   tls_key_file: "'"${INSTALL_DIR}/certs/hostberry-key.pem"'"' "$CONFIG_FILE"
         else
             sed -i '/^  port:/a\
-  http_redirect_port: 8000\
+  http_redirect_port: 80\
   tls_cert_file: "'"${INSTALL_DIR}/certs/hostberry.pem"'"\
   tls_key_file: "'"${INSTALL_DIR}/certs/hostberry-key.pem"'"' "$CONFIG_FILE"
         fi
@@ -1037,7 +1037,9 @@ setup_mkcert_tls() {
         find "${CERT_DIR}/mkcert-rootca" -type f -exec chmod 600 {} \; 2>/dev/null || true
     fi
 
-    print_success "TLS listo: https://hostberry.local:8443 o https://<IP>:8443 (HTTP :8000 redirige a HTTPS)."
+    # Migrar configs antiguas (8443/8000) a puertos estándar
+    sed -i 's/^  http_redirect_port: 8000$/  http_redirect_port: 80/' "$CONFIG_FILE" 2>/dev/null || true
+    print_success "TLS listo: https://hostberry.local o https://<IP> (HTTP en :80 redirige a HTTPS)."
     print_warning "Otros dispositivos (móviles, PCs) deben confiar en la CA: copia ${CAROOT}/rootCA.pem e impórtala, o usa un certificado público (Let's Encrypt)."
     return 0
 }
