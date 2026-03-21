@@ -992,33 +992,26 @@ build_project() {
     print_info "Compilando (usando ${BUILD_JOBS} núcleos, ~${BUILD_PKG_TOTAL} paquetes, progreso aproximado)..."
     build_ret=0
     set +e
-    if set -o pipefail 2>/dev/null; then
-        :
-    fi
-
-    _build_cmd() {
-        env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -v -o "${INSTALL_DIR}/hostberry" .
-    }
+    set -o pipefail 2>/dev/null || true
 
     if command -v timeout >/dev/null 2>&1; then
         if command -v stdbuf >/dev/null 2>&1; then
-            timeout "$BUILD_TIMEOUT" stdbuf -oL -eL bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+            timeout "$BUILD_TIMEOUT" stdbuf -oL -eL env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -v -o "${INSTALL_DIR}/hostberry" . 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
         else
-            timeout "$BUILD_TIMEOUT" bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+            timeout "$BUILD_TIMEOUT" env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -v -o "${INSTALL_DIR}/hostberry" . 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
         fi
         build_ret=${PIPESTATUS[0]:-1}
     else
         if command -v stdbuf >/dev/null 2>&1; then
-            stdbuf -oL -eL bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+            stdbuf -oL -eL env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -v -o "${INSTALL_DIR}/hostberry" . 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
         else
-            bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+            env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -v -o "${INSTALL_DIR}/hostberry" . 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
         fi
         build_ret=${PIPESTATUS[0]:-1}
     fi
+
+    set +o pipefail 2>/dev/null || true
     set -e
-    if set +o pipefail 2>/dev/null; then
-        :
-    fi
     if [ "$build_ret" -eq 0 ] && [ -f "${INSTALL_DIR}/hostberry" ]; then
         chmod +x "${INSTALL_DIR}/hostberry"
         chown "$USER_NAME:$GROUP_NAME" "${INSTALL_DIR}/hostberry"
