@@ -2050,7 +2050,7 @@ systemctl restart dnsmasq 2>/dev/null || true
 
 # 3) Portal cautivo: redirigir HTTP (80) al puerto HTTP de la web (redirección TLS o app en claro)
 CONFIG_FILE="/opt/hostberry/config.yaml"
-PORT=$(awk '/^[[:space:]]*http_redirect_port:/{gsub(/"/,"",$2); p=$2} END{print p+0}' "$CONFIG_FILE" 2>/dev/null)
+PORT=$(grep -E '^  http_redirect_port:' "$CONFIG_FILE" 2>/dev/null | head -1 | awk '{print $2}' | tr -d '"')
 if [ -z "$PORT" ] || [ "$PORT" = "0" ]; then
   PORT=$(grep -E "^  port:" "$CONFIG_FILE" 2>/dev/null | awk '{print $2}' | tr -d '"' || echo "8000")
 fi
