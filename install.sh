@@ -870,10 +870,12 @@ download_go_deps() {
 }
 
 # Lee la salida de `go build -v` y muestra porcentaje aproximado (una línea ≈ un paquete).
+# Tras la última línea impresa, Go puede tardar mucho sin volver a escribir: compilación de
+# `main` con go:embed (website/static + templates), enlazado y CGO — no es un cuelgue.
 # pkg_total: resultado de `go list -deps` (debe calcularse antes del pipeline para evitar carreras).
 show_build_progress() {
     local pkg_total="${1:-1}"
-    local n=0 pct line
+    local n=0 pct line hb_pid=""
 
     if ! [[ "$pkg_total" =~ ^[0-9]+$ ]] || [ "$pkg_total" -lt 1 ]; then
         pkg_total=1
@@ -888,7 +890,25 @@ show_build_progress() {
         fi
         # %b interpreta \033 en DIM/NC (definidos con comillas simples, son literales hasta %b/echo -e)
         printf '\r\033[K%b[%3d%%] %s%b' "$DIM" "$pct" "$line" "${NC}" >&2
+
+        # Latido si no llega otra línea en ~12 s (fase larga sin salida en -v)
+        if [ -n "$hb_pid" ] && kill -0 "$hb_pid" 2>/dev/null; then
+            kill "$hb_pid" 2>/dev/null
+            wait "$hb_pid" 2>/dev/null || true
+        fi
+        (
+            sleep 12
+            while true; do
+                printf '\n%b   ... sigue compilando (no colgado): main/embed, enlazado o CGO; en Raspberry Pi puede tardar minutos. Último: %s%b\n' "$DIM" "$line" "$NC" >&2
+                sleep 12
+            done
+        ) &
+        hb_pid=$!
     done
+    if [ -n "$hb_pid" ] && kill -0 "$hb_pid" 2>/dev/null; then
+        kill "$hb_pid" 2>/dev/null
+        wait "$hb_pid" 2>/dev/null || true
+    fi
     echo "" >&2
 }
 
@@ -990,7 +1010,8 @@ build_project() {
         BUILD_PKG_TOTAL=1
     fi
 
-    print_info "Compilando (usando ${BUILD_JOBS} núcleos, ~${BUILD_PKG_TOTAL} paquetes, progreso aproximado)..."
+    print_info "Compilando (usando ${BUILD_JOBS} núcleos, ~${BUILD_PKG_TOTAL} paquetes; el % es orientativo)."
+    print_info "Si la última línea se queda fija, es normal: Go sigue con main (embed), enlazado y CGO — puede tardar minutos en Raspberry Pi."
     build_ret=0
     set +e
     set -o pipefail 2>/dev/null || true
