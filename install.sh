@@ -869,6 +869,28 @@ download_go_deps() {
     return 1
 }
 
+# Lee la salida de `go build -v` y muestra porcentaje aproximado (una línea ≈ un paquete).
+# pkg_total: resultado de `go list -deps` (debe calcularse antes del pipeline para evitar carreras).
+show_build_progress() {
+    local pkg_total="${1:-1}"
+    local n=0 pct line
+
+    if ! [[ "$pkg_total" =~ ^[0-9]+$ ]] || [ "$pkg_total" -lt 1 ]; then
+        pkg_total=1
+    fi
+
+    while IFS= read -r line || [ -n "$line" ]; do
+        [ -z "$line" ] && continue
+        n=$((n + 1))
+        pct=$((n * 100 / pkg_total))
+        if [ "$pct" -gt 100 ]; then
+            pct=100
+        fi
+        printf '\r\033[K%s[%3d%%] %s%s' "${DIM}" "$pct" "$line" "${NC}" >&2
+    done
+    echo "" >&2
+}
+
 build_project() {
     print_info "Compilando HostBerry en ${INSTALL_DIR}..."
     
@@ -959,12 +981,43 @@ build_project() {
     fi
     
     BUILD_TIMEOUT="${HOSTBERRY_BUILD_TIMEOUT:-900}"
-    print_info "Compilando (usando ${BUILD_JOBS} núcleos)..."
+
+    # Total de paquetes (dependencias + main) para porcentaje aproximado con `go build -v`
+    BUILD_PKG_TOTAL=$(go list -deps -f '{{.ImportPath}}' . 2>/dev/null | wc -l | tr -d ' \n')
+    BUILD_PKG_TOTAL=${BUILD_PKG_TOTAL:-1}
+    if [ "$BUILD_PKG_TOTAL" -lt 1 ] 2>/dev/null; then
+        BUILD_PKG_TOTAL=1
+    fi
+
+    print_info "Compilando (usando ${BUILD_JOBS} núcleos, ~${BUILD_PKG_TOTAL} paquetes, progreso aproximado)..."
     build_ret=0
+    set +e
+    if set -o pipefail 2>/dev/null; then
+        :
+    fi
+
+    _build_cmd() {
+        env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -v -o "${INSTALL_DIR}/hostberry" .
+    }
+
     if command -v timeout >/dev/null 2>&1; then
-        timeout "$BUILD_TIMEOUT" env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
+        if command -v stdbuf >/dev/null 2>&1; then
+            timeout "$BUILD_TIMEOUT" stdbuf -oL -eL bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+        else
+            timeout "$BUILD_TIMEOUT" bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+        fi
+        build_ret=${PIPESTATUS[0]:-1}
     else
-        env $HOSTBERRY_GO_MOD_ENV go build -p "$BUILD_JOBS" -trimpath -ldflags="-s -w" -o "${INSTALL_DIR}/hostberry" . || build_ret=$?
+        if command -v stdbuf >/dev/null 2>&1; then
+            stdbuf -oL -eL bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+        else
+            bash -c '_build_cmd' 2>&1 | show_build_progress "$BUILD_PKG_TOTAL"
+        fi
+        build_ret=${PIPESTATUS[0]:-1}
+    fi
+    set -e
+    if set +o pipefail 2>/dev/null; then
+        :
     fi
     if [ "$build_ret" -eq 0 ] && [ -f "${INSTALL_DIR}/hostberry" ]; then
         chmod +x "${INSTALL_DIR}/hostberry"
