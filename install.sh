@@ -938,7 +938,7 @@ install_mkcert_binary() {
     url="https://github.com/FiloSottile/mkcert/releases/download/${ver}/mkcert-${ver}-linux-${march}"
     tmp="$(mktemp)"
     print_info "Descargando mkcert (${march})..."
-    if wget -q -O "$tmp" "$url" 2>/dev/null || curl -fsSL -o "$tmp" "$url"; then
+    if wget -q -O "$tmp" "$url" 2>/dev/null || curl -sL -f -o "$tmp" "$url"; then
         install -m 0755 "$tmp" /usr/local/bin/mkcert
         rm -f "$tmp"
         print_success "mkcert instalado en /usr/local/bin/mkcert"
@@ -1169,15 +1169,24 @@ build_project() {
 
 # Configurar firewall
 configure_firewall() {
-    PORT=$(grep -E "^  port:" "$CONFIG_FILE" 2>/dev/null | awk '{print $2}' | tr -d '"' || echo "8000")
-    
+    local HTTPS_PORT HTTP_EXTRA
+    HTTPS_PORT=$(awk '/^[[:space:]]*port:/{gsub(/"/,"",$2); print $2; exit}' "$CONFIG_FILE" 2>/dev/null)
+    HTTPS_PORT="${HTTPS_PORT:-8000}"
+    HTTP_EXTRA=$(awk '/^[[:space:]]*http_redirect_port:/{gsub(/"/,"",$2); print $2; exit}' "$CONFIG_FILE" 2>/dev/null)
+
     # Verificar si ufw está instalado y activo
     if command -v ufw &> /dev/null; then
         if ufw status | grep -q "Status: active"; then
-            ufw allow "$PORT/tcp" 2>/dev/null || true
+            ufw allow "${HTTPS_PORT}/tcp" 2>/dev/null || true
+            if [ -n "$HTTP_EXTRA" ] && [ "$HTTP_EXTRA" != "0" ] && [ "$HTTP_EXTRA" != "$HTTPS_PORT" ]; then
+                ufw allow "${HTTP_EXTRA}/tcp" 2>/dev/null || true
+            fi
         fi
     elif command -v firewall-cmd &> /dev/null; then
-        firewall-cmd --permanent --add-port="$PORT/tcp" 2>/dev/null || true
+        firewall-cmd --permanent --add-port="${HTTPS_PORT}/tcp" 2>/dev/null || true
+        if [ -n "$HTTP_EXTRA" ] && [ "$HTTP_EXTRA" != "0" ] && [ "$HTTP_EXTRA" != "$HTTPS_PORT" ]; then
+            firewall-cmd --permanent --add-port="${HTTP_EXTRA}/tcp" 2>/dev/null || true
+        fi
         firewall-cmd --reload 2>/dev/null || true
     fi
 }
@@ -2294,18 +2303,26 @@ show_final_info() {
         return 0
     fi
 
-    local ip port web_url
+    local ip port web_url scheme http_redir
     ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
     port="$(awk '/^[[:space:]]*port:/{gsub(/"/,"",$2); print $2; exit}' "$CONFIG_FILE" 2>/dev/null)"
     port="${port:-8000}"
+    http_redir="$(awk '/^[[:space:]]*http_redirect_port:/{gsub(/"/,"",$2); print $2; exit}' "$CONFIG_FILE" 2>/dev/null)"
+    scheme="http"
+    if grep -qE 'tls_cert_file:.*hostberry\.pem' "$CONFIG_FILE" 2>/dev/null; then
+        scheme="https"
+    fi
 
     if [ -n "$ip" ] && [ "$ip" != "127.0.0.1" ]; then
-        web_url="http://${ip}:${port}"
+        web_url="${scheme}://${ip}:${port}"
     else
-        web_url="http://localhost:${port}"
+        web_url="${scheme}://localhost:${port}"
     fi
 
     print_info "Web:    ${web_url}"
+    if [ "$scheme" = "https" ] && [ -n "$http_redir" ] && [ "$http_redir" != "0" ] && [ "$http_redir" != "$port" ]; then
+        print_info "HTTP:   http://${ip:-localhost}:${http_redir} (redirige a HTTPS)"
+    fi
     print_info "Config: ${CONFIG_FILE}"
     print_info "Logs:   journalctl -u ${SERVICE_NAME} -f"
 
@@ -2421,6 +2438,7 @@ main() {
     install_golang
     create_user
     install_files
+    setup_mkcert_tls
     build_project
     create_database
     configure_permissions
