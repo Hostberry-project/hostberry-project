@@ -949,6 +949,16 @@ install_mkcert_binary() {
     return 1
 }
 
+# Migra config antigua 8443/8000 → 443/80 (URLs sin puerto explícito).
+migrate_hostberry_tls_standard_ports() {
+    [ -f "$CONFIG_FILE" ] || return 0
+    if ! grep -qE '^[[:space:]]*tls_cert_file:.*hostberry\.pem' "$CONFIG_FILE" 2>/dev/null; then
+        return 0
+    fi
+    sed -i 's/^  port: 8443$/  port: 443/' "$CONFIG_FILE" 2>/dev/null || true
+    sed -i 's/^  http_redirect_port: 8000$/  http_redirect_port: 80/' "$CONFIG_FILE" 2>/dev/null || true
+}
+
 # Genera certificados con mkcert y ajusta config (HTTPS 443 + HTTP 80 → HTTPS, sin puerto en la URL).
 # HOSTBERRY_SKIP_MKCERT=1 lo omite. En --update: no regenera si ya existen (salvo HOSTBERRY_REGENERATE_MKCERT=1).
 setup_mkcert_tls() {
@@ -2130,11 +2140,7 @@ EOF
     chmod 644 "$CAPTIVE_SERVICE"
     systemctl daemon-reload 2>/dev/null || true
     systemctl enable hostberry-captive-portal.service 2>/dev/null || true
-    if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
-        systemctl start hostberry-captive-portal.service 2>/dev/null || true
-    else
-        print_info "SSH activo: no arranco el portal cautivo ahora (enable_hostberry_wifi_ap o reinicio)."
-    fi
+    print_info "El portal cautivo se inicia tras arrancar HostBerry (ver enable_and_start_hostberry_wifi_ap o reinicio)."
     print_success "Servicio de portal cautivo registrado y habilitado"
     
     print_success "Configuración por defecto de HostAPD creada"
