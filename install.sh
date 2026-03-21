@@ -2315,7 +2315,7 @@ show_final_info() {
     port="${port:-8000}"
     http_redir="$(awk '/^[[:space:]]*http_redirect_port:/{gsub(/"/,"",$2); print $2; exit}' "$CONFIG_FILE" 2>/dev/null)"
     scheme="http"
-    if grep -qE 'tls_cert_file:.*hostberry\.pem' "$CONFIG_FILE" 2>/dev/null; then
+    if grep -qE '^[[:space:]]*tls_cert_file:' "$CONFIG_FILE" 2>/dev/null && grep -qE '^[[:space:]]*tls_key_file:' "$CONFIG_FILE" 2>/dev/null; then
         scheme="https"
     fi
 
