@@ -999,9 +999,10 @@ setup_mkcert_tls() {
     chown root:"$GROUP_NAME" "$CERT_DIR" 2>/dev/null || true
 
     if ! grep -q 'tls_cert_file:.*hostberry\.pem' "$CONFIG_FILE" 2>/dev/null; then
-        print_info "Configurando HTTPS (puerto 8443), redirección HTTP→HTTPS (puerto 8000) y security.enforce_https…"
+        print_info "Configurando HTTPS (puerto 443), redirección HTTP→HTTPS (puerto 80) y security.enforce_https…"
         sed -i '/^[[:space:]]*http_redirect_port:/d;/^[[:space:]]*tls_cert_file:/d;/^[[:space:]]*tls_key_file:/d' "$CONFIG_FILE"
-        sed -i 's/^  port: 8000$/  port: 8443/' "$CONFIG_FILE"
+        sed -i 's/^  port: 8000$/  port: 443/' "$CONFIG_FILE"
+        sed -i 's/^  port: 8443$/  port: 443/' "$CONFIG_FILE"
         sed -i 's/^  enforce_https: false$/  enforce_https: true/' "$CONFIG_FILE"
         if ! grep -q '^  enforce_https:' "$CONFIG_FILE"; then
             sed -i '/^security:/a\
@@ -1038,6 +1039,7 @@ setup_mkcert_tls() {
     fi
 
     # Migrar configs antiguas (8443/8000) a puertos estándar
+    sed -i 's/^  port: 8443$/  port: 443/' "$CONFIG_FILE" 2>/dev/null || true
     sed -i 's/^  http_redirect_port: 8000$/  http_redirect_port: 80/' "$CONFIG_FILE" 2>/dev/null || true
     print_success "TLS listo: https://hostberry.local o https://<IP> (HTTP en :80 redirige a HTTPS)."
     print_warning "Otros dispositivos (móviles, PCs) deben confiar en la CA: copia ${CAROOT}/rootCA.pem e impórtala, o usa un certificado público (Let's Encrypt)."
