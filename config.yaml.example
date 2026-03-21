@@ -1,5 +1,6 @@
 server:
   host: "0.0.0.0"  # Escuchar en todas las interfaces (permite acceso por IP de red)
+  # En LAN puedes usar también https://hostberry.local:<puerto> si Avahi (mDNS) está activo (install.sh lo configura).
   port: 8000
   # Si usas TLS (mkcert o certificados propios), suele usarse 8443 para HTTPS y 8000 para HTTP→HTTPS.
   debug: false

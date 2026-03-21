@@ -1037,9 +1037,46 @@ setup_mkcert_tls() {
         find "${CERT_DIR}/mkcert-rootca" -type f -exec chmod 600 {} \; 2>/dev/null || true
     fi
 
-    print_success "TLS listo: https://<esta-máquina>:8443 (HTTP en :8000 redirige a HTTPS)."
+    print_success "TLS listo: https://hostberry.local:8443 o https://<IP>:8443 (HTTP :8000 redirige a HTTPS)."
     print_warning "Otros dispositivos (móviles, PCs) deben confiar en la CA: copia ${CAROOT}/rootCA.pem e impórtala, o usa un certificado público (Let's Encrypt)."
     return 0
+}
+
+# Anuncia hostberry.local en la red local vía mDNS (Avahi), para no depender sólo de la IP.
+configure_avahi_mdns() {
+    if [ "${HOSTBERRY_SKIP_AVAHI:-0}" = "1" ]; then
+        print_info "Omitiendo Avahi (HOSTBERRY_SKIP_AVAHI=1)."
+        return 0
+    fi
+
+    print_info "Configurando mDNS (hostberry.local) con Avahi..."
+    if ! command -v avahi-daemon &>/dev/null; then
+        if ! apt-get install -y avahi-daemon 2>/dev/null; then
+            print_warning "No se pudo instalar avahi-daemon; hostberry.local puede no resolverse en la red."
+            return 0
+        fi
+    fi
+
+    local conf="/etc/avahi/avahi-daemon.conf"
+    if [ ! -f "$conf" ]; then
+        print_warning "No existe $conf; omitiendo mDNS."
+        return 0
+    fi
+
+    if grep -q '^host-name=hostberry' "$conf" 2>/dev/null; then
+        print_success "Avahi ya anuncia host-name=hostberry (hostberry.local)"
+    else
+        sed -i '/^host-name=/d' "$conf"
+        if grep -q '^\[server\]' "$conf"; then
+            sed -i '/^\[server\]/a host-name=hostberry' "$conf"
+        else
+            printf '\n[server]\nhost-name=hostberry\n' >> "$conf"
+        fi
+        print_success "Avahi anunciará este equipo como hostberry.local en la LAN"
+    fi
+
+    systemctl enable avahi-daemon 2>/dev/null || true
+    systemctl restart avahi-daemon 2>/dev/null || true
 }
 
 build_project() {
@@ -2313,7 +2350,8 @@ show_final_info() {
         return 0
     fi
 
-    local ip port web_url scheme http_redir
+    local ip port web_url scheme http_redir mdns_name
+    mdns_name="hostberry.local"
     ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
     port="$(awk '/^[[:space:]]*port:/{gsub(/"/,"",$2); print $2; exit}' "$CONFIG_FILE" 2>/dev/null)"
     port="${port:-8000}"
@@ -2330,8 +2368,10 @@ show_final_info() {
     fi
 
     print_info "Web:    ${web_url}"
+    print_info "        ${scheme}://${mdns_name}:${port}  (nombre en red local, requiere Avahi/mDNS)"
     if [ "$scheme" = "https" ] && [ -n "$http_redir" ] && [ "$http_redir" != "0" ] && [ "$http_redir" != "$port" ]; then
         print_info "HTTP:   http://${ip:-localhost}:${http_redir} (redirige a HTTPS)"
+        print_info "        http://${mdns_name}:${http_redir} (redirige a HTTPS)"
     fi
     print_info "Config: ${CONFIG_FILE}"
     print_info "Logs:   journalctl -u ${SERVICE_NAME} -f"
@@ -2449,6 +2489,7 @@ main() {
     create_user
     install_files
     setup_mkcert_tls
+    configure_avahi_mdns
     build_project
     create_database
     configure_permissions
