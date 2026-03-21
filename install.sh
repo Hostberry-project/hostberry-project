@@ -2112,12 +2112,11 @@ CAPTIVE_EOF
     chmod 755 "$CAPTIVE_SCRIPT"
     chown root:root "$CAPTIVE_SCRIPT"
     print_success "Script de portal cautivo actualizado: $CAPTIVE_SCRIPT"
-    if [ ! -f "$CAPTIVE_SERVICE" ]; then
-        print_info "Creando servicio systemd para portal cautivo..."
-        cat > "$CAPTIVE_SERVICE" <<EOF
+    print_info "Actualizando unidad systemd del portal cautivo (tras HostBerry y dnsmasq)…"
+    cat > "$CAPTIVE_SERVICE" <<EOF
 [Unit]
 Description=HostBerry captive portal - redirect HTTP to web UI on AP
-After=network.target hostapd.service
+After=network.target create-ap0.service hostapd.service dnsmasq.service ${SERVICE_NAME}.service
 Wants=hostapd.service
 
 [Service]
@@ -2128,22 +2127,15 @@ ExecStart=${CAPTIVE_SCRIPT}
 [Install]
 WantedBy=multi-user.target
 EOF
-        chmod 644 "$CAPTIVE_SERVICE"
-        systemctl daemon-reload 2>/dev/null || true
-        systemctl enable hostberry-captive-portal.service 2>/dev/null || true
-        # Arrancar puede reiniciar dnsmasq/iptables en caliente; evitamos hacerlo por SSH.
-        if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
-            systemctl start hostberry-captive-portal.service 2>/dev/null || true
-        else
-            print_info "SSH activo: no arranco el portal cautivo ahora (se aplicará tras reiniciar)."
-        fi
-        print_success "Servicio de portal cautivo creado, habilitado e iniciado"
+    chmod 644 "$CAPTIVE_SERVICE"
+    systemctl daemon-reload 2>/dev/null || true
+    systemctl enable hostberry-captive-portal.service 2>/dev/null || true
+    if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
+        systemctl start hostberry-captive-portal.service 2>/dev/null || true
     else
-        print_info "Servicio de portal cautivo ya existe"
-        if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
-            systemctl start hostberry-captive-portal.service 2>/dev/null || true
-        fi
+        print_info "SSH activo: no arranco el portal cautivo ahora (enable_hostberry_wifi_ap o reinicio)."
     fi
+    print_success "Servicio de portal cautivo registrado y habilitado"
     
     print_success "Configuración por defecto de HostAPD creada"
 }
@@ -2291,6 +2283,10 @@ ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=${INSTALL_DIR} ${LOG_DIR} ${DATA_DIR}
 
+# Puertos privilegiados 80/443 con usuario no root
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
 # Recursos
 LimitNOFILE=65536
 
@@ -2339,6 +2335,50 @@ start_service() {
     fi
 }
 
+# URL sin :puerto si es HTTPS/443 o HTTP/80.
+public_url() {
+    local scheme="$1" host="$2" port="$3"
+    case "${scheme}:${port}" in
+        https:443) printf 'https://%s' "$host" ;;
+        http:80)   printf 'http://%s' "$host" ;;
+        *)         printf '%s://%s:%s' "$scheme" "$host" "$port" ;;
+    esac
+}
+
+# Habilita y, si es seguro, inicia AP WiFi + DHCP + portal cautivo (antes sólo quedaba configurado).
+enable_and_start_hostberry_wifi_ap() {
+    if ! command -v systemctl &>/dev/null; then
+        return 0
+    fi
+    print_info "Habilitando en el arranque: ap0, hostapd (SSID hostberry), dnsmasq y portal cautivo…"
+    systemctl daemon-reload 2>/dev/null || true
+    systemctl unmask hostapd.service 2>/dev/null || true
+    systemctl unmask dnsmasq.service 2>/dev/null || true
+    systemctl enable create-ap0.service 2>/dev/null || true
+    systemctl enable hostapd.service 2>/dev/null || true
+    systemctl enable dnsmasq.service 2>/dev/null || true
+    systemctl enable hostberry-captive-portal.service 2>/dev/null || true
+
+    if [ "$(is_default_route_over_wifi)" = "1" ]; then
+        print_info "Ruta por defecto por WiFi: no inicio hostapd ahora (no cortar SSH). Tras reiniciar, la red debería levantarse sola."
+        return 0
+    fi
+
+    print_info "Iniciando ap0, hostapd, dnsmasq y reglas iptables del portal cautivo…"
+    systemctl start create-ap0.service 2>/dev/null || true
+    sleep 2
+    systemctl start hostapd.service 2>/dev/null || true
+    sleep 1
+    systemctl start dnsmasq.service 2>/dev/null || true
+    sleep 1
+    systemctl start hostberry-captive-portal.service 2>/dev/null || true
+    if systemctl is-active --quiet hostapd.service 2>/dev/null; then
+        print_success "Punto de acceso WiFi (hostapd) activo"
+    else
+        print_warning "hostapd no está activo; tras reinicio comprueba: journalctl -u hostapd -u create-ap0 -b"
+    fi
+}
+
 # Mostrar información final
 show_final_info() {
     echo ""
@@ -2366,16 +2406,16 @@ show_final_info() {
     fi
 
     if [ -n "$ip" ] && [ "$ip" != "127.0.0.1" ]; then
-        web_url="${scheme}://${ip}:${port}"
+        web_url="$(public_url "$scheme" "$ip" "$port")"
     else
-        web_url="${scheme}://localhost:${port}"
+        web_url="$(public_url "$scheme" "localhost" "$port")"
     fi
 
     print_info "Web:    ${web_url}"
-    print_info "        ${scheme}://${mdns_name}:${port}  (nombre en red local, requiere Avahi/mDNS)"
+    print_info "        $(public_url "$scheme" "$mdns_name" "$port")  (mDNS: hostberry.local)"
     if [ "$scheme" = "https" ] && [ -n "$http_redir" ] && [ "$http_redir" != "0" ] && [ "$http_redir" != "$port" ]; then
-        print_info "HTTP:   http://${ip:-localhost}:${http_redir} (redirige a HTTPS)"
-        print_info "        http://${mdns_name}:${http_redir} (redirige a HTTPS)"
+        print_info "HTTP:   $(public_url "http" "${ip:-localhost}" "$http_redir") (redirige a HTTPS)"
+        print_info "        $(public_url "http" "$mdns_name" "$http_redir") (redirige a HTTPS)"
     fi
     print_info "Config: ${CONFIG_FILE}"
     print_info "Logs:   journalctl -u ${SERVICE_NAME} -f"
@@ -2492,6 +2532,7 @@ main() {
     install_golang
     create_user
     install_files
+    migrate_hostberry_tls_standard_ports
     setup_mkcert_tls
     configure_avahi_mdns
     build_project
@@ -2503,6 +2544,7 @@ main() {
     install_blocky
     install_librespeed_cli
     start_service
+    enable_and_start_hostberry_wifi_ap
     cleanup_temp
     show_final_info
 
