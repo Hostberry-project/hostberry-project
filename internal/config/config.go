@@ -28,6 +28,9 @@ type ServerConfig struct {
 	WriteTimeout int    `yaml:"write_timeout"`
 	TLSCertFile  string `yaml:"tls_cert_file"`
 	TLSKeyFile   string `yaml:"tls_key_file"`
+	// HTTPRedirectPort: si es > 0 y hay TLS, se abre un listener HTTP en este puerto que redirige a HTTPS (server.port).
+	// 0 = no abrir listener HTTP de redirección (sólo HTTPS en server.port).
+	HTTPRedirectPort int `yaml:"http_redirect_port"`
 }
 
 // DatabaseConfig configuración de la base de datos.
