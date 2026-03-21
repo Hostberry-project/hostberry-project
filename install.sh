@@ -1003,6 +1003,10 @@ setup_mkcert_tls() {
         sed -i '/^[[:space:]]*http_redirect_port:/d;/^[[:space:]]*tls_cert_file:/d;/^[[:space:]]*tls_key_file:/d' "$CONFIG_FILE"
         sed -i 's/^  port: 8000$/  port: 8443/' "$CONFIG_FILE"
         sed -i 's/^  enforce_https: false$/  enforce_https: true/' "$CONFIG_FILE"
+        if ! grep -q '^  enforce_https:' "$CONFIG_FILE"; then
+            sed -i '/^security:/a\
+  enforce_https: true' "$CONFIG_FILE"
+        fi
         if grep -q '^  write_timeout:' "$CONFIG_FILE"; then
             sed -i '/^  write_timeout:/a\
   http_redirect_port: 8000\
