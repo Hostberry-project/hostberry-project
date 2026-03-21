@@ -912,6 +912,126 @@ show_build_progress() {
     echo "" >&2
 }
 
+# Instala el binario mkcert (apt o release en GitHub).
+install_mkcert_binary() {
+    if command -v mkcert &>/dev/null; then
+        print_success "mkcert disponible"
+        return 0
+    fi
+    print_info "Instalando mkcert..."
+    if apt-get install -y mkcert 2>/dev/null && command -v mkcert &>/dev/null; then
+        print_success "mkcert instalado (apt)"
+        return 0
+    fi
+    local ver="v1.4.4"
+    local arch march url tmp
+    arch="$(uname -m)"
+    case "$arch" in
+        x86_64|amd64) march="amd64" ;;
+        aarch64) march="arm64" ;;
+        armv7l|armhf|armv6l) march="arm" ;;
+        *)
+            print_error "Arquitectura no soportada para mkcert: $arch"
+            return 1
+            ;;
+    esac
+    url="https://github.com/FiloSottile/mkcert/releases/download/${ver}/mkcert-${ver}-linux-${march}"
+    tmp="$(mktemp)"
+    print_info "Descargando mkcert (${march})..."
+    if wget -q -O "$tmp" "$url" 2>/dev/null || curl -fsSL -o "$tmp" "$url"; then
+        install -m 0755 "$tmp" /usr/local/bin/mkcert
+        rm -f "$tmp"
+        print_success "mkcert instalado en /usr/local/bin/mkcert"
+        return 0
+    fi
+    rm -f "$tmp"
+    print_error "No se pudo instalar mkcert"
+    return 1
+}
+
+# Genera certificados con mkcert y ajusta config (HTTPS 8443 + HTTP 8000 → HTTPS).
+# HOSTBERRY_SKIP_MKCERT=1 lo omite. En --update: no regenera si ya existen (salvo HOSTBERRY_REGENERATE_MKCERT=1).
+setup_mkcert_tls() {
+    if [ "${HOSTBERRY_SKIP_MKCERT:-0}" = "1" ]; then
+        print_info "Omitiendo mkcert (HOSTBERRY_SKIP_MKCERT=1)."
+        return 0
+    fi
+
+    if [ "$MODE" = "update" ] && [ -f "${INSTALL_DIR}/certs/hostberry.pem" ] && [ "${HOSTBERRY_REGENERATE_MKCERT:-0}" != "1" ]; then
+        print_info "Certificados TLS ya presentes; omitiendo mkcert (HOSTBERRY_REGENERATE_MKCERT=1 para regenerar)."
+        return 0
+    fi
+
+    if ! install_mkcert_binary; then
+        print_warning "mkcert no disponible: se mantiene HTTP. Instala mkcert o define tls_cert_file/tls_key_file a mano."
+        return 0
+    fi
+
+    local CERT_DIR="${INSTALL_DIR}/certs"
+    mkdir -p "$CERT_DIR"
+    export CAROOT="${CERT_DIR}/mkcert-rootca"
+    mkdir -p "$CAROOT"
+
+    print_info "Instalando CA local de mkcert (confianza en navegadores en este equipo)..."
+    if ! mkcert -install 2>/dev/null; then
+        print_warning "mkcert -install no completó; los navegadores pueden avisar hasta importar rootCA.pem."
+    fi
+
+    local san=()
+    san+=(localhost 127.0.0.1 ::1)
+    [ -n "$(hostname -s 2>/dev/null)" ] && san+=("$(hostname -s)")
+    [ -n "$(hostname -f 2>/dev/null)" ] && san+=("$(hostname -f)")
+    local ip
+    for ip in $(hostname -I 2>/dev/null); do
+        san+=("$ip")
+    done
+
+    print_info "Generando certificado TLS (mkcert) para: ${san[*]}"
+    if ! mkcert -cert-file "${CERT_DIR}/hostberry.pem" -key-file "${CERT_DIR}/hostberry-key.pem" "${san[@]}"; then
+        print_error "mkcert no pudo generar certificados."
+        return 1
+    fi
+
+    chmod 750 "$CERT_DIR"
+    chmod 644 "${CERT_DIR}/hostberry.pem"
+    chmod 640 "${CERT_DIR}/hostberry-key.pem"
+    chown root:"$GROUP_NAME" "${CERT_DIR}/hostberry.pem" "${CERT_DIR}/hostberry-key.pem" 2>/dev/null || true
+    chown root:"$GROUP_NAME" "$CERT_DIR" 2>/dev/null || true
+
+    if ! grep -q 'tls_cert_file:.*hostberry\.pem' "$CONFIG_FILE" 2>/dev/null; then
+        print_info "Configurando HTTPS (puerto 8443), redirección HTTP→HTTPS (puerto 8000) y security.enforce_https…"
+        sed -i '/^[[:space:]]*http_redirect_port:/d;/^[[:space:]]*tls_cert_file:/d;/^[[:space:]]*tls_key_file:/d' "$CONFIG_FILE"
+        sed -i 's/^  port: 8000$/  port: 8443/' "$CONFIG_FILE"
+        sed -i 's/^  enforce_https: false$/  enforce_https: true/' "$CONFIG_FILE"
+        if grep -q '^  write_timeout:' "$CONFIG_FILE"; then
+            sed -i '/^  write_timeout:/a\
+  http_redirect_port: 8000\
+  tls_cert_file: "'"${INSTALL_DIR}/certs/hostberry.pem"'"\
+  tls_key_file: "'"${INSTALL_DIR}/certs/hostberry-key.pem"'"' "$CONFIG_FILE"
+        elif grep -q '^  read_timeout:' "$CONFIG_FILE"; then
+            sed -i '/^  read_timeout:/a\
+  http_redirect_port: 8000\
+  tls_cert_file: "'"${INSTALL_DIR}/certs/hostberry.pem"'"\
+  tls_key_file: "'"${INSTALL_DIR}/certs/hostberry-key.pem"'"' "$CONFIG_FILE"
+        else
+            sed -i '/^  port:/a\
+  http_redirect_port: 8000\
+  tls_cert_file: "'"${INSTALL_DIR}/certs/hostberry.pem"'"\
+  tls_key_file: "'"${INSTALL_DIR}/certs/hostberry-key.pem"'"' "$CONFIG_FILE"
+        fi
+    fi
+
+    chown -R "$USER_NAME:$GROUP_NAME" "$INSTALL_DIR"
+    chmod 644 "$CONFIG_FILE"
+    chmod 750 "$CERT_DIR"
+    chmod 640 "${CERT_DIR}/hostberry-key.pem"
+    chmod 644 "${CERT_DIR}/hostberry.pem"
+
+    print_success "TLS listo: https://<esta-máquina>:8443 (HTTP en :8000 redirige a HTTPS)."
+    print_warning "Otros dispositivos (móviles, PCs) deben confiar en la CA: copia ${CAROOT}/rootCA.pem e impórtala, o usa un certificado público (Let's Encrypt)."
+    return 0
+}
+
 build_project() {
     print_info "Compilando HostBerry en ${INSTALL_DIR}..."
     
