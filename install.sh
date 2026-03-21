@@ -1919,9 +1919,12 @@ ip addr add 192.168.4.1/24 dev ap0 2>/dev/null || true
 # 2) Reiniciar dnsmasq para que enlace con ap0 y reparta IPs a los clientes
 systemctl restart dnsmasq 2>/dev/null || true
 
-# 3) Portal cautivo: redirigir HTTP (80) al puerto de la web
+# 3) Portal cautivo: redirigir HTTP (80) al puerto HTTP de la web (redirección TLS o app en claro)
 CONFIG_FILE="/opt/hostberry/config.yaml"
-PORT=$(grep -E "^  port:" "$CONFIG_FILE" 2>/dev/null | awk '{print $2}' | tr -d '"' || echo "8000")
+PORT=$(awk '/^[[:space:]]*http_redirect_port:/{gsub(/"/,"",$2); p=$2} END{print p+0}' "$CONFIG_FILE" 2>/dev/null)
+if [ -z "$PORT" ] || [ "$PORT" = "0" ]; then
+  PORT=$(grep -E "^  port:" "$CONFIG_FILE" 2>/dev/null | awk '{print $2}' | tr -d '"' || echo "8000")
+fi
 iptables -t nat -D PREROUTING -i ap0 -p tcp --dport 80 -j REDIRECT --to-ports "$PORT" 2>/dev/null || true
 iptables -t nat -A PREROUTING -i ap0 -p tcp --dport 80 -j REDIRECT --to-ports "$PORT"
 exit 0
