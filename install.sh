@@ -1026,6 +1026,12 @@ setup_mkcert_tls() {
     chmod 750 "$CERT_DIR"
     chmod 640 "${CERT_DIR}/hostberry-key.pem"
     chmod 644 "${CERT_DIR}/hostberry.pem"
+    # La CA privada de mkcert no debe ser legible por el usuario del servicio
+    if [ -d "${CERT_DIR}/mkcert-rootca" ]; then
+        chown -R root:root "${CERT_DIR}/mkcert-rootca"
+        chmod 700 "${CERT_DIR}/mkcert-rootca"
+        find "${CERT_DIR}/mkcert-rootca" -type f -exec chmod 600 {} \; 2>/dev/null || true
+    fi
 
     print_success "TLS listo: https://<esta-máquina>:8443 (HTTP en :8000 redirige a HTTPS)."
     print_warning "Otros dispositivos (móviles, PCs) deben confiar en la CA: copia ${CAROOT}/rootCA.pem e impórtala, o usa un certificado público (Let's Encrypt)."
