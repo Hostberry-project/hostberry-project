@@ -1947,21 +1947,34 @@ EOF
     print_info "Instalando ${SYNC_HOSTAPD_CH} (alinear canal AP con ${HOSTAPD_INTERFACE})…"
     cat > "$SYNC_HOSTAPD_CH" <<EOF
 #!/bin/bash
+# Alinear canal/banda del AP (ap0) con la STA en la misma radio. Si el grep falla con el formato de iw,
+# hostapd se queda en canal distinto y en muchas Pi no se ven beacons / SSID "hostberry".
 CONF="${HOSTAPD_CONFIG}"
 WLAN="${HOSTAPD_INTERFACE}"
 [ -f "\$CONF" ] || exit 0
-line=\$(iw dev "\$WLAN" info 2>/dev/null | grep -E ' channel [0-9]+ ' | head -1)
+parse_channel_line() {
+    echo "\$1" | sed -n 's/.*channel[[:space:]]\\+\\([0-9]\\+\\).*/\\1/p' | head -1
+}
+parse_freq_mhz() {
+    echo "\$1" | sed -n 's/.*[(]\\([0-9]\\{4,\\}\\)[[:space:]]*MHz[)].*/\\1/p' | head -1
+}
+info_out=\$(iw dev "\$WLAN" info 2>/dev/null || true)
+link_out=\$(iw dev "\$WLAN" link 2>/dev/null || true)
+line=\$(echo "\$info_out" | grep -E 'channel[[:space:]]+[0-9]+' | head -1)
+[ -n "\$line" ] || line=\$(echo "\$link_out" | grep -E 'channel[[:space:]]+[0-9]+' | head -1)
 [ -n "\$line" ] || exit 0
-ch=\$(echo "\$line" | awk '{for(i=1;i<=NF;i++) if(\$i=="channel"){print \$(i+1); exit}}')
-freq=\$(echo "\$line" | sed -n 's/.*[(]\\([0-9][0-9]*\\) MHz[)].*/\\1/p')
-[ -n "\$ch" ] && [ -n "\$freq" ] || exit 0
+ch=\$(parse_channel_line "\$line")
+freq=\$(parse_freq_mhz "\$line")
+[ -n "\$ch" ] || exit 0
+if [ -z "\$freq" ]; then
+    if [ "\$ch" -le 14 ] 2>/dev/null; then freq=2437; else freq=5180; fi
+fi
 if [ "\$freq" -lt 3000 ] 2>/dev/null; then
     sed -i 's/^hw_mode=.*/hw_mode=g/' "\$CONF"
     sed -i "s/^channel=.*/channel=\$ch/" "\$CONF"
     sed -i '/^ieee80211ac=/d' "\$CONF"
     sed -i '/^vht_/d' "\$CONF"
 else
-    # 5 GHz: evitar ieee80211ac sin parámetros VHT completos (muchos móviles no asocian).
     sed -i 's/^hw_mode=.*/hw_mode=a/' "\$CONF"
     sed -i "s/^channel=.*/channel=\$ch/" "\$CONF"
     sed -i '/^ieee80211ac=/d' "\$CONF"
@@ -2159,6 +2172,7 @@ if [ -z "\$MAC" ] || [ "\$MAC" = "00:00:00:00:00:00" ]; then
 fi
 
 /bin/ip link set "\${WLAN_IF}" up 2>/dev/null || true
+"\$IW_BIN" dev "\${WLAN_IF}" set power_save off 2>/dev/null || true
 
 # ap0 puede existir en "ip link" pero no en nl80211 (iw) → ENODEV; hay que borrarla y recrear.
 if ip link show ap0 >/dev/null 2>&1; then
