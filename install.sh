@@ -1702,6 +1702,26 @@ create_hostapd_default_config() {
     HOSTAPD_DHCP_START="192.168.4.2"
     HOSTAPD_DHCP_END="192.168.4.254"
     HOSTAPD_LEASE_TIME="12h"
+
+    # Nombre de phy para iw/udev: debe ser "phy0", no el índice "0" (iw phy 0 falla en muchos sistemas).
+    PHY_NAME=""
+    MAC_ADDRESS=""
+    if [ -r "/sys/class/net/${HOSTAPD_INTERFACE}/phy80211/name" ]; then
+        PHY_NAME=$(tr -d '\n' < "/sys/class/net/${HOSTAPD_INTERFACE}/phy80211/name" 2>/dev/null || true)
+    fi
+    if [ -z "$PHY_NAME" ] && command -v iw &> /dev/null; then
+        _wiphy=$(iw dev "$HOSTAPD_INTERFACE" info 2>/dev/null | awk '/wiphy/ {print $2; exit}')
+        if [ -n "$_wiphy" ]; then
+            case "$_wiphy" in
+                phy*) PHY_NAME="$_wiphy" ;;
+                *)    PHY_NAME="phy${_wiphy}" ;;
+            esac
+        fi
+    fi
+    if [ -z "$PHY_NAME" ]; then
+        PHY_NAME="phy0"
+    fi
+    MAC_ADDRESS=$(cat "/sys/class/net/${HOSTAPD_INTERFACE}/address" 2>/dev/null | tr -d '\n' || true)
     
     # En instalación: siempre valores de fábrica (hostapd incluido). En actualización: preservar si ya existe.
     # Modo AP+STA según método del blog de TheWalrus (Raspberry Pi 3 B+)
