@@ -2243,22 +2243,43 @@ EOF
         print_warning "dnsmasq no está instalado. Instálalo manualmente para DHCP en la red hostberry (p. ej. sudo apt-get install dnsmasq)"
     fi
     
-    # dnsmasq: tras hostapd (ap0 existe) + breve espera (evita carrera si reinicias hostapd y dnsmasq a la vez)
+    # Script: asigna IPv4 en ap0 antes de dnsmasq (evita carrera con hostapd activo pero Post aún no ejecutado).
+    DNSMASQ_PREP_SCRIPT="/usr/local/sbin/hostberry-dnsmasq-prep-ap0.sh"
+    print_info "Instalando ${DNSMASQ_PREP_SCRIPT}…"
+    cat > "/tmp/hostberry-dnsmasq-prep-ap0.sh" <<EOSCRIPT
+#!/bin/bash
+GW="${HOSTAPD_GATEWAY}"
+for i in \$(seq 1 160); do
+  if ip link show ap0 >/dev/null 2>&1; then
+    ip addr replace "\${GW}/24" dev ap0 2>/dev/null || ip addr add "\${GW}/24" dev ap0 2>/dev/null || true
+    sleep 0.3
+    if ip -4 addr show dev ap0 2>/dev/null | grep -qE ' inet '; then
+      exit 0
+    fi
+  fi
+  sleep 0.25
+done
+echo "HostBerry: ap0 no disponible o sin IPv4 (\${GW}/24)." >&2
+exit 1
+EOSCRIPT
+    cp "/tmp/hostberry-dnsmasq-prep-ap0.sh" "$DNSMASQ_PREP_SCRIPT" 2>/dev/null || install -m 755 "/tmp/hostberry-dnsmasq-prep-ap0.sh" "$DNSMASQ_PREP_SCRIPT"
+    chmod 755 "$DNSMASQ_PREP_SCRIPT"
+    chown root:root "$DNSMASQ_PREP_SCRIPT"
+    rm -f "/tmp/hostberry-dnsmasq-prep-ap0.sh"
+
+    # dnsmasq: tras hostapd; sin Requires= (evita bloqueos en arranque si dnsmasq falla una vez).
     if systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
         DNSMASQ_OVERRIDE_DIR="/etc/systemd/system/dnsmasq.service.d"
         DNSMASQ_OVERRIDE_FILE="${DNSMASQ_OVERRIDE_DIR}/hostberry.conf"
-        print_info "Configurando override systemd para dnsmasq (después de hostapd, espera ap0)…"
+        print_info "Configurando override systemd para dnsmasq (prep ap0 + tras hostapd)…"
         mkdir -p "$DNSMASQ_OVERRIDE_DIR"
         cat > "$DNSMASQ_OVERRIDE_FILE" <<EOF
 [Unit]
-# ap0 la crea create-ap0 / hostapd; sin ella dnsmasq falla con "unknown interface ap0".
 After=network.target create-ap0.service hostapd.service
 Wants=create-ap0.service hostapd.service
-Requires=hostapd.service
 
 [Service]
-# dnsmasq exige que ap0 exista y tenga IPv4 (p. ej. ${HOSTAPD_GATEWAY}/24) o falla con "unknown interface ap0".
-ExecStartPre=/bin/sh -c 'for i in \$(seq 1 120); do ip link show ap0 >/dev/null 2>&1 || { sleep 0.25; continue; }; ip -4 addr show dev ap0 2>/dev/null | grep -qE " inet " && exit 0; sleep 0.25; done; echo "HostBerry: ap0 sin IPv4 (¿hostapd y create-ap0?)." >&2; exit 1'
+ExecStartPre=${DNSMASQ_PREP_SCRIPT}
 EOF
         chmod 644 "$DNSMASQ_OVERRIDE_FILE"
         print_success "Override de dnsmasq actualizado"
