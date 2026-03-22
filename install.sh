@@ -2210,6 +2210,9 @@ if ! ip link show ap0 >/dev/null 2>&1; then
     /bin/ip link set ap0 up
 fi
 
+"\$IW_BIN" dev ap0 set power_save off 2>/dev/null || true
+/bin/ip link set ap0 up 2>/dev/null || true
+
 /bin/ip addr add "\${HOSTAPD_GATEWAY}/24" dev ap0 2>/dev/null || true
 if ! ip link show ap0 >/dev/null 2>&1; then
     echo "hostberry-create-ap0: ap0 no existe tras el script" >&2
