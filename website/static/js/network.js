@@ -942,12 +942,26 @@
         if (clientEl) clientEl.textContent = data.client_ip || data.client_org ? (data.client_ip || '') + (data.client_org ? ' — ' + data.client_org : '') : '';
         resultDiv.classList.remove('d-none');
       } else {
-        errorDiv.textContent = data.error || t('network.speedtest_error', 'Speed test failed');
+        const msg = data.error || t('network.speedtest_error', 'Speed test failed');
+        const et = errorDiv.querySelector('.hb-speedtest-err-text');
+        if (et) et.textContent = msg;
+        else errorDiv.textContent = msg;
         errorDiv.classList.remove('d-none');
+        errorDiv.style.display = '';
+        if (window.HostBerry && HostBerry.attachTransientAlert) {
+          HostBerry.attachTransientAlert(errorDiv);
+        }
       }
     } catch (e) {
-      errorDiv.textContent = t('network.speedtest_error', 'Speed test failed') + ': ' + (e.message || String(e));
+      const msg = t('network.speedtest_error', 'Speed test failed') + ': ' + (e.message || String(e));
+      const et = errorDiv.querySelector('.hb-speedtest-err-text');
+      if (et) et.textContent = msg;
+      else errorDiv.textContent = msg;
       errorDiv.classList.remove('d-none');
+      errorDiv.style.display = '';
+      if (window.HostBerry && HostBerry.attachTransientAlert) {
+        HostBerry.attachTransientAlert(errorDiv);
+      }
     } finally {
       progressDiv.classList.add('d-none');
       runBtn.disabled = false;
