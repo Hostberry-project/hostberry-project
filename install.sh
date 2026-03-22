@@ -2809,8 +2809,16 @@ show_final_info() {
     print_info "Config: ${CONFIG_FILE}"
     print_info "Logs:   journalctl -u ${SERVICE_NAME} -f"
 
-    if [ "$MODE" = "install" ] && [ -n "$GENERATED_ADMIN_PASSWORD" ]; then
-        print_warning "Login inicial: admin / ${GENERATED_ADMIN_PASSWORD} (se ha guardado también en ${INSTALL_DIR}/INSTALL_CREDENTIALS.txt)"
+    # Contraseña admin: en install viene en memoria; en update u otras ejecuciones, leer INSTALL_CREDENTIALS.txt
+    local saved_admin_password=""
+    if [ -n "$GENERATED_ADMIN_PASSWORD" ]; then
+        saved_admin_password="$GENERATED_ADMIN_PASSWORD"
+    elif [ -r "${INSTALL_DIR}/INSTALL_CREDENTIALS.txt" ]; then
+        saved_admin_password="$(grep -m1 '^Contraseña inicial admin: ' "${INSTALL_DIR}/INSTALL_CREDENTIALS.txt" 2>/dev/null | sed 's/^Contraseña inicial admin: //')"
+    fi
+
+    if [ -n "$saved_admin_password" ]; then
+        print_warning "Login inicial: admin / ${saved_admin_password} (se ha guardado también en ${INSTALL_DIR}/INSTALL_CREDENTIALS.txt)"
         if [ "$(is_default_route_over_wifi)" = "1" ] && [ "${NEED_REBOOT_FOR_AP0:-0}" -eq 1 ]; then
             print_warning "El sistema reiniciará en segundos; si usas SSH por WiFi, vuelve a conectar cuando arranque la Pi."
         elif [ "$(is_default_route_over_wifi)" = "1" ] && [ "${NEED_REBOOT_FOR_AP0:-0}" -eq 0 ]; then
