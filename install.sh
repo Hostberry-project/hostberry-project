@@ -2587,8 +2587,10 @@ show_final_info() {
 
     if [ "$MODE" = "install" ] && [ -n "$GENERATED_ADMIN_PASSWORD" ]; then
         print_warning "Login inicial: admin / ${GENERATED_ADMIN_PASSWORD} (se ha guardado también en ${INSTALL_DIR}/INSTALL_CREDENTIALS.txt)"
-        if [ "$(is_default_route_over_wifi)" = "1" ]; then
-            print_warning "Aviso: Estás accediendo probablemente por WiFi. Para evitar cortes de conexión, el reinicio automático se ha desactivado. Reinicia manualmente cuando te convenga (por ejemplo, desde una sesión por cable)."
+        if [ "$(is_default_route_over_wifi)" = "1" ] && [ "${NEED_REBOOT_FOR_AP0:-0}" -eq 1 ]; then
+            print_warning "El sistema reiniciará en segundos; si usas SSH por WiFi, vuelve a conectar cuando arranque la Pi."
+        elif [ "$(is_default_route_over_wifi)" = "1" ] && [ "${NEED_REBOOT_FOR_AP0:-0}" -eq 0 ]; then
+            print_warning "Reinicio automático omitido (p. ej. HOSTBERRY_SKIP_REBOOT=1). Reinicia manualmente cuando puedas."
         fi
     else
         print_warning "Login:  admin / admin (cámbiala)"
@@ -2666,13 +2668,12 @@ main() {
     fi
 
     if [ "$MODE" = "install" ] || [ "$MODE" = "update" ]; then
-        # Si la ruta por defecto va por WiFi, evitamos reiniciar automáticamente
-        # para no dejar al usuario sin conexión inesperadamente.
-        if [ "$(is_default_route_over_wifi)" = "1" ]; then
-            print_warning "Ruta por defecto detectada sobre interfaz WiFi: no se reiniciará automáticamente al final para no cortar la conexión. Reinicia manualmente cuando puedas."
+        NEED_REBOOT_FOR_AP0=1
+        if [ "${HOSTBERRY_SKIP_REBOOT:-0}" = "1" ]; then
             NEED_REBOOT_FOR_AP0=0
-        else
-            NEED_REBOOT_FOR_AP0=1
+            print_warning "HOSTBERRY_SKIP_REBOOT=1: no se reiniciará el sistema al final."
+        elif [ "$(is_default_route_over_wifi)" = "1" ]; then
+            print_warning "Ruta por defecto por WiFi: al final se reiniciará el equipo (la sesión SSH por WiFi puede cortarse hasta que vuelva a arrancar)."
         fi
     fi
 
