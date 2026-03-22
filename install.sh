@@ -1912,11 +1912,14 @@ if [ "\$freq" -lt 3000 ] 2>/dev/null; then
     sed -i 's/^hw_mode=.*/hw_mode=g/' "\$CONF"
     sed -i "s/^channel=.*/channel=\$ch/" "\$CONF"
     sed -i '/^ieee80211ac=/d' "\$CONF"
+    sed -i '/^vht_/d' "\$CONF"
 else
+    # 5 GHz: evitar ieee80211ac sin parámetros VHT completos (muchos móviles no asocian).
     sed -i 's/^hw_mode=.*/hw_mode=a/' "\$CONF"
     sed -i "s/^channel=.*/channel=\$ch/" "\$CONF"
+    sed -i '/^ieee80211ac=/d' "\$CONF"
+    sed -i '/^vht_/d' "\$CONF"
     grep -q '^ieee80211n=' "\$CONF" || echo 'ieee80211n=1' >> "\$CONF"
-    grep -q '^ieee80211ac=' "\$CONF" || echo 'ieee80211ac=1' >> "\$CONF"
 fi
 exit 0
 EOF
@@ -1932,9 +1935,10 @@ EOF
     cat > "$DNSMASQ_AP_CONFIG" <<EOF
 # HostBerry: DHCP y DNS para la red WiFi hostberry (ap0)
 # Los clientes reciben IP 192.168.4.x y DNS apunta al gateway (portal cautivo)
+# bind-dynamic: ap0 puede crearse/recrearse; bind-interfaces dejaba dnsmasq sin escuchar en ap0.
 interface=ap0
 no-dhcp-interface=wlan0
-bind-interfaces
+bind-dynamic
 dhcp-range=${HOSTAPD_DHCP_START},${HOSTAPD_DHCP_END},255.255.255.0,${HOSTAPD_LEASE_TIME}
 dhcp-option=3,${HOSTAPD_GATEWAY}
 dhcp-option=6,${HOSTAPD_GATEWAY}
@@ -2174,6 +2178,7 @@ ExecStartPre=/usr/local/sbin/hostberry-create-ap0.sh
 ExecStartPre=${SYNC_HOSTAPD_CH}
 ExecStart=
 ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid ${HOSTAPD_CONFIG}
+ExecStartPost=-/bin/systemctl try-restart dnsmasq.service
 PIDFile=/run/hostapd.pid
 Type=forking
 TimeoutStartSec=90
