@@ -2168,38 +2168,21 @@ EOF
     chmod 644 "$OVERRIDE_FILE"
     print_success "Override de hostapd actualizado"
     
-    # Asegurarse de que el servicio no esté masked
-    # Importante en Raspberry Pi conectada por WiFi+SSH: si desmaskear hace que hostapd arranque,
-    # puede cortar la conexión. Por eso, cuando se ejecuta por SSH, lo omitimos y se aplicará tras reinicio.
-    print_info "Verificando estado del servicio hostapd..."
-    # En modo install (o cuando evitamos operaciones por SSH), no llamamos a systemctl aquí
-    # porque el sistema queda "sensible" y el SSH se puede cortar.
-    if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
-        if systemctl is-enabled hostapd 2>&1 | grep -q "masked"; then
-            print_info "Desbloqueando servicio hostapd..."
-            systemctl unmask hostapd 2>/dev/null || true
-            print_success "Servicio hostapd desbloqueado"
-        fi
-    else
-        print_info "Evitando comprobación/unmask de hostapd durante instalación para no cortar SSH."
+    print_info "Verificando estado del servicio hostapd…"
+    if systemctl is-enabled hostapd 2>&1 | grep -q "masked"; then
+        print_info "Desbloqueando servicio hostapd…"
+        systemctl unmask hostapd 2>/dev/null || true
+        print_success "Servicio hostapd desbloqueado"
     fi
     
-    # Recargar systemd para aplicar cambios
-    # En Raspberry Pi por WiFi+SSH, daemon-reload justo aquí puede provocar que hostapd se relance.
-    if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
-        systemctl daemon-reload 2>/dev/null || true
-    else
-        print_info "SSH activo: omito systemctl daemon-reload para no cortar la conexión."
-    fi
+    systemctl daemon-reload 2>/dev/null || true
     
     # Asegurar que dnsmasq esté instalado y el servicio systemd exista (DHCP/DNS para la red hostberry)
     if ! systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
         print_info "Servicio dnsmasq no encontrado; instalando paquete dnsmasq..."
         if command -v apt-get &> /dev/null; then
             apt-get update -qq && apt-get install -y dnsmasq 2>/dev/null || true
-            if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
-                systemctl daemon-reload 2>/dev/null || true
-            fi
+            systemctl daemon-reload 2>/dev/null || true
         fi
     fi
     if ! systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
@@ -2222,14 +2205,8 @@ EOF
         fi
     fi
     
-    # Quedan habilitados para el arranque; el inicio en caliente lo hace enable_and_start_hostberry_wifi_ap
-    # (omite hostapd si la ruta por defecto es WiFi, para no cortar SSH).
-    print_info "HostAPD y dnsmasq configurados; se habilitarán para arrancar con el sistema y, si es seguro, se iniciarán al final del instalador."
-    if [ "${RUNNING_OVER_SSH:-0}" -eq 0 ]; then
-        systemctl daemon-reload 2>/dev/null || true
-    else
-        print_info "SSH activo: omito systemctl daemon-reload final."
-    fi
+    print_info "HostAPD y dnsmasq configurados; se habilitan para el arranque y enable_and_start_hostberry_wifi_ap inicia el AP al final."
+    systemctl daemon-reload 2>/dev/null || true
     
     # Asegurar permisos correctos del archivo de configuración
     chmod 644 "$HOSTAPD_CONFIG" 2>/dev/null || true
@@ -2492,7 +2469,7 @@ public_url() {
     esac
 }
 
-# Habilita y, si es seguro, inicia AP WiFi + DHCP + portal cautivo (antes sólo quedaba configurado).
+# Habilita e inicia AP WiFi + DHCP + portal cautivo (install y --update, también por SSH).
 enable_and_start_hostberry_wifi_ap() {
     if ! command -v systemctl &>/dev/null; then
         return 0
@@ -2507,8 +2484,7 @@ enable_and_start_hostberry_wifi_ap() {
     systemctl enable hostberry-captive-portal.service 2>/dev/null || true
 
     if [ "$(is_default_route_over_wifi)" = "1" ]; then
-        print_info "Ruta por defecto por WiFi: no inicio hostapd ahora (no cortar SSH). Tras reiniciar, la red debería levantarse sola."
-        return 0
+        print_warning "Ruta por defecto por WiFi: se inicia el AP igualmente (SSH por esa WiFi puede cortarse); preferible cable o consola."
     fi
 
     print_info "Iniciando ap0, hostapd, dnsmasq y reglas iptables del portal cautivo…"
