@@ -1721,6 +1721,15 @@ create_hostapd_default_config() {
         PHY_NAME="phy0"
     fi
     MAC_ADDRESS=$(cat "/sys/class/net/${HOSTAPD_INTERFACE}/address" 2>/dev/null | tr -d '\n' || true)
+
+    # Código ISO del país para hostapd (sin esto, muchas Pi no emiten beacons visibles). Alineado con wpa_supplicant.
+    WPA_CFG_EARLY="/etc/wpa_supplicant/wpa_supplicant-wlan0.conf"
+    HOSTAPD_COUNTRY="US"
+    if [ -f "$WPA_CFG_EARLY" ] && grep -q '^country=' "$WPA_CFG_EARLY" 2>/dev/null; then
+        _cc=$(grep '^country=' "$WPA_CFG_EARLY" | head -1 | cut -d= -f2 | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
+        _cc=$(echo "$_cc" | cut -c1-2)
+        [ "${#_cc}" -eq 2 ] && HOSTAPD_COUNTRY="$_cc"
+    fi
     
     # En instalación: siempre valores de fábrica (hostapd incluido). En actualización: preservar si ya existe.
     # Modo AP+STA según método del blog de TheWalrus (Raspberry Pi 3 B+)
@@ -1847,6 +1856,11 @@ ssid=${HOSTAPD_SSID}
 hw_mode=g
 channel=${HOSTAPD_CHANNEL}
 auth_algs=1
+country_code=${HOSTAPD_COUNTRY}
+ieee80211d=1
+ignore_broadcast_ssid=0
+wmm_enabled=1
+ieee80211n=1
 # Asegurar que wlan0 esté en modo managed (no AP)
 # Esto se hace automáticamente cuando wpa_supplicant se ejecuta en wlan0
 EOF
