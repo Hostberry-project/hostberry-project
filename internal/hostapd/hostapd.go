@@ -1361,10 +1361,12 @@ rsn_pairwise=CCMP
 	executeCommand(fmt.Sprintf("sudo cp %s %s.backup 2>/dev/null || true", dnsmasqConfigPath, dnsmasqConfigPath))
 
 	dnsmasqContent := fmt.Sprintf(`# Configuración de dnsmasq para modo AP+STA según método TheWalrus (Raspberry Pi 3 B+)
-# Solo servir DHCP en ap0, no en wlan0 (que es STA)
+# bind-dynamic: evita "unknown interface" en ap0 virtual hasta tener IPv4; no usar sólo bind-interfaces.
+# Solo servir DHCP en ap0, no en la interfaz STA
+except-interface=lo
+bind-dynamic
 interface=%s
 no-dhcp-interface=%s
-bind-interfaces
 server=8.8.8.8
 server=8.8.4.4
 domain-needed

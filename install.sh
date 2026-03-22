@@ -1940,26 +1940,21 @@ EOF
     if [ -d "/sys/class/net/${HOSTAPD_INTERFACE}" ]; then
         DNSMASQ_NO_DHCP_LINE="no-dhcp-interface=${HOSTAPD_INTERFACE}"
     fi
-    cat > "$DNSMASQ_AP_CONFIG" <<EOF
-# HostBerry: DHCP y DNS para la red WiFi hostberry (ap0)
-# bind-dynamic: ap0 virtual a veces no es “válida” para dnsmasq con bind-interfaces hasta tener IPv4;
-# además encaja mejor con interfaces que aparecen tras el arranque.
-# No usar loopback: el dnsmasq.conf de Debian suele pedir listen-address=127.0.0.1 y choca con
-# blocky/systemd-resolved en 127.0.0.1:53.
-except-interface=lo
-bind-dynamic
-interface=ap0
-${DNSMASQ_NO_DHCP_LINE}
-dhcp-range=${HOSTAPD_DHCP_START},${HOSTAPD_DHCP_END},255.255.255.0,${HOSTAPD_LEASE_TIME}
-dhcp-option=3,${HOSTAPD_GATEWAY}
-dhcp-option=6,${HOSTAPD_GATEWAY}
-address=/#/${HOSTAPD_GATEWAY}
-domain-needed
-bogus-priv
-EOF
-    if [ -z "$DNSMASQ_NO_DHCP_LINE" ]; then
-        sed -i '/^no-dhcp-interface=$/d' "$DNSMASQ_AP_CONFIG" 2>/dev/null || true
-    fi
+    {
+        echo "# HostBerry: DHCP y DNS para la red WiFi hostberry (ap0)"
+        echo "# bind-dynamic: ap0 virtual + bind-interfaces suele fallar hasta tener IPv4 en ap0."
+        echo "# No usar loopback: listen-address=127.0.0.1 en dnsmasq.conf choca con blocky en :53."
+        echo "except-interface=lo"
+        echo "bind-dynamic"
+        echo "interface=ap0"
+        [ -n "$DNSMASQ_NO_DHCP_LINE" ] && echo "$DNSMASQ_NO_DHCP_LINE"
+        echo "dhcp-range=${HOSTAPD_DHCP_START},${HOSTAPD_DHCP_END},255.255.255.0,${HOSTAPD_LEASE_TIME}"
+        echo "dhcp-option=3,${HOSTAPD_GATEWAY}"
+        echo "dhcp-option=6,${HOSTAPD_GATEWAY}"
+        echo "address=/#/${HOSTAPD_GATEWAY}"
+        echo "domain-needed"
+        echo "bogus-priv"
+    } > "$DNSMASQ_AP_CONFIG"
     chmod 644 "$DNSMASQ_AP_CONFIG"
     print_success "Configuración dnsmasq para hostberry escrita"
     
