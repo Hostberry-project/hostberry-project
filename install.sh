@@ -1872,6 +1872,9 @@ EOF
 # Red abierta (sin contraseña) - portal cautivo hacia la web de Hostberry
 interface=${AP_INTERFACE}
 driver=nl80211
+# Socket para hostapd_cli (p. ej. hostapd_cli -i ap0 status); sin esto: wpa_ctrl_open No such file
+ctrl_interface=/run/hostapd
+ctrl_interface_group=0
 ssid=${HOSTAPD_SSID}
 hw_mode=g
 channel=${HOSTAPD_CHANNEL}
@@ -1911,6 +1914,15 @@ EOF
         fi
         grep -q '^wpa=0$' "$HOSTAPD_CONFIG" 2>/dev/null || echo 'wpa=0' >> "$HOSTAPD_CONFIG"
         print_info "  Red configurada como abierta (sin contraseña)"
+    fi
+
+    if ! grep -q '^ctrl_interface=' "$HOSTAPD_CONFIG" 2>/dev/null; then
+        print_info "Añadiendo ctrl_interface a hostapd.conf (hostapd_cli -i ap0)…"
+        {
+            echo ""
+            echo "ctrl_interface=/run/hostapd"
+            echo "ctrl_interface_group=0"
+        } >> "$HOSTAPD_CONFIG"
     fi
 
     # Configs antiguas: país / beacons / 11n (sin country_code muchas Pi no “ven” el SSID al escanear)

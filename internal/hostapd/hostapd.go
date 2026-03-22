@@ -1241,6 +1241,8 @@ RUN+="/bin/ip link set ap0 address %s"
 
 	configContent := fmt.Sprintf(`interface=%s
 driver=nl80211
+ctrl_interface=/run/hostapd
+ctrl_interface_group=0
 ssid=%s
 hw_mode=g
 channel=%d
