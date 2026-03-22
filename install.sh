@@ -2211,20 +2211,21 @@ EOF
         print_warning "dnsmasq no está instalado. Instálalo manualmente para DHCP en la red hostberry (p. ej. sudo apt-get install dnsmasq)"
     fi
     
-    # dnsmasq debe arrancar después de hostapd para que ap0 exista y tenga IP (así asigna DHCP)
+    # dnsmasq: tras hostapd (ap0 existe) + breve espera (evita carrera si reinicias hostapd y dnsmasq a la vez)
     if systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
         DNSMASQ_OVERRIDE_DIR="/etc/systemd/system/dnsmasq.service.d"
         DNSMASQ_OVERRIDE_FILE="${DNSMASQ_OVERRIDE_DIR}/hostberry.conf"
-        if [ ! -f "$DNSMASQ_OVERRIDE_FILE" ] || ! grep -q "After=.*hostapd" "$DNSMASQ_OVERRIDE_FILE" 2>/dev/null; then
-            print_info "Configurando dnsmasq para arrancar después de hostapd (DHCP en ap0)..."
-            mkdir -p "$DNSMASQ_OVERRIDE_DIR"
-            cat > "$DNSMASQ_OVERRIDE_FILE" <<EOF
+        print_info "Configurando override systemd para dnsmasq (después de hostapd, espera ap0)…"
+        mkdir -p "$DNSMASQ_OVERRIDE_DIR"
+        cat > "$DNSMASQ_OVERRIDE_FILE" <<EOF
 [Unit]
 After=network.target hostapd.service create-ap0.service
+
+[Service]
+ExecStartPre=-/bin/sh -c 'for i in \$(seq 1 40); do ip link show ap0 >/dev/null 2>&1 && exit 0; sleep 0.25; done; exit 0'
 EOF
-            chmod 644 "$DNSMASQ_OVERRIDE_FILE"
-            print_success "Override de dnsmasq creado"
-        fi
+        chmod 644 "$DNSMASQ_OVERRIDE_FILE"
+        print_success "Override de dnsmasq actualizado"
     fi
     
     print_info "HostAPD y dnsmasq configurados; se habilitan para el arranque y enable_and_start_hostberry_wifi_ap inicia el AP al final."
