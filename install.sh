@@ -2534,12 +2534,14 @@ finalize_systemd_hostberry_network() {
         print_info "Habrá reinicio del sistema; se omiten reinicios en caliente de hostapd/dnsmasq."
         return 0
     fi
-    print_info "Reiniciando hostapd, dnsmasq y hostberry-captive-portal para aplicar configs…"
+    print_info "Reiniciando hostapd, dnsmasq, ${SERVICE_NAME} y hostberry-captive-portal…"
     systemctl restart hostapd.service 2>/dev/null || true
     sleep 2
     systemctl restart dnsmasq.service 2>/dev/null || true
+    systemctl try-restart "${SERVICE_NAME}.service" 2>/dev/null || true
+    sleep 1
     systemctl restart hostberry-captive-portal.service 2>/dev/null || true
-    print_success "Servicios de red HostBerry recargados"
+    print_success "Servicios HostBerry recargados"
 }
 
 # Mostrar información final
