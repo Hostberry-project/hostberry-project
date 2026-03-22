@@ -1940,6 +1940,10 @@ EOF
 # Los clientes reciben IP 192.168.4.x y DNS apunta al gateway (portal cautivo)
 # bind-interfaces: dnsmasq en muchas Pi no soporta bind-dynamic (falla al arrancar el servicio).
 # Tras recrear ap0, hostapd hace try-restart de dnsmasq (override hostapd).
+# No usar loopback: el dnsmasq.conf de Debian suele pedir listen-address=127.0.0.1 y choca con
+# blocky/systemd-resolved u otro proceso en 127.0.0.1:53 ("Address already in use").
+except-interface=lo
+listen-address=${HOSTAPD_GATEWAY}
 interface=ap0
 no-dhcp-interface=wlan0
 bind-interfaces
