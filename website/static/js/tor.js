@@ -260,6 +260,19 @@
         circuitText.textContent =
           circuit?.circuit_info || t('tor.circuit_unavailable', 'Circuit information not available');
       }
+
+      const circuitInfo = document.getElementById('tor-circuit-info');
+      const circuitAlert = document.getElementById('tor-circuit-alert');
+      if (
+        circuitInfo &&
+        circuitInfo.style.display === 'block' &&
+        circuitAlert &&
+        HB.attachTransientAlert
+      ) {
+        circuitAlert.classList.remove('d-none');
+        circuitAlert.style.display = '';
+        HB.attachTransientAlert(circuitAlert);
+      }
     } catch (error) {
       console.error('Error loading Tor circuit:', error);
     }
