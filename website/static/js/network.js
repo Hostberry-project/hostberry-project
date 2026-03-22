@@ -920,7 +920,12 @@
     runBtn.disabled = true;
     resultDiv.classList.add('d-none');
     errorDiv.classList.add('d-none');
-    errorDiv.textContent = '';
+    const errTextEl = errorDiv.querySelector('.hb-speedtest-err-text');
+    if (errTextEl) errTextEl.textContent = '';
+    else errorDiv.textContent = '';
+    if (window.HostBerry && HostBerry.dismissTransientAlert) {
+      HostBerry.dismissTransientAlert(errorDiv);
+    }
     progressDiv.classList.remove('d-none');
     try {
       const resp = await HostBerry.apiRequest('/api/v1/network/speedtest', { method: 'POST' });

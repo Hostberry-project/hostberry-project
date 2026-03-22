@@ -55,7 +55,7 @@
       alertDiv.appendChild(msg);
       alertDiv.appendChild(closeBtn);
       document.body.appendChild(alertDiv);
-      tmr = setTimeout(dismiss, 8000);
+      tmr = setTimeout(dismiss, (window.HostBerry && window.HostBerry.NOTIFICATION_AUTO_DISMISS_MS) || 8000);
     }
   };
 

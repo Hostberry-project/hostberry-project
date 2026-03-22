@@ -62,48 +62,35 @@
     return (typeof current === 'string' ? current : null) || defaultValue || key;
   }
 
-  // Función para mostrar alertas (mismo estilo que login.js)
+  // Mismas notificaciones flotantes que el resto del panel: 8 s + botón cerrar (common.js)
   function showAlert(type, message) {
-    // Añadir estilos CSS específicos si no existen
-    if (!document.querySelector('#first-login-alert-styles')) {
-      const style = document.createElement('style');
-      style.id = 'first-login-alert-styles';
-      style.textContent = `
-        .first-login-alert {
-          position: fixed !important;
-          top: 20px !important;
-          right: 20px !important;
-          left: auto !important;
-          bottom: auto !important;
-          z-index: 9999 !important;
-          min-width: 300px;
-          max-width: 400px;
-          margin: 0 !important;
-          transform: none !important;
-        }
-      `;
-      document.head.appendChild(style);
+    if (window.HostBerry && typeof window.HostBerry.showAlert === 'function') {
+      window.HostBerry.showAlert(type, message);
+      return;
     }
-    
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show first-login-alert`;
+    const ms = (window.HostBerry && window.HostBerry.NOTIFICATION_AUTO_DISMISS_MS) || 8000;
     const closeLabel = t('common.close', 'Close');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed d-flex align-items-center`;
+    alertDiv.style.cssText = 'top:20px;right:20px;z-index:9999;min-width:300px;max-width:400px;margin:0;';
+    alertDiv.setAttribute('role', 'alert');
     const messageNode = document.createElement('span');
+    messageNode.className = 'flex-grow-1 me-2';
     messageNode.textContent = String(message ?? '');
-    alertDiv.appendChild(messageNode);
-
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.className = 'btn-close';
-    closeBtn.setAttribute('data-bs-dismiss', 'alert');
+    closeBtn.className = 'btn-close flex-shrink-0';
     closeBtn.setAttribute('aria-label', closeLabel);
+    let tmr = null;
+    const dismiss = () => {
+      if (tmr) clearTimeout(tmr);
+      alertDiv.remove();
+    };
+    closeBtn.addEventListener('click', (e) => { e.preventDefault(); dismiss(); });
+    alertDiv.appendChild(messageNode);
     alertDiv.appendChild(closeBtn);
     document.body.appendChild(alertDiv);
-    setTimeout(() => {
-      if (alertDiv.parentNode) {
-        alertDiv.remove();
-      }
-    }, 8000);
+    tmr = setTimeout(dismiss, ms);
   }
 
   // Función para mostrar notificación de éxito
