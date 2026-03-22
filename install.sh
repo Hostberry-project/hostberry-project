@@ -1976,9 +1976,9 @@ fi
 #!/bin/bash
 # Generado por HostBerry: crea ap0 tras esperar a que el phy WiFi esté listo.
 set -eu
-PHY_NAME=${PHY_NAME@Q}
-MAC_ADDRESS=${MAC_ADDRESS@Q}
-HOSTAPD_GATEWAY=${HOSTAPD_GATEWAY@Q}
+PHY_NAME="$PHY_NAME"
+MAC_ADDRESS="$MAC_ADDRESS"
+HOSTAPD_GATEWAY="$HOSTAPD_GATEWAY"
 for _ in \$(seq 1 45); do
     if [ -d "/sys/class/ieee80211/\${PHY_NAME}" ] && /sbin/iw phy "\$PHY_NAME" info >/dev/null 2>&1; then
         break
