@@ -1935,19 +1935,21 @@ EOF
     DNSMASQ_AP_CONFIG="${DNSMASQ_D_DIR}/hostberry-ap.conf"
     mkdir -p "$DNSMASQ_D_DIR"
     print_info "Escribiendo configuración DHCP/DNS para la red hostberry en ${DNSMASQ_AP_CONFIG}..."
+    # no-dhcp sólo en la interfaz STA si existe (si no, dnsmasq puede fallar al resolver el nombre)
+    DNSMASQ_NO_DHCP_LINE=""
+    if [ -d "/sys/class/net/${HOSTAPD_INTERFACE}" ]; then
+        DNSMASQ_NO_DHCP_LINE="no-dhcp-interface=${HOSTAPD_INTERFACE}"
+    fi
     cat > "$DNSMASQ_AP_CONFIG" <<EOF
 # HostBerry: DHCP y DNS para la red WiFi hostberry (ap0)
-# Los clientes reciben IP 192.168.4.x y DNS apunta al gateway (portal cautivo)
-# bind-interfaces: dnsmasq en muchas Pi no soporta bind-dynamic (falla al arrancar el servicio).
-# Tras recrear ap0, hostapd hace try-restart de dnsmasq (override hostapd).
+# bind-dynamic: ap0 virtual a veces no es “válida” para dnsmasq con bind-interfaces hasta tener IPv4;
+# además encaja mejor con interfaces que aparecen tras el arranque.
 # No usar loopback: el dnsmasq.conf de Debian suele pedir listen-address=127.0.0.1 y choca con
-# blocky/systemd-resolved u otro proceso en 127.0.0.1:53 ("Address already in use").
-# No poner listen-address=${HOSTAPD_GATEWAY}: si dnsmasq arranca antes de que ap0 tenga esa IP,
-# falla en tiempo de ejecución aunque "dnsmasq --test" diga OK.
+# blocky/systemd-resolved en 127.0.0.1:53.
 except-interface=lo
+bind-dynamic
 interface=ap0
-no-dhcp-interface=wlan0
-bind-interfaces
+${DNSMASQ_NO_DHCP_LINE}
 dhcp-range=${HOSTAPD_DHCP_START},${HOSTAPD_DHCP_END},255.255.255.0,${HOSTAPD_LEASE_TIME}
 dhcp-option=3,${HOSTAPD_GATEWAY}
 dhcp-option=6,${HOSTAPD_GATEWAY}
@@ -1955,6 +1957,9 @@ address=/#/${HOSTAPD_GATEWAY}
 domain-needed
 bogus-priv
 EOF
+    if [ -z "$DNSMASQ_NO_DHCP_LINE" ]; then
+        sed -i '/^no-dhcp-interface=$/d' "$DNSMASQ_AP_CONFIG" 2>/dev/null || true
+    fi
     chmod 644 "$DNSMASQ_AP_CONFIG"
     print_success "Configuración dnsmasq para hostberry escrita"
     
@@ -2212,7 +2217,8 @@ ExecStartPre=/usr/local/sbin/hostberry-create-ap0.sh
 ExecStartPre=${SYNC_HOSTAPD_CH}
 ExecStart=
 ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid ${HOSTAPD_CONFIG}
-ExecStartPost=-/bin/systemctl try-restart dnsmasq.service
+# Tras levantar el AP, asegurar IPv4 en ap0 (sin eso dnsmasq suele dar "unknown interface ap0") y luego DHCP.
+ExecStartPost=-/bin/sh -c '/bin/sleep 1; /sbin/ip addr replace ${HOSTAPD_GATEWAY}/24 dev ap0 2>/dev/null || /sbin/ip addr add ${HOSTAPD_GATEWAY}/24 dev ap0 2>/dev/null || true; /bin/systemctl try-restart dnsmasq.service'
 PIDFile=/run/hostapd.pid
 Type=forking
 TimeoutStartSec=90
@@ -2255,8 +2261,8 @@ Wants=create-ap0.service hostapd.service
 Requires=hostapd.service
 
 [Service]
-# Sin el prefijo "-" el arranque se aborta si ap0 no existe (antes: exit 0 siempre y dnsmasq fallaba luego).
-ExecStartPre=/bin/sh -c 'for i in \$(seq 1 120); do ip link show ap0 >/dev/null 2>&1 && exit 0; sleep 0.25; done; echo "HostBerry: ap0 no disponible (¿hostapd activo?)." >&2; exit 1'
+# dnsmasq exige que ap0 exista y tenga IPv4 (p. ej. ${HOSTAPD_GATEWAY}/24) o falla con "unknown interface ap0".
+ExecStartPre=/bin/sh -c 'for i in \$(seq 1 120); do ip link show ap0 >/dev/null 2>&1 || { sleep 0.25; continue; }; ip -4 addr show dev ap0 2>/dev/null | grep -qE " inet " && exit 0; sleep 0.25; done; echo "HostBerry: ap0 sin IPv4 (¿hostapd y create-ap0?)." >&2; exit 1'
 EOF
         chmod 644 "$DNSMASQ_OVERRIDE_FILE"
         print_success "Override de dnsmasq actualizado"
