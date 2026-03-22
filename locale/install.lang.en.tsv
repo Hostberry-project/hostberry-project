@@ -1,0 +1,290 @@
+        $(public_url 	        $(public_url 
+  - Gateway: $HOSTAPD_GATEWAY	  - Gateway: $HOSTAPD_GATEWAY
+  - Interfaz AP: $AP_INTERFACE	  - Interfaz AP: $AP_INTERFACE
+  - Interfaz STA: $HOSTAPD_INTERFACE (para wpa_supplicant)	  - Interfaz STA: $HOSTAPD_INTERFACE (para wpa_supplicant)
+  - SSID: $HOSTAPD_SSID (red abierta, sin contraseña)	  - SSID: $HOSTAPD_SSID (red abierta, sin contraseña)
+  Red configurada como abierta (sin contraseña)	  Red configurada como abierta (sin contraseña)
+  SSID actualizado a: ${HOSTAPD_SSID}	  SSID updated a: ${HOSTAPD_SSID}
+  sudo journalctl -u ${SERVICE_NAME} -n 50 | grep -i admin	  sudo journalctl -u ${SERVICE_NAME} -n 50 | grep -i admin
+${pkg}: instalado	${pkg}: instalado
+${pkg}: ya instalado	${pkg}: ya instalado
+Abortando actualización para proteger los datos	Aborting actualización para proteger los datos
+Actualización completa	Update complete
+Actualizando archivo de configuración para incluir GROUP=netdev...	Actualizando archivo de configuration para incluir GROUP=netdev...
+Actualizando unidad systemd del portal cautivo (tras HostBerry y dnsmasq)…	Actualizando unidad systemd del portal cautivo (tras HostBerry y dnsmasq)...
+Advertencia: El directorio data aún existe, moviéndolo antes de eliminar...	Warning: El directorio data aún existe, moviéndolo antes de eliminar...
+Advertencia: Error al validar configuración de sudoers	Warning: Error al validar configuration de sudoers
+Advertencia: No se encontró hostberry.db después de restaurar	Warning: Not found: hostberry.db después de restaurar
+Advertencia: No se encontró hostberry.db en el directorio temporal	Warning: Not found: hostberry.db en el directorio temporal
+Agregando usuario $USER_NAME al grupo netdev...	Agregando usuario $USER_NAME al grupo netdev...
+Ajustado $DNSMASQ_CONFIG: listen-address loopback comentado (evita conflicto con DNS en 127.0.0.1)	Adjusted $DNSMASQ_CONFIG: listen-address loopback comentado (evita conflicto con DNS en 127.0.0.1)
+Ajustado $_dmq: listen-address loopback comentado	Adjusted $_dmq: listen-address loopback comentado
+Aplicando systemd: daemon-reload…	Applying systemd: daemon-reload...
+Archivo de configuración de HostAPD creado con valores por defecto	File de configuration de HostAPD created con valores por defecto
+Archivo de configuración de HostAPD ya existe (actualización)	File de configuration de HostAPD ya existe (actualización)
+Archivo de configuración de wpa_supplicant creado	File de configuration de wpa_supplicant created
+Archivo de configuración de wpa_supplicant ya existe	File de configuration de wpa_supplicant ya existe
+Archivo de servicio eliminado	File de servicio removed
+Archivos .go encontrados:	Archivos .go encontrados:
+Archivos actualizados, datos preservados	Archivos updated, datos preserved
+Archivos antiguos eliminados	Archivos antiguos removeds
+Arquitectura no soportada para mkcert: $arch	Arquitectura no soportada para mkcert: $arch
+Asegúrate de ejecutar el script desde la raíz del repositorio clonado.	Make sure to ejecutar el script desde la raíz del repositorio clonado.
+Avahi anunciará este equipo como hostberry.local en la LAN	Avahi anunciará este equipo como hostberry.local en la LAN
+Avahi ya anuncia host-name=hostberry (hostberry.local)	Avahi ya anuncia host-name=hostberry (hostberry.local)
+Añadido conf-dir=/etc/dnsmasq.d a $DNSMASQ_CONFIG	Added conf-dir=/etc/dnsmasq.d a $DNSMASQ_CONFIG
+Añadiendo country_code=${HOSTAPD_COUNTRY} a hostapd.conf…	Adding country_code=${HOSTAPD_COUNTRY} a hostapd.conf...
+Añadiendo ctrl_interface a hostapd.conf (hostapd_cli -i ap0)…	Adding ctrl_interface a hostapd.conf (hostapd_cli -i ap0)...
+Backup de base de datos guardado en $TEMP_BACKUP_DIR/data	Backup de base de datos guardado en $TEMP_BACKUP_DIR/data
+Base de datos encontrada: $DB_SIZE	Database encontrada: $DB_SIZE
+Base de datos existente encontrada: $DB_FILE	Database existente encontrada: $DB_FILE
+Base de datos preservada en directorio temporal	Database preservada en directorio temporal
+Base de datos respaldada: $DB_SIZE	Database respaldada: $DB_SIZE
+Base de datos restaurada desde backup	Database restaurada desde backup
+Base de datos se creará automáticamente al iniciar el servicio	Database will be created automáticamente al iniciar el servicio
+Base de datos verificada: $DB_SIZE	Database verificada: $DB_SIZE
+Blocky instalado (arrancará con el sistema; configúralo desde la web Adblock)	Blocky instalado (arrancará con el sistema; configúralo desde la web Adblock)
+Blocky ya está instalado	Blocky ya está instalado
+Blocky: DNS restringido a 127.0.0.1:53 (compatible con dnsmasq en ap0)	Blocky: DNS restringido a 127.0.0.1:53 (compatible con dnsmasq en ap0)
+Certificados TLS ya presentes; omitiendo mkcert (HOSTBERRY_REGENERATE_MKCERT=1 para regenerar).	Certificados TLS ya presentes; omitiendo mkcert (HOSTBERRY_REGENERATE_MKCERT=1 para regenerar).
+Compilación cancelada: tiempo de espera agotado (${BUILD_TIMEOUT}s). En Raspberry Pi puede tardar más; ejecute de nuevo con HOSTBERRY_BUILD_TIMEOUT=1200	Build cancelada: tiempo de espera agotado (${BUILD_TIMEOUT}s). En Raspberry Pi may take más; ejecute de nuevo con HOSTBERRY_BUILD_TIMEOUT=1200
+Compilación completada.	Build complete.
+Compilando (usando ${BUILD_JOBS} núcleos, ~${BUILD_PKG_TOTAL} paquetes; el % es orientativo).	Building (usando ${BUILD_JOBS} núcleos, ~${BUILD_PKG_TOTAL} paquetes; el % es orientativo).
+Compilando HostBerry en ${INSTALL_DIR}...	Building HostBerry en ${INSTALL_DIR}...
+Config: ${CONFIG_FILE}	Config: ${CONFIG_FILE}
+Configuración dnsmasq para hostberry escrita	Configuración dnsmasq para hostberry escrita
+Configuración por defecto de Blocky creada: $BLOCKY_CONFIG_FILE	Configuración por defecto de Blocky created: $BLOCKY_CONFIG_FILE
+Configuración por defecto de HostAPD creada	Configuración por defecto de HostAPD created
+Configuración respaldada	Configuración respaldada
+Configurando HTTPS (puerto 443), redirección HTTP→HTTPS (puerto 80) y security.enforce_https…	Configuring HTTPS (puerto 443), redirección HTTP→HTTPS (puerto 80) y security.enforce_https...
+Configurando hostapd para usar ap0 (ap0 se creará en el arranque).	Configuring hostapd para usar ap0 (ap0 will be created en el arranque).
+Configurando hostname '$CURRENT_HOSTNAME' en /etc/hosts...	Configuring hostname '$CURRENT_HOSTNAME' en /etc/hosts...
+Configurando mDNS (hostberry.local) con Avahi...	Configuring mDNS (hostberry.local) con Avahi...
+Configurando override systemd para dnsmasq (prep ap0 + tras hostapd)…	Configuring override systemd para dnsmasq (prep ap0 + tras hostapd)...
+Configurando permisos y sudoers...	Configuring permisos y sudoers...
+Configurando wpa_supplicant para modo estación (STA)...	Configuring wpa_supplicant para modo estación (STA)...
+Contenido del directorio:	Contenido del directorio:
+Copiando archivos del proyecto...	Copying archivos del proyecto...
+Creando $DNSMASQ_CONFIG mínimo...	Creating $DNSMASQ_CONFIG mínimo...
+Creando archivo de configuración de wpa_supplicant: $WPA_CONFIG	Creating archivo de configuration de wpa_supplicant: $WPA_CONFIG
+Creando configuración por defecto de HostAPD…	Creating configuration por defecto de HostAPD...
+Creando directorio /etc/hostapd...	Creating directorio /etc/hostapd...
+Creando directorio de configuración de wpa_supplicant...	Creating directorio de configuration de wpa_supplicant...
+Creando directorio de socket de control de wpa_supplicant...	Creating directorio de socket de control de wpa_supplicant...
+Creando interfaz virtual ap0 para modo AP+STA...	Creating interfaz virtual ap0 para modo AP+STA...
+Creando regla udev para ap0 (método TheWalrus - Raspberry Pi 3 B+)...	Creating regla udev para ap0 (método TheWalrus - Raspberry Pi 3 B+)...
+Creando servicio systemd...	Creating servicio systemd...
+Creando usuario $USER_NAME...	Creating usuario $USER_NAME...
+Creando/actualizando script de portal cautivo (IP en ap0, DHCP, HTTP -> web Hostberry)...	Creating/updating script de portal cautivo (IP en ap0, DHCP, HTTP -> web Hostberry)...
+Creando/configurando HostAPD de fábrica (modo AP+STA): $HOSTAPD_CONFIG	Creating/configuring HostAPD de fábrica (modo AP+STA): $HOSTAPD_CONFIG
+Desbloqueando servicio hostapd…	Unblocking servicio hostapd...
+Descargando dependencias Go (puede tardar 1-2 min)...	Downloading dependencias Go (may take 1-2 min)...
+Descargando mkcert (${march})...	Downloading mkcert (${march})...
+Descargando proyecto desde GitHub...	Downloading proyecto desde GitHub...
+Deshabilitando servicio ${SERVICE_NAME}...	Disabling servicio ${SERVICE_NAME}...
+Desinstalación completa	Uninstall complete
+Desinstalación completada	Uninstall completeda
+Detalle del último intento:	Detalle del último intento:
+Deteniendo servicio ${SERVICE_NAME}...	Stopping servicio ${SERVICE_NAME}...
+Directorio /etc/hostapd creado con permisos 755	Directory /etc/hostapd created con permisos 755
+Directorio /etc/hostapd ya existe, permisos verificados	Directory /etc/hostapd ya existe, permisos verificados
+Directorio /etc/wpa_supplicant configurado	Directory /etc/wpa_supplicant configured
+Directorio /run/wpa_supplicant configurado con permisos 775	Directory /run/wpa_supplicant configured con permisos 775
+Directorio /var/run/wpa_supplicant configurado con permisos 775	Directory /var/run/wpa_supplicant configured con permisos 775
+Directorio de base de datos preparado: $DATA_DIR	Directory de base de datos preparado: $DATA_DIR
+Directorio de datos copiado/respaldado en $TEMP_DATA_DIR	Directory de datos copiado/respaldado en $TEMP_DATA_DIR
+Directorio de datos movido temporalmente a $TEMP_DATA_DIR	Directory de datos movido temporalmente a $TEMP_DATA_DIR
+Directorio de datos no encontrado: $DATA_DIR	Directory de datos no encontrado: $DATA_DIR
+Directorio de datos no existe: $DATA_DIR (primera instalación?)	Directory de datos no existe: $DATA_DIR (first install?)
+Directorio de datos restaurado	Directory de datos restaurado
+Directorio de instalación eliminado	Directory de instalación removed
+Directorio de trabajo: $(pwd)	Directory de trabajo: $(pwd)
+Directorio systemd override para hostapd creado	Directory systemd override para hostapd created
+Directorio temporal persistente creado: $FALLBACK_WPA_DIR	Directory temporal persistente created: $FALLBACK_WPA_DIR
+ERROR CRÍTICO: No hay backup disponible	CRITICAL ERROR: There is no backup disponible
+ERROR CRÍTICO: No se pudo restaurar la base de datos	CRITICAL ERROR: Could not restaurar la base de datos
+ERROR: No se pudo hacer backup de la base de datos	ERROR: Could not hacer backup de la base de datos
+ERROR: No se pudo mover/copy el directorio de datos	ERROR: Could not mover/copy el directorio de datos
+ERROR: No se pudo mover/copy el directorio de datos antes de eliminar	ERROR: Could not mover/copy el directorio de datos antes de eliminar
+ERROR: No se pudo restaurar desde backup	ERROR: Could not restaurar desde backup
+ERROR: No se pudo restaurar el directorio de datos	ERROR: Could not restaurar el directorio de datos
+Ejecuta con sudo/root	Run as root or sudo
+El backup está en: $TEMP_BACKUP_DIR	El backup está en: $TEMP_BACKUP_DIR
+El directorio temporal está en: $TEMP_DATA_DIR	El directorio temporal está en: $TEMP_DATA_DIR
+El portal cautivo se inicia tras arrancar HostBerry (ver enable_and_start_hostberry_wifi_ap o reinicio).	El portal cautivo se inicia tras arrancar HostBerry (ver enable_and_start_hostberry_wifi_ap o reinicio).
+El servicio no se inició correctamente	El servicio no se inició correctamente
+El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)	El servicio se inició pero ap0 no está disponible aún (may need a reboot)
+El sistema reiniciará en segundos; si usas SSH por WiFi, vuelve a conectar cuando arranque la Pi.	El sistema reiniciará en segundos; si usas SSH por WiFi, vuelve a conectar cuando arranque la Pi.
+El usuario admin se creará automáticamente si la BD está vacía	El usuario admin will be created automáticamente si la BD está vacía
+Eliminando $INSTALL_DIR...	Removing $INSTALL_DIR...
+Eliminando $LOG_DIR...	Removing $LOG_DIR...
+Eliminando $SERVICE_FILE...	Removing $SERVICE_FILE...
+Eliminando archivos antiguos (preservando datos)...	Removing archivos antiguos (preservando datos)...
+Eliminando grupo $GROUP_NAME...	Removing grupo $GROUP_NAME...
+Eliminando instalación anterior en $INSTALL_DIR...	Removing instalación anterior en $INSTALL_DIR...
+Eliminando usuario $USER_NAME...	Removing usuario $USER_NAME...
+Error al copiar templates	Error al copiar templates
+Error al descargar dependencias de Go	Error al descargar dependencias de Go
+Error al descargar el proyecto desde GitHub	Error al descargar el proyecto desde GitHub
+Error en la compilación (código $build_ret). Compruebe que build-essential y gcc están instalados.	Error en la compilación (código $build_ret). Compruebe que build-essential y gcc están instalados.
+Error: Directorio ${SCRIPT_DIR}/website/templates no existe	Error: Directory ${SCRIPT_DIR}/website/templates no existe
+Error: Directorio de instalación no existe: $INSTALL_DIR	Error: Directory de instalación no existe: $INSTALL_DIR
+Error: Directorio de templates no encontrado	Error: Directory de templates no encontrado
+Error: Directorio de templates no encontrado: ${INSTALL_DIR}/website/templates	Error: Directory de templates no encontrado: ${INSTALL_DIR}/website/templates
+Error: Directorio website no encontrado en ${SCRIPT_DIR}	Error: Directory website no encontrado en ${SCRIPT_DIR}
+Error: Faltan archivos del proyecto en ${SCRIPT_DIR}	Error: Faltan archivos del proyecto en ${SCRIPT_DIR}
+Error: Go no está instalado o no está en el PATH	Error: Go no está instalado o no está en el PATH
+Error: No se encontraron archivos .html en ${INSTALL_DIR}/website/templates	Error: No se encontraron archivos .html en ${INSTALL_DIR}/website/templates
+Error: No se pudo cambiar al directorio $INSTALL_DIR	Error: Could not cambiar al directorio $INSTALL_DIR
+Error: go.mod no encontrado en ${INSTALL_DIR}	Error: go.mod no encontrado en ${INSTALL_DIR}
+Error: main.go no encontrado	Error: main.go no encontrado
+Error: main.go no encontrado en ${INSTALL_DIR}	Error: main.go no encontrado en ${INSTALL_DIR}
+Escribiendo configuración DHCP/DNS para la red hostberry en ${DNSMASQ_AP_CONFIG}...	Writing configuration DHCP/DNS para la red hostberry en ${DNSMASQ_AP_CONFIG}...
+Escribiendo override de systemd para hostapd (PID coherente con Type=forking)...	Writing override de systemd para hostapd (PID coherente con Type=forking)...
+Estado: $(systemctl is-active ${SERVICE_NAME})	Estado: $(systemctl is-active ${SERVICE_NAME})
+Generando certificado TLS (mkcert) para: ${san[*]}	Generating certificado TLS (mkcert) para: ${san[*]}
+Git listo	Git ready
+Git: $(git --version)	Git: $(git --version)
+Go instalado: $(go version)	Go instalado: $(go version)
+Go no disponible tras apt-get install golang-go	Go no disponible tras apt-get install golang-go
+Go ya instalado: $(go version)	Go ya instalado: $(go version)
+Grupo eliminado	Group removed
+Grupo netdev creado	Group netdev created
+Grupo netdev creado y usuario agregado	Group netdev created y usuario agregado
+Grupo netdev no existe, creándolo...	Group netdev no existe, creándolo...
+Guardando backup de base de datos...	Saving backup de base de datos...
+Guardando backup de configuración...	Saving backup de configuration...
+HOSTBERRY_SKIP_REBOOT=1: no se reiniciará el sistema al final.	HOSTBERRY_SKIP_REBOOT=1: no se reiniciará el sistema al final.
+HTTP:   $(public_url 	HTTP:   $(public_url 
+Habilitando en el arranque: ap0, hostapd (SSID hostberry), dnsmasq y portal cautivo…	Enabling en el arranque: ap0, hostapd (SSID hostberry), dnsmasq y portal cautivo...
+Habrá reinicio del sistema; se omiten reinicios en caliente de hostapd/dnsmasq.	Habrá system reboot; skipping reinicios en caliente de hostapd/dnsmasq.
+HostAPD y dnsmasq configurados; se habilitan para el arranque y enable_and_start_hostberry_wifi_ap inicia el AP al final.	HostAPD y dnsmasq configureds; se habilitan para el arranque y enable_and_start_hostberry_wifi_ap inicia el AP al final.
+Hostname configurado en /etc/hosts	Hostname configured en /etc/hosts
+Hubo un error al crear el usuario admin	Hubo un error al crear el usuario admin
+Iniciando ap0, hostapd, dnsmasq y reglas iptables del portal cautivo…	Starting ap0, hostapd, dnsmasq y reglas iptables del portal cautivo...
+Iniciando desinstalación de HostBerry...	Starting desinstalación de HostBerry...
+Iniciando servicio ${SERVICE_NAME}...	Starting servicio ${SERVICE_NAME}...
+Instalación anterior eliminada	Previous installation removed
+Instalación completa	Installation complete
+Instalando ${DNSMASQ_PREP_SCRIPT}…	Installing ${DNSMASQ_PREP_SCRIPT}...
+Instalando ${SYNC_HOSTAPD_CH} (alinear canal AP con ${HOSTAPD_INTERFACE})…	Installing ${SYNC_HOSTAPD_CH} (alinear canal AP con ${HOSTAPD_INTERFACE})...
+Instalando ${package}...	Installing ${package}...
+Instalando Blocky (DNS proxy y ad-blocker)...	Installing Blocky (DNS proxy y ad-blocker)...
+Instalando CA local de mkcert (confianza en navegadores en este equipo)...	Installing CA local de mkcert (confianza en navegadores en este equipo)...
+Instalando Go (Golang) desde apt...	Installing Go (Golang) desde apt...
+Instalando LibreSpeed CLI (test de velocidad)...	Installing LibreSpeed CLI (test de velocidad)...
+Instalando Tor, OpenVPN y WireGuard...	Installing Tor, OpenVPN y WireGuard...
+Instalando archivos en $INSTALL_DIR...	Installing archivos en $INSTALL_DIR...
+Instalando dependencias...	Installing dependencias...
+Instalando git...	Installing git...
+Instalando hostapd, wpa_supplicant y herramientas WiFi...	Installing hostapd, wpa_supplicant y herramientas WiFi...
+Instalando mkcert...	Installing mkcert...
+Instalando script y unidad systemd para crear ap0 al arrancar...	Installing script y unidad systemd para crear ap0 al arrancar...
+Intentando restaurar desde backup...	Intentando restaurar desde backup...
+Interfaz WiFi de estación: ${_wifi_sta} (create-ap0 y hostapd la usarán; no hay wlan0 fiable)	Interfaz WiFi de estación: ${_wifi_sta} (create-ap0 y hostapd la usarán; no hay wlan0 fiable)
+Interfaz WiFi no encontrada: ${HOSTAPD_INTERFACE}. Se usará esa interfaz si existe luego.	Interfaz WiFi no encontrada: ${HOSTAPD_INTERFACE}. Will use esa interfaz si existe luego.
+Interfaz ap0 creada y verificada por el servicio systemd	Interfaz ap0 created y verificada por el servicio systemd
+Interfaz virtual ap0 creada usando interfaz $HOSTAPD_INTERFACE	Interfaz virtual ap0 created usando interfaz $HOSTAPD_INTERFACE
+Interfaz virtual ap0 creada usando phy $PHY_NAME	Interfaz virtual ap0 created usando phy $PHY_NAME
+Interfaz virtual ap0 verificada y activa	Interfaz virtual ap0 verificada y activa
+Interfaz virtual ap0 ya existe	Interfaz virtual ap0 ya existe
+LibreSpeed CLI instalado (test de velocidad en la página Red)	LibreSpeed CLI instalado (test de velocidad en la página Red)
+LibreSpeed CLI ya está instalado	LibreSpeed CLI ya está instalado
+Limpiando directorio temporal...	Cleaning directorio temporal...
+Login inicial: admin / ${GENERATED_ADMIN_PASSWORD} (se ha guardado también en ${INSTALL_DIR}/INSTALL_CREDENTIALS.txt)	Initial login: admin / ${GENERATED_ADMIN_PASSWORD} (was also saved también en ${INSTALL_DIR}/INSTALL_CREDENTIALS.txt)
+Login:  admin / admin (cámbiala)	Login:  admin / admin (change it)
+Logs eliminados	Logs removeds
+Logs:   journalctl -u ${SERVICE_NAME} -f	Logs:   journalctl -u ${SERVICE_NAME} -f
+Modo actualización: descargando desde GitHub...	Update mode: descargando desde GitHub...
+Modo actualización: preservando datos y configuración...	Update mode: preservando datos y configuration...
+Moviendo directorio de datos temporalmente para preservarlo...	Moving directorio de datos temporalmente para preservarlo...
+No existe $conf; omitiendo mDNS.	Does not exist: $conf; omitiendo mDNS.
+No hay instalación anterior que eliminar	There is no instalación anterior que eliminar
+No se detectó interfaz WiFi (¿sin driver?); se asume ${HOSTAPD_INTERFACE}	No se detectó interfaz WiFi (no driver?); se asume ${HOSTAPD_INTERFACE}
+No se encontró '${item}' en ${SCRIPT_DIR}	Not found: '${item}' en ${SCRIPT_DIR}
+No se encontró directorio de datos ni backup para restaurar	Not found: directorio de datos ni backup para restaurar
+No se pudo crear interfaz virtual ap0, usando interfaz física directamente	Could not crear interfaz virtual ap0, usando interfaz física directamente
+No se pudo descargar Blocky (${BLOCKY_ARCH}). Puedes instalarlo desde la web Adblock más tarde.	Could not descargar Blocky (${BLOCKY_ARCH}). Puedes instalarlo desde la web Adblock más tarde.
+No se pudo detectar el sistema operativo	Could not detectar el sistema operativo
+No se pudo hacer backup de la configuración	Could not hacer backup de la configuration
+No se pudo instalar ${pkg}. Manual: sudo apt-get install ${pkg}	Could not instalar ${pkg}. Manual: sudo apt-get install ${pkg}
+No se pudo instalar WireGuard. Manual: sudo apt-get install wireguard-tools	Could not instalar WireGuard. Manual: sudo apt-get install wireguard-tools
+No se pudo instalar avahi-daemon; hostberry.local puede no resolverse en la red.	Could not instalar avahi-daemon; hostberry.local puede no resolverse en la red.
+No se pudo instalar librespeed-cli por apt. Instálalo con: sudo apt install librespeed-cli	Could not instalar librespeed-cli por apt. Instálalo con: sudo apt install librespeed-cli
+No se pudo instalar mkcert	Could not instalar mkcert
+Omitiendo Avahi (HOSTBERRY_SKIP_AVAHI=1).	Skipping Avahi (HOSTBERRY_SKIP_AVAHI=1).
+Omitiendo mkcert (HOSTBERRY_SKIP_MKCERT=1).	Skipping mkcert (HOSTBERRY_SKIP_MKCERT=1).
+Opción desconocida: $1. Usa --help para ver opciones.	Unknown option: $1. Usa --help para ver opciones.
+Otros dispositivos (móviles, PCs) deben confiar en la CA: copia ${CAROOT}/rootCA.pem e impórtala, o usa un certificado público (Let's Encrypt).	Otros dispositivos (móviles, PCs) deben confiar en la CA: copia ${CAROOT}/rootCA.pem e impórtala, o usa un certificado público (Let's Encrypt).
+Override de dnsmasq actualizado	Override for dnsmasq updated
+Override de hostapd actualizado	Override for hostapd updated
+Paquetes faltantes: ${missing_critical[*]} (algunas funciones WiFi pueden no estar disponibles)	Paquetes faltantes: ${missing_critical[*]} (algunas funciones WiFi pueden no estar disponibles)
+Permisos y sudoers configurados correctamente	Permisos y sudoers configureds correctamente
+Preparando base de datos...	Preparing base de datos...
+Proyecto descargado desde GitHub	Project descargado desde GitHub
+Proyecto local detectado: usando código local (sin clonar GitHub)...	Project local detectado: usando código local (sin clonar GitHub)...
+Punto de acceso WiFi (hostapd) activo	Wi-Fi access point WiFi (hostapd) activo
+Regla udev creada para ap0	Regla udev created para ap0
+Regla udev para ap0 ya existe	Regla udev para ap0 ya existe
+Reiniciando el sistema para aplicar scripts, unidades systemd y la red HostBerry.	Restarting el sistema para aplicar scripts, unidades systemd y la red HostBerry.
+Reiniciando hostapd, dnsmasq, ${SERVICE_NAME} y hostberry-captive-portal…	Restarting hostapd, dnsmasq, ${SERVICE_NAME} y hostberry-captive-portal...
+Reinicio automático omitido (p. ej. HOSTBERRY_SKIP_REBOOT=1). Reinicia manualmente cuando puedas.	Reinicio automático omitido (p. ej. HOSTBERRY_SKIP_REBOOT=1). Reinicia manualmente cuando puedas.
+Restaurando base de datos desde backup...	Restoring base de datos desde backup...
+Restaurando configuración...	Restoring configuration...
+Restaurando directorio de datos...	Restoring directorio de datos...
+Revisa los logs con: journalctl -u ${SERVICE_NAME} -f	Check los logs con: journalctl -u ${SERVICE_NAME} -f
+Revisa los logs para ver el estado del usuario admin:	Check los logs para ver el estado del usuario admin:
+Revisa los logs: sudo journalctl -u ${SERVICE_NAME} -n 50	Check los logs: sudo journalctl -u ${SERVICE_NAME} -n 50
+Revisa manualmente: visudo -c -f /etc/sudoers.d/hostberry	Check manualmente: visudo -c -f /etc/sudoers.d/hostberry
+Ruta por defecto por WiFi: al final se reiniciará el equipo (la sesión SSH por WiFi puede cortarse hasta que vuelva a arrancar).	Ruta por defecto por WiFi: al final se reiniciará el equipo (la sesión SSH por WiFi puede cortarse hasta que vuelva a arrancar).
+Ruta por defecto por WiFi: al levantar el AP la conexión SSH por WiFi puede interrumpirse brevemente.	Ruta por defecto por WiFi: al levantar el AP la conexión SSH por WiFi puede interrumpirse brevemente.
+Ruta por defecto por WiFi: se inicia el AP igualmente (SSH por esa WiFi puede cortarse); preferible cable o consola.	Ruta por defecto por WiFi: se inicia el AP igualmente (SSH por esa WiFi puede cortarse); preferible cable o consola.
+SSH detectado: se aplican igualmente ap0/hostapd/systemd (comportamiento automatizado).	SSH detectado: se aplican igualmente ap0/hostapd/systemd (comportamiento automatizado).
+Script de portal cautivo actualizado: $CAPTIVE_SCRIPT	Script de portal cautivo updated: $CAPTIVE_SCRIPT
+Se creará una nueva base de datos al iniciar el servicio	Se creará una nueva base de datos al iniciar el servicio
+Servicio de portal cautivo registrado y habilitado	Service de portal cautivo registrado y habilitado
+Servicio dnsmasq no encontrado; instalando paquete dnsmasq...	Service dnsmasq no encontrado; instalando paquete dnsmasq...
+Servicio hostapd desbloqueado	Service hostapd desbloqueado
+Servicio iniciado correctamente	Service iniciado correctamente
+Servicio systemd creado: $SERVICE_FILE	Service systemd created: $SERVICE_FILE
+Servicio systemd para ap0 actualizado, habilitado e iniciado	Service systemd para ap0 updated, habilitado e iniciado
+Servicios HostBerry recargados	Services HostBerry recargados
+Si has descargado solo el script, necesitas descargar el proyecto completo.	Si has descargado solo el script, necesitas descargar el proyecto completo.
+Si la BD tiene datos antiguos, el usuario admin puede no crearse automáticamente	Si la BD tiene datos antiguos, el usuario admin puede no crearse automáticamente
+Si la última línea se queda fija, es normal: Go sigue con main (embed), enlazado y CGO — puede tardar minutos en Raspberry Pi.	Si la última línea se queda fija, es normal: Go sigue con main (embed), enlazado y CGO — may take minutos en Raspberry Pi.
+Sistema: $OS $OS_VERSION	System: $OS $OS_VERSION
+Sugerencia: compruebe conexión a Internet, proxy/firewall (proxy.golang.org) o ejecute con HOSTBERRY_GO_MOD_RETRIES=10	Hint: verify conexión a Internet, proxy/firewall (proxy.golang.org) o ejecute con HOSTBERRY_GO_MOD_RETRIES=10
+Sugerencia: tu driver puede no soportar AP+STA. Verifica con: iw list | grep -A5 -i 'valid interface combinations'	Hint: tu driver puede no soportar AP+STA. Verify con: iw list | grep -A5 -i 'valid interface combinations'
+TLS listo: https://hostberry.local o https://<IP> (HTTP en :80 redirige a HTTPS).	TLS ready: https://hostberry.local o https://<IP> (HTTP en :80 redirects to HTTPS).
+Templates críticos no encontrados	Templates críticos no encontrados
+Usando interfaz física $AP_INTERFACE (modo no concurrente)	Usando interfaz física $AP_INTERFACE (modo no concurrente)
+Usando interfaz virtual ap0 (ya existente)	Usando interfaz virtual ap0 (ya existente)
+Usuario $USER_NAME agregado al grupo netdev	User $USER_NAME agregado al grupo netdev
+Usuario $USER_NAME creado y agregado al grupo netdev	User $USER_NAME created y agregado al grupo netdev
+Usuario $USER_NAME ya está en el grupo netdev	User $USER_NAME ya está en el grupo netdev
+Usuario $USER_NAME ya existe	User $USER_NAME ya existe
+Usuario admin creado correctamente	User admin created correctamente
+Usuario eliminado	User removed
+Verifica tu conexión a internet y que el repositorio sea accesible	Verify tu conexión a internet y que el repositorio sea accesible
+Verificado: $TEMPLATE_COUNT templates encontrados en ${INSTALL_DIR}/website/templates	Verified: $TEMPLATE_COUNT templates encontrados en ${INSTALL_DIR}/website/templates
+Verificando creación de usuario admin...	Checking creación de usuario admin...
+Verificando estado del servicio hostapd…	Checking estado del servicio hostapd...
+Verificando estructura del directorio...	Checking estructura del directorio...
+Web:    ${web_url}	Web:    ${web_url}
+ap0 se creó pero no está disponible	ap0 se creó pero no está disponible
+apt-get no disponible; instala librespeed-cli manualmente para el test de velocidad en Red	apt-get no disponible; instala librespeed-cli manualmente para el test de velocidad en Red
+dnsmasq no está instalado. Instálalo manualmente para DHCP en la red hostberry (p. ej. sudo apt-get install dnsmasq)	dnsmasq no está instalado. Instálalo manualmente para DHCP en la red hostberry (p. ej. sudo apt-get install dnsmasq)
+hostapd no está activo; tras reinicio comprueba: journalctl -u hostapd -u create-ap0 -b	hostapd is not active; tras reinicio check: journalctl -u hostapd -u create-ap0 -b
+hostapd.conf: interface=ap0 (SSID en la interfaz virtual del AP)	hostapd.conf: interface=ap0 (SSID en la interfaz virtual del AP)
+iw no está disponible, no se puede crear ap0	iw no está disponible, no se puede crear ap0
+iw no está disponible; no se puede crear ap0. Se usará la interfaz física.	iw no está disponible; no se puede crear ap0. Will use la interfaz física.
+mkcert -install no completó; los navegadores pueden avisar hasta importar rootCA.pem.	mkcert -install no completó; los navegadores pueden avisar hasta importar rootCA.pem.
+mkcert disponible	mkcert disponible
+mkcert instalado (apt)	mkcert instalado (apt)
+mkcert instalado en /usr/local/bin/mkcert	mkcert instalado en /usr/local/bin/mkcert
+mkcert no disponible: se mantiene HTTP. Instala mkcert o define tls_cert_file/tls_key_file a mano.	mkcert no disponible: se mantiene HTTP. Instala mkcert o define tls_cert_file/tls_key_file a mano.
+mkcert no pudo generar certificados.	mkcert no pudo generar certificados.
+mv falló al mover $DATA_DIR (segunda fase); intentando cp -a...	mv falló al mover $DATA_DIR (segunda fase); intentando cp -a...
+mv falló al mover $DATA_DIR; intentando cp -a como fallback...	mv falló al mover $DATA_DIR; intentando cp -a como fallback...
+wireguard: instalado (incluye herramientas)	wireguard: instalado (incluye herramientas)
+✅ Base de datos preservada exitosamente: $DB_SIZE	✅ Database preservada exitosamente: $DB_SIZE
