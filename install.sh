@@ -2249,10 +2249,14 @@ EOF
         mkdir -p "$DNSMASQ_OVERRIDE_DIR"
         cat > "$DNSMASQ_OVERRIDE_FILE" <<EOF
 [Unit]
-After=network.target hostapd.service create-ap0.service
+# ap0 la crea create-ap0 / hostapd; sin ella dnsmasq falla con "unknown interface ap0".
+After=network.target create-ap0.service hostapd.service
+Wants=create-ap0.service hostapd.service
+Requires=hostapd.service
 
 [Service]
-ExecStartPre=-/bin/sh -c 'for i in \$(seq 1 40); do ip link show ap0 >/dev/null 2>&1 && exit 0; sleep 0.25; done; exit 0'
+# Sin el prefijo "-" el arranque se aborta si ap0 no existe (antes: exit 0 siempre y dnsmasq fallaba luego).
+ExecStartPre=/bin/sh -c 'for i in \$(seq 1 120); do ip link show ap0 >/dev/null 2>&1 && iw dev ap0 info >/dev/null 2>&1 && exit 0; sleep 0.25; done; echo "HostBerry: ap0 no disponible (¿hostapd activo?)." >&2; exit 1'
 EOF
         chmod 644 "$DNSMASQ_OVERRIDE_FILE"
         print_success "Override de dnsmasq actualizado"
