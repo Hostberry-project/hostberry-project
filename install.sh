@@ -19,6 +19,58 @@ DIM='\033[2m'
 # Variables de configuración
 INSTALL_DIR="/opt/hostberry"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Idioma de mensajes: es | en. Detección por locale; override: HOSTBERRY_INSTALL_LANG=auto|es|en
+declare -gA HB_INSTALL_EN=()
+HB_INSTALL_LANG="es"
+
+hostberry_install_detect_lang() {
+    local o="${HOSTBERRY_INSTALL_LANG:-auto}"
+    case "${o,,}" in
+        es|spa|spanish) HB_INSTALL_LANG="es"; return ;;
+        en|eng|english) HB_INSTALL_LANG="en"; return ;;
+        auto|"") ;;
+        *) HB_INSTALL_LANG="en" ;;
+    esac
+    local loc="${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}"
+    loc="${loc%%.*}"
+    case "${loc,,}" in
+        es|es_*) HB_INSTALL_LANG="es" ;;
+        *)       HB_INSTALL_LANG="en" ;;
+    esac
+}
+
+hostberry_install_load_translations() {
+    HB_INSTALL_EN=()
+    [ "$HB_INSTALL_LANG" = "en" ] || return 0
+    local f="${SCRIPT_DIR}/locale/install.lang.en.tsv"
+    [ -f "$f" ] || return 0
+    local line es en
+    while IFS= read -r line || [ -n "$line" ]; do
+        [[ -z "$line" || "$line" == \#* ]] && continue
+        es="${line%%	*}"
+        en="${line#*	}"
+        [[ "$es" == "$line" ]] && continue
+        HB_INSTALL_EN["$es"]="$en"
+    done <"$f"
+}
+
+hostberry_install_msg() {
+    local s="$1"
+    if [ "$HB_INSTALL_LANG" = "es" ]; then
+        printf '%s' "$s"
+        return 0
+    fi
+    if [[ -n "${HB_INSTALL_EN[$s]+x}" ]]; then
+        printf '%s' "${HB_INSTALL_EN[$s]}"
+    else
+        printf '%s' "$s"
+    fi
+}
+
+hostberry_install_detect_lang
+hostberry_install_load_translations
+
 SERVICE_NAME="hostberry"
 USER_NAME="hostberry"
 GROUP_NAME="hostberry"
@@ -59,10 +111,10 @@ MODE="install"  # install, update o uninstall
 
 # Mensajes (hora + icono)
 _ts() { date +%H:%M:%S 2>/dev/null || echo "00:00:00"; }
-print_info()    { echo -e "$(_ts) ${BLUE}[i]${NC} $1"; }
-print_success() { echo -e "$(_ts) ${GREEN}[+]${NC} $1"; }
-print_warning() { echo -e "$(_ts) ${YELLOW}[!]${NC} $1"; }
-print_error()   { echo -e "$(_ts) ${RED}[x]${NC} $1"; }
+print_info()    { echo -e "$(_ts) ${BLUE}[i]${NC} $(hostberry_install_msg "$1")"; }
+print_success() { echo -e "$(_ts) ${GREEN}[+]${NC} $(hostberry_install_msg "$1")"; }
+print_warning() { echo -e "$(_ts) ${YELLOW}[!]${NC} $(hostberry_install_msg "$1")"; }
+print_error()   { echo -e "$(_ts) ${RED}[x]${NC} $(hostberry_install_msg "$1")"; }
 
 # Logo ASCII (basado en website/static/hostberry.png)
 print_logo() {
