@@ -2116,6 +2116,14 @@ else
 fi
 
 /bin/ip addr add "\${HOSTAPD_GATEWAY}/24" dev ap0 2>/dev/null || true
+if ! ip link show ap0 >/dev/null 2>&1; then
+    echo "hostberry-create-ap0: ap0 no existe tras el script" >&2
+    exit 1
+fi
+if ! "\$IW_BIN" dev ap0 info >/dev/null 2>&1; then
+    echo "hostberry-create-ap0: ap0 no es visible para nl80211 (iw dev ap0 info falla)" >&2
+    exit 1
+fi
 exit 0
 EOF
         chmod 755 "$CREATE_AP0_SCRIPT"
@@ -2132,7 +2140,7 @@ Type=oneshot
 RemainAfterExit=yes
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin
 ExecStart=${CREATE_AP0_SCRIPT}
-ExecStop=/bin/bash -c 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin; if ip link show ap0 > /dev/null 2>&1; then ip link set ap0 down; iw dev ap0 del 2>/dev/null || true; fi'
+# Sin ExecStop destructivo: si se hace "systemctl stop create-ap0", borrar ap0 rompe hostapd y "iw dev ap0" da ENODEV (-19).
 
 [Install]
 WantedBy=multi-user.target
