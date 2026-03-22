@@ -2322,19 +2322,14 @@ EOF
 hostberry_migrate_blocky_dns_loopback() {
     local BLOCKY_CONFIG_FILE="/etc/blocky/config.yml"
     [ -f "$BLOCKY_CONFIG_FILE" ] || return 0
-    local _pat _did=0
-    for _pat in '^[[:space:]]*dns:[[:space:]]*53[[:space:]]*$' '^[[:space:]]*dns:[[:space:]]*"53"[[:space:]]*$'; do
-        if grep -qE "$_pat" "$BLOCKY_CONFIG_FILE" 2>/dev/null; then
-            sed -i 's/^\([[:space:]]*dns:\)[[:space:]]*53[[:space:]]*$/\1 127.0.0.1:53/' "$BLOCKY_CONFIG_FILE" 2>/dev/null || true
-            sed -i 's/^\([[:space:]]*dns:\)[[:space:]]*"53"[[:space:]]*$/\1 127.0.0.1:53/' "$BLOCKY_CONFIG_FILE" 2>/dev/null || true
-            _did=1
-        fi
-    done
-    if [ "$_did" -eq 1 ]; then
-        print_info "Blocky: DNS restringido a 127.0.0.1:53 (compatible con dnsmasq en ap0)"
-        if command -v systemctl &>/dev/null; then
-            systemctl try-restart blocky.service 2>/dev/null || true
-        fi
+    if ! grep -qE '^[[:space:]]*dns:[[:space:]]*("53"|53)[[:space:]]*$' "$BLOCKY_CONFIG_FILE" 2>/dev/null; then
+        return 0
+    fi
+    sed -i 's/^\([[:space:]]*dns:\)[[:space:]]*"53"[[:space:]]*$/\1 127.0.0.1:53/' "$BLOCKY_CONFIG_FILE" 2>/dev/null || true
+    sed -i 's/^\([[:space:]]*dns:\)[[:space:]]*53[[:space:]]*$/\1 127.0.0.1:53/' "$BLOCKY_CONFIG_FILE" 2>/dev/null || true
+    print_info "Blocky: DNS restringido a 127.0.0.1:53 (compatible con dnsmasq en ap0)"
+    if command -v systemctl &>/dev/null; then
+        systemctl try-restart blocky.service 2>/dev/null || true
     fi
 }
 
