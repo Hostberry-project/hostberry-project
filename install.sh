@@ -1862,7 +1862,8 @@ EOF
             sed -i "s/^ssid=.*/ssid=${HOSTAPD_SSID}/" "$HOSTAPD_CONFIG" 2>/dev/null || true
             print_info "  SSID actualizado a: ${HOSTAPD_SSID}"
         fi
-        sed -i '/^wpa=/d' "$HOSTAPD_CONFIG" 2>/dev/null || true
+        # Quitar WPA2/3; no borrar wpa=0 (red abierta)
+        sed -i '/^wpa=[1-9]/d' "$HOSTAPD_CONFIG" 2>/dev/null || true
         sed -i '/^wpa_passphrase=/d' "$HOSTAPD_CONFIG" 2>/dev/null || true
         sed -i '/^wpa_key_mgmt=/d' "$HOSTAPD_CONFIG" 2>/dev/null || true
         sed -i '/^wpa_pairwise=/d' "$HOSTAPD_CONFIG" 2>/dev/null || true
@@ -1872,6 +1873,7 @@ EOF
         else
             sed -i "s/^auth_algs=.*/auth_algs=1/" "$HOSTAPD_CONFIG" 2>/dev/null || true
         fi
+        grep -q '^wpa=0$' "$HOSTAPD_CONFIG" 2>/dev/null || echo 'wpa=0' >> "$HOSTAPD_CONFIG"
         print_info "  Red configurada como abierta (sin contraseña)"
     fi
 
@@ -1891,6 +1893,7 @@ EOF
         grep -q '^wmm_enabled=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "wmm_enabled=1" >> "$HOSTAPD_CONFIG"
         grep -q '^ieee80211n=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "ieee80211n=1" >> "$HOSTAPD_CONFIG"
     fi
+    grep -q '^wpa=0$' "$HOSTAPD_CONFIG" 2>/dev/null || echo 'wpa=0' >> "$HOSTAPD_CONFIG"
 
     # Misma radio: el AP debe usar el mismo canal (y banda) que wlan0 en STA o no se emiten beacons útiles
     SYNC_HOSTAPD_CH="/usr/local/sbin/hostberry-sync-hostapd-channel.sh"
