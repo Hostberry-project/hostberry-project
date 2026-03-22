@@ -2525,6 +2525,23 @@ enable_and_start_hostberry_wifi_ap() {
     fi
 }
 
+# Siempre tras install/--update: daemon-reload. Si no hay reinicio del sistema, reiniciar AP/DHCP/portal en caliente.
+finalize_systemd_hostberry_network() {
+    command -v systemctl &>/dev/null || return 0
+    print_info "Aplicando systemd: daemon-reload…"
+    systemctl daemon-reload 2>/dev/null || true
+    if [ "${NEED_REBOOT_FOR_AP0:-0}" -eq 1 ]; then
+        print_info "Habrá reinicio del sistema; se omiten reinicios en caliente de hostapd/dnsmasq."
+        return 0
+    fi
+    print_info "Reiniciando hostapd, dnsmasq y hostberry-captive-portal para aplicar configs…"
+    systemctl restart hostapd.service 2>/dev/null || true
+    sleep 2
+    systemctl restart dnsmasq.service 2>/dev/null || true
+    systemctl restart hostberry-captive-portal.service 2>/dev/null || true
+    print_success "Servicios de red HostBerry recargados"
+}
+
 # Mostrar información final
 show_final_info() {
     echo ""
@@ -2691,13 +2708,12 @@ main() {
     install_librespeed_cli
     start_service
     enable_and_start_hostberry_wifi_ap
+    finalize_systemd_hostberry_network
     cleanup_temp
     show_final_info
 
     if [ "$NEED_REBOOT_FOR_AP0" -eq 1 ]; then
-        print_info "systemd daemon-reload antes del reinicio…"
-        systemctl daemon-reload 2>/dev/null || true
-        print_warning "Reiniciando para aplicar scripts (p. ej. create-ap0), unidades systemd y la red HostBerry."
+        print_warning "Reiniciando el sistema para aplicar scripts, unidades systemd y la red HostBerry."
         sync 2>/dev/null || true
         if command -v systemctl &> /dev/null; then
             systemctl reboot 2>/dev/null || reboot
