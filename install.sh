@@ -1971,25 +1971,92 @@ fi
     if command -v iw &> /dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
         CREATE_AP0_SCRIPT="/usr/local/sbin/hostberry-create-ap0.sh"
         AP0_SERVICE="/etc/systemd/system/create-ap0.service"
+        IW_BIN="$(command -v iw 2>/dev/null || true)"
+        if [ -z "$IW_BIN" ]; then
+            for _iwtry in /usr/sbin/iw /sbin/iw; do
+                if [ -x "$_iwtry" ]; then
+                    IW_BIN="$_iwtry"
+                    break
+                fi
+            done
+        fi
         print_info "Instalando script y unidad systemd para crear ap0 al arrancar..."
         cat > "$CREATE_AP0_SCRIPT" <<EOF
 #!/bin/bash
-# Generado por HostBerry: crea ap0 tras esperar a que el phy WiFi esté listo.
-set -eu
-PHY_NAME="$PHY_NAME"
-MAC_ADDRESS="$MAC_ADDRESS"
+# Generado por HostBerry: crea ap0 cuando nl80211 y la interfaz STA están listos.
+# "command failed: No such file or directory (-2)" de iw = ENOENT nl80211 (phy no listo / nombre incorrecto).
+set -u
+WLAN_IF="$HOSTAPD_INTERFACE"
+IW_BIN="$IW_BIN"
 HOSTAPD_GATEWAY="$HOSTAPD_GATEWAY"
-for _ in \$(seq 1 45); do
-    if [ -d "/sys/class/ieee80211/\${PHY_NAME}" ] && /sbin/iw phy "\$PHY_NAME" info >/dev/null 2>&1; then
-        break
+MAC_FALLBACK="$MAC_ADDRESS"
+
+hostberry_resolve_phy() {
+    local p=""
+    if [ -r "/sys/class/net/\${WLAN_IF}/phy80211/name" ]; then
+        p=\$(tr -d '\n' < "/sys/class/net/\${WLAN_IF}/phy80211/name" 2>/dev/null || true)
+    fi
+    if [ -z "\$p" ] && [ -d /sys/class/ieee80211 ]; then
+        p=\$(basename "\$(ls -d /sys/class/ieee80211/phy* 2>/dev/null | head -1)" 2>/dev/null || true)
+    fi
+    case "\$p" in
+        phy*) echo "\$p" ;;
+        [0-9]*) echo "phy\${p}" ;;
+        *)      echo "phy0" ;;
+    esac
+}
+
+if [ ! -x "\$IW_BIN" ]; then
+    echo "hostberry-create-ap0: no se ejecuta \$IW_BIN (instala el paquete iw)" >&2
+    exit 1
+fi
+
+# Esperar a que exista wlan y nl80211 acepte comandos (puede tardar tras udev).
+for _ in \$(seq 1 120); do
+    if [ -d "/sys/class/net/\${WLAN_IF}" ]; then
+        /bin/ip link set "\${WLAN_IF}" up 2>/dev/null || true
+        PHY="\$(hostberry_resolve_phy)"
+        if [ -n "\$PHY" ] && [ -d "/sys/class/ieee80211/\${PHY}" ] && "\$IW_BIN" phy "\$PHY" info >/dev/null 2>&1; then
+            break
+        fi
     fi
     sleep 1
 done
-if ! ip link show ap0 >/dev/null 2>&1; then
-    /sbin/iw phy "\$PHY_NAME" interface add ap0 type __ap
-    /bin/ip link set ap0 address "\$MAC_ADDRESS"
+
+PHY="\$(hostberry_resolve_phy)"
+MAC="\${MAC_FALLBACK}"
+if [ -z "\$MAC" ] || [ "\$MAC" = "00:00:00:00:00:00" ]; then
+    MAC=\$(tr -d '\n' < "/sys/class/net/\${WLAN_IF}/address" 2>/dev/null || true)
+fi
+
+/bin/ip link set "\${WLAN_IF}" up 2>/dev/null || true
+
+if ip link show ap0 >/dev/null 2>&1; then
+    /bin/ip link set ap0 up 2>/dev/null || true
+else
+    ok=0
+    for _ in \$(seq 1 15); do
+        if "\$IW_BIN" phy "\$PHY" interface add ap0 type __ap 2>/dev/null; then
+            ok=1
+            break
+        fi
+        if "\$IW_BIN" dev "\${WLAN_IF}" interface add ap0 type __ap 2>/dev/null; then
+            ok=1
+            break
+        fi
+        sleep 2
+    done
+    if [ "\$ok" -ne 1 ]; then
+        echo "hostberry-create-ap0: no se pudo crear ap0 (phy=\$PHY wlan=\${WLAN_IF})" >&2
+        "\$IW_BIN" phy "\$PHY" info >&2 || true
+        exit 1
+    fi
+    if [ -n "\$MAC" ]; then
+        /bin/ip link set ap0 address "\$MAC" 2>/dev/null || true
+    fi
     /bin/ip link set ap0 up
 fi
+
 /bin/ip addr add "\${HOSTAPD_GATEWAY}/24" dev ap0 2>/dev/null || true
 exit 0
 EOF
@@ -1998,15 +2065,16 @@ EOF
         cat > "$AP0_SERVICE" <<EOF
 [Unit]
 Description=Create virtual WiFi interface ap0 for AP+STA mode
-After=network-pre.target sys-subsystem-net-devices-${HOSTAPD_INTERFACE}.device
-Before=network.target hostapd.service
+After=network-pre.target systemd-udevd.service
+Before=hostapd.service
 Wants=network-pre.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin
 ExecStart=${CREATE_AP0_SCRIPT}
-ExecStop=/bin/bash -c 'if ip link show ap0 > /dev/null 2>&1; then /bin/ip link set ap0 down && /sbin/iw dev ap0 del; fi'
+ExecStop=/bin/bash -c 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin; if ip link show ap0 > /dev/null 2>&1; then ip link set ap0 down; iw dev ap0 del 2>/dev/null || true; fi'
 
 [Install]
 WantedBy=multi-user.target
