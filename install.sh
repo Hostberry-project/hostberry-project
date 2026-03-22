@@ -1942,8 +1942,9 @@ EOF
 # Tras recrear ap0, hostapd hace try-restart de dnsmasq (override hostapd).
 # No usar loopback: el dnsmasq.conf de Debian suele pedir listen-address=127.0.0.1 y choca con
 # blocky/systemd-resolved u otro proceso en 127.0.0.1:53 ("Address already in use").
+# No poner listen-address=${HOSTAPD_GATEWAY}: si dnsmasq arranca antes de que ap0 tenga esa IP,
+# falla en tiempo de ejecución aunque "dnsmasq --test" diga OK.
 except-interface=lo
-listen-address=${HOSTAPD_GATEWAY}
 interface=ap0
 no-dhcp-interface=wlan0
 bind-interfaces
@@ -1988,6 +1989,19 @@ EOF
         if grep -qE '^[[:space:]]*listen-address=::1(\s|$)' "$DNSMASQ_CONFIG" 2>/dev/null; then
             sed -i 's/^\([[:space:]]*\)listen-address=::1\>.*$/\1# listen-address=::1  (desactivado HostBerry)/' "$DNSMASQ_CONFIG" 2>/dev/null || true
         fi
+    fi
+
+    # Otros paquetes pueden añadir listen-address=127.0.0.1 en /etc/dnsmasq.d/*.conf
+    if [ -d "$DNSMASQ_D_DIR" ]; then
+        shopt -s nullglob
+        for _dmq in "$DNSMASQ_D_DIR"/*.conf; do
+            [ "$_dmq" = "$DNSMASQ_AP_CONFIG" ] && continue
+            if grep -qE '^[[:space:]]*listen-address=127\.0\.0\.1(\s|$)' "$_dmq" 2>/dev/null; then
+                sed -i 's/^\([[:space:]]*\)listen-address=127\.0\.0\.1\>.*$/\1# listen-address=127.0.0.1  (desactivado HostBerry: conflicto loopback :53)/' "$_dmq" 2>/dev/null || true
+                print_info "Ajustado $_dmq: listen-address loopback comentado"
+            fi
+        done
+        shopt -u nullglob
     fi
     
 # Configurar wpa_supplicant para modo STA
