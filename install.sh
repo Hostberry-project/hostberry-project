@@ -1697,6 +1697,39 @@ create_hostapd_default_config() {
     HOSTAPD_DHCP_END="192.168.4.254"
     HOSTAPD_LEASE_TIME="12h"
 
+    # Muchas Pi sólo exponen wlan1 o nombres tipo wlx…; si wlan0 no existe, create-ap0/hostapd no levantan el SSID.
+    hostberry_detect_sta_wifi_interface() {
+        local _n _cand=""
+        for _n in wlan0 wlan1 wlan2 wlan3; do
+            if [ -d "/sys/class/net/${_n}/wireless" ] || [ -L "/sys/class/net/${_n}/phy80211" ]; then
+                _cand="$_n"
+                break
+            fi
+        done
+        if [ -z "$_cand" ]; then
+            for _p in /sys/class/net/wl*; do
+                [ -e "$_p" ] || continue
+                _n=$(basename "$_p")
+                [ "$_n" = "ap0" ] && continue
+                if [ -d "${_p}/wireless" ] || [ -L "${_p}/phy80211" ]; then
+                    _cand="$_n"
+                    break
+                fi
+            done
+        fi
+        if [ -z "$_cand" ] && command -v iw &>/dev/null; then
+            _cand=$(iw dev 2>/dev/null | awk '/Interface/ { if ($2 != "ap0") { print $2; exit } }')
+        fi
+        [ -n "$_cand" ] && echo "$_cand"
+    }
+    _wifi_sta=$(hostberry_detect_sta_wifi_interface)
+    if [ -n "$_wifi_sta" ] && [ "$_wifi_sta" != "$HOSTAPD_INTERFACE" ]; then
+        print_info "Interfaz WiFi de estación: ${_wifi_sta} (create-ap0 y hostapd la usarán; no hay wlan0 fiable)"
+        HOSTAPD_INTERFACE="$_wifi_sta"
+    elif [ -z "$_wifi_sta" ]; then
+        print_warning "No se detectó interfaz WiFi (¿sin driver?); se asume ${HOSTAPD_INTERFACE}"
+    fi
+
     # Nombre de phy para iw/udev: debe ser "phy0", no el índice "0" (iw phy 0 falla en muchos sistemas).
     PHY_NAME=""
     MAC_ADDRESS=""
@@ -1718,7 +1751,10 @@ create_hostapd_default_config() {
     MAC_ADDRESS=$(cat "/sys/class/net/${HOSTAPD_INTERFACE}/address" 2>/dev/null | tr -d '\n' || true)
 
     # Código ISO del país para hostapd (sin esto, muchas Pi no emiten beacons visibles). Alineado con wpa_supplicant.
-    WPA_CFG_EARLY="/etc/wpa_supplicant/wpa_supplicant-wlan0.conf"
+    WPA_CFG_EARLY="/etc/wpa_supplicant/wpa_supplicant-${HOSTAPD_INTERFACE}.conf"
+    if [ ! -f "$WPA_CFG_EARLY" ]; then
+        WPA_CFG_EARLY="/etc/wpa_supplicant/wpa_supplicant-wlan0.conf"
+    fi
     HOSTAPD_COUNTRY="US"
     if [ -f "$WPA_CFG_EARLY" ] && grep -q '^country=' "$WPA_CFG_EARLY" 2>/dev/null; then
         _cc=$(grep '^country=' "$WPA_CFG_EARLY" | head -1 | cut -d= -f2 | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
