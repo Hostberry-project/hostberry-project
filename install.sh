@@ -2724,7 +2724,7 @@ main() {
         if command -v shutdown &> /dev/null; then
             shutdown -r now "HostBerry install/update" 2>/dev/null || true
         fi
-        reboot 2>/dev/null || /sbin/reboot 2>/dev/null || true
+        reboot 2>/dev/null || /sbin/reboot
     fi
 }
 
