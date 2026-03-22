@@ -423,6 +423,9 @@
   window.t = t;
   HostBerry.t = t;
   HostBerry.showAlert = showAlert;
+  HostBerry.NOTIFICATION_AUTO_DISMISS_MS = HB_ALERT_AUTO_DISMISS_MS;
+  HostBerry.attachTransientAlert = attachTransientAlert;
+  HostBerry.dismissTransientAlert = dismissTransientAlert;
   HostBerry.apiRequest = apiRequest;
   HostBerry.getServerTimezone = getServerTimezone;
   HostBerry.formatTime = formatTime;
