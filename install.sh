@@ -1977,6 +1977,18 @@ conf-dir=/etc/dnsmasq.d
 EOF
         chmod 644 "$DNSMASQ_CONFIG"
     fi
+
+    # El paquete dnsmasq en Debian/Raspberry Pi OS suele dejar listen-address=127.0.0.1 activo.
+    # Si blocky (HostBerry), systemd-resolved u otro ya usa 127.0.0.1:53, dnsmasq falla al arrancar.
+    if [ -f "$DNSMASQ_CONFIG" ]; then
+        if grep -qE '^[[:space:]]*listen-address=127\.0\.0\.1(\s|$)' "$DNSMASQ_CONFIG" 2>/dev/null; then
+            sed -i 's/^\([[:space:]]*\)listen-address=127\.0\.0\.1\>.*$/\1# listen-address=127.0.0.1  (desactivado HostBerry: conflicto en loopback :53)/' "$DNSMASQ_CONFIG" 2>/dev/null || true
+            print_info "Ajustado $DNSMASQ_CONFIG: listen-address loopback comentado (evita conflicto con DNS en 127.0.0.1)"
+        fi
+        if grep -qE '^[[:space:]]*listen-address=::1(\s|$)' "$DNSMASQ_CONFIG" 2>/dev/null; then
+            sed -i 's/^\([[:space:]]*\)listen-address=::1\>.*$/\1# listen-address=::1  (desactivado HostBerry)/' "$DNSMASQ_CONFIG" 2>/dev/null || true
+        fi
+    fi
     
 # Configurar wpa_supplicant para modo STA
 print_info "Configurando wpa_supplicant para modo estación (STA)..."
