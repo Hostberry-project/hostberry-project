@@ -1812,15 +1812,11 @@ EOF
                 ip link set ap0 up 2>/dev/null || true
             fi
         else
-            if [ "$RUNNING_OVER_SSH" -eq 1 ]; then
-                print_info "SSH activo: omitiendo creación manual de ap0 ahora."
-            fi
             print_warning "iw no está disponible, no se puede crear ap0"
             AP_INTERFACE="$HOSTAPD_INTERFACE"
         fi
 
-        # Usar ap0 para la configuración si hay soporte (se creará al arrancar via create-ap0.service).
-        # Durante install evitamos crearlo en caliente para no cortar la WiFi/SSH.
+        # Usar ap0 para la configuración si hay soporte (create-ap0.service + intento en caliente arriba).
         AP_INTERFACE="$HOSTAPD_INTERFACE"
         if command -v iw &> /dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
             AP_INTERFACE="ap0"
