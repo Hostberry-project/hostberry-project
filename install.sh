@@ -1678,19 +1678,14 @@ EOF
 
 # Crear configuración por defecto de HostAPD
 create_hostapd_default_config() {
-    print_info "Creando configuración por defecto de HostAPD..."
-    
-    # En Raspberry Pi con WiFi y sesión SSH, cualquier intento de crear/activar ap0 (modo AP+STA)
-    # en caliente puede cortar la conexión.
-    # Nota: al usar sudo, variables SSH pueden no estar presentes; por eso, en MODE=install
-    # lo omitimos SIEMPRE y se aplicará tras el reinicio final.
-    RUNNING_OVER_SSH=0
-    if [ "$MODE" = "install" ]; then
-        RUNNING_OVER_SSH=1
-        print_warning "Modo install: omito creación/activación de 'ap0' en caliente. Se aplicará tras reinicio."
-    elif [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
-        RUNNING_OVER_SSH=1
-        print_warning "Ejecución por SSH detectada: omito la creación/activación de 'ap0' ahora para no cortar la conexión. Se aplicará tras reinicio."
+    print_info "Creando configuración por defecto de HostAPD…"
+    # Install/update: siempre aplicar udev, create-ap0, hostapd, etc. (automatizado).
+    # Si entras por SSH sobre la misma WiFi que usa la Pi, el AP en caliente puede cortar la sesión unos segundos; usa cable o consola si hace falta.
+    if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
+        print_info "SSH detectado: se aplican igualmente ap0/hostapd/systemd (comportamiento automatizado)."
+    fi
+    if [ "$(is_default_route_over_wifi)" = "1" ]; then
+        print_warning "Ruta por defecto por WiFi: al levantar el AP la conexión SSH por WiFi puede interrumpirse brevemente."
     fi
     
     # Valores por defecto (red "hostberry" abierta + portal cautivo hacia la web de Hostberry)
@@ -1762,22 +1757,15 @@ RUN+="/bin/ip link set ap0 address $MAC_ADDRESS"
 EOF
                 chmod 644 "$UDEV_RULE"
                 print_success "Regla udev creada para ap0"
-                # Recargar/disparar udev puede crear ap0 inmediatamente y cortar WiFi+SSH.
-                # Solo lo hacemos si NO estamos ejecutando por SSH.
-                if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
-                    udevadm control --reload-rules 2>/dev/null || true
-                    udevadm trigger 2>/dev/null || true
-                else
-                    print_info "SSH activo: no ejecuto udevadm trigger para evitar cortes. ap0 se creará al reiniciar."
-                fi
+                udevadm control --reload-rules 2>/dev/null || true
+                udevadm trigger 2>/dev/null || true
             else
                 print_info "Regla udev para ap0 ya existe"
             fi
         fi
         
         # Intentar crear interfaz virtual ap0 si no existe (solo si iw está disponible)
-        # Si estamos por SSH, lo omitimos para no cortar la WiFi/SSH actual.
-        if command -v iw &> /dev/null && [ "$RUNNING_OVER_SSH" -eq 0 ]; then
+        if command -v iw &> /dev/null; then
             if ! ip link show ap0 > /dev/null 2>&1; then
                 print_info "Creando interfaz virtual ap0 para modo AP+STA..."
                 
@@ -2148,17 +2136,13 @@ EOF
         chmod 644 "$AP0_SERVICE"
         systemctl daemon-reload 2>/dev/null || true
         systemctl enable create-ap0.service 2>/dev/null || true
-        if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
-            systemctl start create-ap0.service 2>/dev/null || true
-            print_success "Servicio systemd para ap0 actualizado, habilitado e iniciado"
-            sleep 2
-            if ip link show ap0 > /dev/null 2>&1; then
-                print_success "Interfaz ap0 creada y verificada por el servicio systemd"
-            else
-                print_warning "El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)"
-            fi
+        systemctl start create-ap0.service 2>/dev/null || true
+        print_success "Servicio systemd para ap0 actualizado, habilitado e iniciado"
+        sleep 2
+        if ip link show ap0 > /dev/null 2>&1; then
+            print_success "Interfaz ap0 creada y verificada por el servicio systemd"
         else
-            print_info "SSH activo: no inicio create-ap0.service ahora (para no cortar la conexión)."
+            print_warning "El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)"
         fi
     fi
     
