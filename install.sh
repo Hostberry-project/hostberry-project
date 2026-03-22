@@ -1740,21 +1740,6 @@ create_hostapd_default_config() {
             AP_INTERFACE="$HOSTAPD_INTERFACE"
         fi
 
-        # Obtener el phy de la interfaz WiFi (si iw está disponible)
-        PHY_NAME=""
-        if command -v iw &> /dev/null; then
-            PHY_NAME=$(iw dev "$HOSTAPD_INTERFACE" info 2>/dev/null | grep wiphy | awk '{print $2}')
-            if [ -z "$PHY_NAME" ]; then
-                PHY_NAME=$(cat /sys/class/net/"$HOSTAPD_INTERFACE"/phy80211/name 2>/dev/null || true)
-            fi
-            if [ -z "$PHY_NAME" ]; then
-                PHY_NAME="phy0"
-            fi
-        fi
-        
-        # Obtener MAC address de la interfaz física para la regla udev
-        MAC_ADDRESS=$(cat /sys/class/net/"$HOSTAPD_INTERFACE"/address 2>/dev/null || echo "")
-        
         # Crear regla udev para crear ap0 automáticamente al arrancar (método TheWalrus - Raspberry Pi 3 B+)
         if [ -n "$MAC_ADDRESS" ] && [ -n "$PHY_NAME" ]; then
             print_info "Creando regla udev para ap0 (método TheWalrus - Raspberry Pi 3 B+)..."
@@ -1982,46 +1967,64 @@ else
     fi
 fi
     
-    # Crear servicio systemd para crear ap0 al arrancar (si se necesita)
+    # Crear script + servicio systemd para ap0 al arrancar (si se necesita)
     if command -v iw &> /dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
+        CREATE_AP0_SCRIPT="/usr/local/sbin/hostberry-create-ap0.sh"
         AP0_SERVICE="/etc/systemd/system/create-ap0.service"
-        if [ ! -f "$AP0_SERVICE" ]; then
-            print_info "Creando servicio systemd para crear ap0 al arrancar..."
-            cat > "$AP0_SERVICE" <<EOF
+        print_info "Instalando script y unidad systemd para crear ap0 al arrancar..."
+        cat > "$CREATE_AP0_SCRIPT" <<EOF
+#!/bin/bash
+# Generado por HostBerry: crea ap0 tras esperar a que el phy WiFi esté listo.
+set -eu
+PHY_NAME=${PHY_NAME@Q}
+MAC_ADDRESS=${MAC_ADDRESS@Q}
+HOSTAPD_GATEWAY=${HOSTAPD_GATEWAY@Q}
+for _ in \$(seq 1 45); do
+    if [ -d "/sys/class/ieee80211/\${PHY_NAME}" ] && /sbin/iw phy "\$PHY_NAME" info >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
+if ! ip link show ap0 >/dev/null 2>&1; then
+    /sbin/iw phy "\$PHY_NAME" interface add ap0 type __ap
+    /bin/ip link set ap0 address "\$MAC_ADDRESS"
+    /bin/ip link set ap0 up
+fi
+/bin/ip addr add "\${HOSTAPD_GATEWAY}/24" dev ap0 2>/dev/null || true
+exit 0
+EOF
+        chmod 755 "$CREATE_AP0_SCRIPT"
+        chown root:root "$CREATE_AP0_SCRIPT"
+        cat > "$AP0_SERVICE" <<EOF
 [Unit]
 Description=Create virtual WiFi interface ap0 for AP+STA mode
-After=network-pre.target
+After=network-pre.target sys-subsystem-net-devices-${HOSTAPD_INTERFACE}.device
 Before=network.target hostapd.service
 Wants=network-pre.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/bash -c 'if ! ip link show ap0 > /dev/null 2>&1; then /sbin/iw phy ${PHY_NAME} interface add ap0 type __ap && /bin/ip link set ap0 address ${MAC_ADDRESS} && /bin/ip link set ap0 up; fi && /bin/ip addr add ${HOSTAPD_GATEWAY}/24 dev ap0 2>/dev/null || true'
+ExecStart=${CREATE_AP0_SCRIPT}
 ExecStop=/bin/bash -c 'if ip link show ap0 > /dev/null 2>&1; then /bin/ip link set ap0 down && /sbin/iw dev ap0 del; fi'
 
 [Install]
 WantedBy=multi-user.target
 EOF
-            chmod 644 "$AP0_SERVICE"
-            systemctl daemon-reload 2>/dev/null || true
-            systemctl enable create-ap0.service 2>/dev/null || true
-            if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
-                systemctl start create-ap0.service 2>/dev/null || true
-                print_success "Servicio systemd para ap0 creado, habilitado e iniciado"
-                
-                # Esperar un momento y verificar que ap0 se creó
-                sleep 2
-                if ip link show ap0 > /dev/null 2>&1; then
-                    print_success "Interfaz ap0 creada y verificada por el servicio systemd"
-                else
-                    print_warning "El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)"
-                fi
+        chmod 644 "$AP0_SERVICE"
+        systemctl daemon-reload 2>/dev/null || true
+        systemctl enable create-ap0.service 2>/dev/null || true
+        if [ "$RUNNING_OVER_SSH" -eq 0 ]; then
+            systemctl start create-ap0.service 2>/dev/null || true
+            print_success "Servicio systemd para ap0 actualizado, habilitado e iniciado"
+            sleep 2
+            if ip link show ap0 > /dev/null 2>&1; then
+                print_success "Interfaz ap0 creada y verificada por el servicio systemd"
             else
-                print_info "SSH activo: no inicio create-ap0.service ahora (para no cortar la conexión)."
+                print_warning "El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)"
             fi
         else
-            print_info "Servicio systemd para ap0 ya existe"
+            print_info "SSH activo: no inicio create-ap0.service ahora (para no cortar la conexión)."
         fi
     fi
     
