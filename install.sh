@@ -167,19 +167,41 @@ print_banner() {
 
 # Ayuda de uso
 show_usage() {
-    echo "Uso: $0 [OPCIÓN]"
-    echo ""
-    echo "Opciones:"
-    echo "  (sin opción)   Instalar HostBerry"
-    echo "  --update       Actualizar (preserva datos); al terminar, daemon-reload y reinicio del sistema"
-    echo "                 (omitir reinicio: HOSTBERRY_SKIP_REBOOT=1 sudo $0 --update)"
-    echo "  --uninstall    Desinstalar HostBerry (elimina servicio, archivos, usuario y logs)"
-    echo "  -h, --help     Mostrar esta ayuda"
-    echo ""
-    echo "Ejemplos:"
-    echo "  sudo $0              # Instalar"
-    echo "  sudo $0 --update     # Actualizar"
-    echo "  sudo $0 --uninstall  # Desinstalar"
+    if [ "$HB_INSTALL_LANG" = "en" ]; then
+        echo "Usage: $0 [OPTION]"
+        echo ""
+        echo "Options:"
+        echo "  (none)         Install HostBerry"
+        echo "  --update       Update (preserves data); at the end, daemon-reload and system reboot"
+        echo "                 (skip reboot: HOSTBERRY_SKIP_REBOOT=1 sudo $0 --update)"
+        echo "  --uninstall    Uninstall HostBerry (removes service, files, user, and logs)"
+        echo "  -h, --help     Show this help"
+        echo ""
+        echo "Language: detected from LANG/LC_MESSAGES (es_* → Spanish; otherwise English)."
+        echo "Override: HOSTBERRY_INSTALL_LANG=es|en|auto"
+        echo ""
+        echo "Examples:"
+        echo "  sudo $0              # Install"
+        echo "  sudo $0 --update     # Update"
+        echo "  sudo $0 --uninstall  # Uninstall"
+    else
+        echo "Uso: $0 [OPCIÓN]"
+        echo ""
+        echo "Opciones:"
+        echo "  (sin opción)   Instalar HostBerry"
+        echo "  --update       Actualizar (preserva datos); al terminar, daemon-reload y reinicio del sistema"
+        echo "                 (omitir reinicio: HOSTBERRY_SKIP_REBOOT=1 sudo $0 --update)"
+        echo "  --uninstall    Desinstalar HostBerry (elimina servicio, archivos, usuario y logs)"
+        echo "  -h, --help     Mostrar esta ayuda"
+        echo ""
+        echo "Idioma: se detecta con LANG/LC_MESSAGES (es_* → español; si no, inglés)."
+        echo "Forzar: HOSTBERRY_INSTALL_LANG=es|en|auto"
+        echo ""
+        echo "Ejemplos:"
+        echo "  sudo $0              # Instalar"
+        echo "  sudo $0 --update     # Actualizar"
+        echo "  sudo $0 --uninstall  # Desinstalar"
+    fi
     exit 0
 }
 
@@ -2862,11 +2884,15 @@ do_uninstall() {
 
 # Función principal
 main() {
-    local mode_label="INSTALACIÓN"
-    if [ "$MODE" = "update" ]; then
-        mode_label="ACTUALIZACIÓN"
-    elif [ "$MODE" = "uninstall" ]; then
-        mode_label="DESINSTALACIÓN"
+    local mode_label
+    if [ "$HB_INSTALL_LANG" = "en" ]; then
+        mode_label="INSTALLATION"
+        [ "$MODE" = "update" ] && mode_label="UPDATE"
+        [ "$MODE" = "uninstall" ] && mode_label="UNINSTALL"
+    else
+        mode_label="INSTALACIÓN"
+        [ "$MODE" = "update" ] && mode_label="ACTUALIZACIÓN"
+        [ "$MODE" = "uninstall" ] && mode_label="DESINSTALACIÓN"
     fi
 
     if [ "$MODE" = "install" ] || [ "$MODE" = "update" ]; then
