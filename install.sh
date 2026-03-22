@@ -33,9 +33,8 @@ TEMP_CLONE_DIR="/tmp/hostberry-install"
 GENERATED_JWT_SECRET=""
 GENERATED_ADMIN_PASSWORD=""
 
-# Reboot al final para activar el modo HostBerry (ap0).
-# Se hará SOLO en modo install (no en update) y sólo si no cortamos
-# la conexión principal (evitar reiniciar si estamos entrando por WiFi).
+# Reboot al final para aplicar ap0, hostapd, unidades systemd y script create-ap0.
+# En install y --update; no si la ruta por defecto va por WiFi (evitar cortar SSH).
 NEED_REBOOT_FOR_AP0=0
 
 # Detectar si la ruta por defecto sale por una interfaz WiFi (wlan* / wl*)
@@ -121,7 +120,7 @@ show_usage() {
     echo ""
     echo "Opciones:"
     echo "  (sin opción)   Instalar HostBerry"
-    echo "  --update       Actualizar instalación existente (preserva datos)"
+    echo "  --update       Actualizar (preserva datos); al terminar, daemon-reload y reinicio si la ruta por defecto no es WiFi"
     echo "  --uninstall    Desinstalar HostBerry (elimina servicio, archivos, usuario y logs)"
     echo "  -h, --help     Mostrar esta ayuda"
     echo ""
@@ -2596,11 +2595,11 @@ main() {
         mode_label="DESINSTALACIÓN"
     fi
 
-    if [ "$MODE" = "install" ]; then
+    if [ "$MODE" = "install" ] || [ "$MODE" = "update" ]; then
         # Si la ruta por defecto va por WiFi, evitamos reiniciar automáticamente
         # para no dejar al usuario sin conexión inesperadamente.
         if [ "$(is_default_route_over_wifi)" = "1" ]; then
-            print_warning "Ruta por defecto detectada sobre interfaz WiFi: no se realizará reinicio automático al final para no cortar la conexión."
+            print_warning "Ruta por defecto detectada sobre interfaz WiFi: no se reiniciará automáticamente al final para no cortar la conexión. Reinicia manualmente cuando puedas."
             NEED_REBOOT_FOR_AP0=0
         else
             NEED_REBOOT_FOR_AP0=1
@@ -2645,7 +2644,9 @@ main() {
     show_final_info
 
     if [ "$NEED_REBOOT_FOR_AP0" -eq 1 ]; then
-        print_warning "Reiniciando para activar 'ap0' y el modo HostBerry."
+        print_info "systemd daemon-reload antes del reinicio…"
+        systemctl daemon-reload 2>/dev/null || true
+        print_warning "Reiniciando para aplicar scripts (p. ej. create-ap0), unidades systemd y la red HostBerry."
         sync 2>/dev/null || true
         if command -v systemctl &> /dev/null; then
             systemctl reboot 2>/dev/null || reboot
