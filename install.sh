@@ -1893,7 +1893,10 @@ EOF
         grep -q '^wmm_enabled=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "wmm_enabled=1" >> "$HOSTAPD_CONFIG"
         grep -q '^ieee80211n=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "ieee80211n=1" >> "$HOSTAPD_CONFIG"
     fi
-    grep -q '^wpa=0$' "$HOSTAPD_CONFIG" 2>/dev/null || echo 'wpa=0' >> "$HOSTAPD_CONFIG"
+    # Red abierta HostBerry: wpa=0 explícito (varios clientes no asocian si falta)
+    if grep -q '^auth_algs=1' "$HOSTAPD_CONFIG" 2>/dev/null && ! grep -q '^wpa=[1-9]' "$HOSTAPD_CONFIG" 2>/dev/null; then
+        grep -q '^wpa=0$' "$HOSTAPD_CONFIG" 2>/dev/null || echo 'wpa=0' >> "$HOSTAPD_CONFIG"
+    fi
 
     # Misma radio: el AP debe usar el mismo canal (y banda) que wlan0 en STA o no se emiten beacons útiles
     SYNC_HOSTAPD_CH="/usr/local/sbin/hostberry-sync-hostapd-channel.sh"
