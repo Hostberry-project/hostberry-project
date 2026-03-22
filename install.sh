@@ -2256,7 +2256,7 @@ Requires=hostapd.service
 
 [Service]
 # Sin el prefijo "-" el arranque se aborta si ap0 no existe (antes: exit 0 siempre y dnsmasq fallaba luego).
-ExecStartPre=/bin/sh -c 'for i in \$(seq 1 120); do ip link show ap0 >/dev/null 2>&1 && iw dev ap0 info >/dev/null 2>&1 && exit 0; sleep 0.25; done; echo "HostBerry: ap0 no disponible (¿hostapd activo?)." >&2; exit 1'
+ExecStartPre=/bin/sh -c 'for i in \$(seq 1 120); do ip link show ap0 >/dev/null 2>&1 && exit 0; sleep 0.25; done; echo "HostBerry: ap0 no disponible (¿hostapd activo?)." >&2; exit 1'
 EOF
         chmod 644 "$DNSMASQ_OVERRIDE_FILE"
         print_success "Override de dnsmasq actualizado"
