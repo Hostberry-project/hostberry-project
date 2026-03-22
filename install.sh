@@ -2262,11 +2262,11 @@ done
 echo "HostBerry: ap0 no disponible o sin IPv4 (\${GW}/24)." >&2
 exit 1
 EOSCRIPT
-    cp "/tmp/hostberry-dnsmasq-prep-ap0.sh" "$DNSMASQ_PREP_SCRIPT" 2>/dev/null || install -m 755 "/tmp/hostberry-dnsmasq-prep-ap0.sh" "$DNSMASQ_PREP_SCRIPT"
+    mkdir -p "$(dirname "$DNSMASQ_PREP_SCRIPT")"
+    cp "/tmp/hostberry-dnsmasq-prep-ap0.sh" "$DNSMASQ_PREP_SCRIPT"
     chmod 755 "$DNSMASQ_PREP_SCRIPT"
     chown root:root "$DNSMASQ_PREP_SCRIPT"
     rm -f "/tmp/hostberry-dnsmasq-prep-ap0.sh"
-    mkdir -p "$(dirname "$DNSMASQ_PREP_SCRIPT")"
 
     # dnsmasq: tras hostapd; sin Requires= (evita bloqueos en arranque si dnsmasq falla una vez).
     if systemctl list-unit-files 2>/dev/null | grep -q 'dnsmasq\.service'; then
