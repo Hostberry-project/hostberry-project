@@ -881,7 +881,7 @@ blocking:
   refreshPeriod: 4h
 
 ports:
-  dns: 53
+  dns: 127.0.0.1:53
   http: 127.0.0.1:4000
 
 log:

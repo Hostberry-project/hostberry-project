@@ -2317,12 +2317,35 @@ EOF
     print_success "Configuración por defecto de HostAPD creada"
 }
 
+# Blocky en "dns: 53" escucha en *:53 y deja sin puerto a dnsmasq en ap0 (portal cautivo / DHCP).
+# Sólo loopback: el LAN usa dnsmasq en la IP del AP; la app HostBerry habla con Blocky vía 127.0.0.1.
+hostberry_migrate_blocky_dns_loopback() {
+    local BLOCKY_CONFIG_FILE="/etc/blocky/config.yml"
+    [ -f "$BLOCKY_CONFIG_FILE" ] || return 0
+    local _pat _did=0
+    for _pat in '^[[:space:]]*dns:[[:space:]]*53[[:space:]]*$' '^[[:space:]]*dns:[[:space:]]*"53"[[:space:]]*$'; do
+        if grep -qE "$_pat" "$BLOCKY_CONFIG_FILE" 2>/dev/null; then
+            sed -i 's/^\([[:space:]]*dns:\)[[:space:]]*53[[:space:]]*$/\1 127.0.0.1:53/' "$BLOCKY_CONFIG_FILE" 2>/dev/null || true
+            sed -i 's/^\([[:space:]]*dns:\)[[:space:]]*"53"[[:space:]]*$/\1 127.0.0.1:53/' "$BLOCKY_CONFIG_FILE" 2>/dev/null || true
+            _did=1
+        fi
+    done
+    if [ "$_did" -eq 1 ]; then
+        print_info "Blocky: DNS restringido a 127.0.0.1:53 (compatible con dnsmasq en ap0)"
+        if command -v systemctl &>/dev/null; then
+            systemctl try-restart blocky.service 2>/dev/null || true
+        fi
+    fi
+}
+
 # Instalar Blocky (proxy DNS y ad-blocker para la página Adblock)
 install_blocky() {
     local BLOCKY_VERSION="v0.28.2"
     local BLOCKY_CONFIG_DIR="/etc/blocky"
     local BLOCKY_CONFIG_FILE="${BLOCKY_CONFIG_DIR}/config.yml"
     local BLOCKY_SERVICE="/etc/systemd/system/blocky.service"
+
+    hostberry_migrate_blocky_dns_loopback
 
     if [ -x "/usr/local/bin/blocky" ] || systemctl cat blocky &>/dev/null; then
         print_success "Blocky ya está instalado"
@@ -2384,7 +2407,7 @@ blocking:
   refreshPeriod: 4h
 
 ports:
-  dns: 53
+  dns: 127.0.0.1:53
   http: 127.0.0.1:4000
 
 log:
