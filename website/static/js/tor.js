@@ -91,7 +91,7 @@
           if (serviceText) serviceText.textContent = t('tor.running', 'Running');
           if (enableBtn) enableBtn.style.display = 'none';
           if (disableBtn) disableBtn.style.display = 'block';
-          showTorCircuitSection(circuitInfo);
+          if (circuitInfo) circuitInfo.style.display = 'block';
 
           if (torIpText) torIpText.textContent = status?.tor_ip ? String(status.tor_ip) : '--';
 
@@ -120,7 +120,7 @@
           if (serviceText) serviceText.textContent = t('tor.stopped', 'Stopped');
           if (enableBtn) enableBtn.style.display = 'block';
           if (disableBtn) disableBtn.style.display = 'none';
-          if (circuitInfo) circuitInfo.style.display = 'none';
+          hideTorCircuitSection(circuitInfo);
           if (torIpText) torIpText.textContent = '--';
         }
       } else {
@@ -134,7 +134,7 @@
         if (configureBtn) configureBtn.style.display = 'none';
         if (enableBtn) enableBtn.style.display = 'none';
         if (disableBtn) disableBtn.style.display = 'none';
-        if (circuitInfo) circuitInfo.style.display = 'none';
+        hideTorCircuitSection(circuitInfo);
         if (torIpText) torIpText.textContent = '--';
         if (iptablesIndicator) iptablesIndicator.className = 'status-indicator status-offline';
         if (iptablesLabel) iptablesLabel.textContent = t('tor.torify_inactive', 'Inactive');
