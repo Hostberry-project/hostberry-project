@@ -2718,11 +2718,13 @@ main() {
     if [ "$NEED_REBOOT_FOR_AP0" -eq 1 ]; then
         print_warning "Reiniciando el sistema para aplicar scripts, unidades systemd y la red HostBerry."
         sync 2>/dev/null || true
-        if command -v systemctl &> /dev/null; then
-            systemctl reboot 2>/dev/null || reboot
-        else
-            reboot
+        if command -v systemctl &> /dev/null && systemctl reboot 2>/dev/null; then
+            exit 0
         fi
+        if command -v shutdown &> /dev/null; then
+            shutdown -r now "HostBerry install/update" 2>/dev/null || true
+        fi
+        reboot 2>/dev/null || /sbin/reboot 2>/dev/null || true
     fi
 }
 
