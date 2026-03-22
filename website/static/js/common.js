@@ -189,11 +189,13 @@
 
   /**
    * Alerta en el propio documento: botón X y cierre automático a los 8 s.
-   * Reutilizable en banners fijos (HTTPS, solo lectura) y alertas inyectadas (p. ej. actualizaciones).
+   * @param {object} [opts] restartTimer: false = no reiniciar cuenta si ya tenía X (p. ej. polls periódicos).
    */
-  function attachTransientAlert(bannerEl) {
+  function attachTransientAlert(bannerEl, opts) {
+    opts = opts || {};
     if (!bannerEl) return;
-    if (!bannerEl.querySelector('.hb-transient-alert-close')) {
+    const hadCloseBefore = !!bannerEl.querySelector('.hb-transient-alert-close');
+    if (!hadCloseBefore) {
       bannerEl.classList.add('alert-dismissible', 'd-flex', 'align-items-center', 'gap-2', 'flex-wrap');
       const wrap = document.createElement('div');
       wrap.className = 'flex-grow-1';
@@ -211,12 +213,39 @@
         dismissTransientAlert(bannerEl);
       });
     }
+    if (hadCloseBefore && opts.restartTimer === false) {
+      return;
+    }
     if (bannerEl._hbDismissTimer) {
       clearTimeout(bannerEl._hbDismissTimer);
+      bannerEl._hbDismissTimer = null;
     }
     bannerEl._hbDismissTimer = setTimeout(function () {
       dismissTransientAlert(bannerEl);
     }, HB_ALERT_AUTO_DISMISS_MS);
+  }
+
+  /** ¿El .alert se ve en pantalla? (respeta padres ocultos) */
+  function isHbPageAlertVisible(el) {
+    if (!el || !el.classList || !el.classList.contains('alert')) return false;
+    if (el.classList.contains('d-none')) return false;
+    try {
+      const r = el.getClientRects();
+      return !!(r && r.length > 0);
+    } catch (_e) {
+      return false;
+    }
+  }
+
+  /** Aplica X + 8 s a todos los .alert visibles de la página (excepto contenedor flotante). */
+  function scanVisibleAlerts() {
+    document.querySelectorAll('.alert').forEach(function (el) {
+      if (el.closest('#hb-alert-container')) return;
+      if (el.getAttribute('data-hb-no-auto-dismiss') === 'true') return;
+      if (!isHbPageAlertVisible(el)) return;
+      const isFirst = !el.querySelector('.hb-transient-alert-close');
+      attachTransientAlert(el, { restartTimer: isFirst });
+    });
   }
 
   // Floating alert top right: auto-cierra a los 8s y botón X manual
@@ -426,6 +455,7 @@
   HostBerry.NOTIFICATION_AUTO_DISMISS_MS = HB_ALERT_AUTO_DISMISS_MS;
   HostBerry.attachTransientAlert = attachTransientAlert;
   HostBerry.dismissTransientAlert = dismissTransientAlert;
+  HostBerry.scanVisibleAlerts = scanVisibleAlerts;
   HostBerry.apiRequest = apiRequest;
   HostBerry.getServerTimezone = getServerTimezone;
   HostBerry.formatTime = formatTime;
