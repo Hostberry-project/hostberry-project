@@ -632,12 +632,7 @@
       }
     }
 
-    if (page === 'login') {
-      var credNotice = document.getElementById('first-login-credential-notice');
-      if (credNotice) {
-        attachTransientAlert(credNotice);
-      }
-    }
+    scanVisibleAlerts();
 
     document.querySelectorAll('[data-action="logout"]').forEach(function(btn){
       btn.addEventListener('click', performLogout);
