@@ -1889,6 +1889,51 @@ EOF
         fi
         print_info "  Red configurada como abierta (sin contraseña)"
     fi
+
+    # Configs antiguas: país / beacons / 11n (sin country_code muchas Pi no “ven” el SSID al escanear)
+    if ! grep -q '^country_code=' "$HOSTAPD_CONFIG" 2>/dev/null; then
+        print_info "Añadiendo country_code=${HOSTAPD_COUNTRY} a hostapd.conf…"
+        {
+            echo "country_code=${HOSTAPD_COUNTRY}"
+            echo "ieee80211d=1"
+            echo "ignore_broadcast_ssid=0"
+            echo "wmm_enabled=1"
+            echo "ieee80211n=1"
+        } >> "$HOSTAPD_CONFIG"
+    else
+        grep -q '^ieee80211d=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "ieee80211d=1" >> "$HOSTAPD_CONFIG"
+        grep -q '^ignore_broadcast_ssid=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "ignore_broadcast_ssid=0" >> "$HOSTAPD_CONFIG"
+        grep -q '^wmm_enabled=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "wmm_enabled=1" >> "$HOSTAPD_CONFIG"
+        grep -q '^ieee80211n=' "$HOSTAPD_CONFIG" 2>/dev/null || echo "ieee80211n=1" >> "$HOSTAPD_CONFIG"
+    fi
+
+    # Misma radio: el AP debe usar el mismo canal (y banda) que wlan0 en STA o no se emiten beacons útiles
+    SYNC_HOSTAPD_CH="/usr/local/sbin/hostberry-sync-hostapd-channel.sh"
+    print_info "Instalando ${SYNC_HOSTAPD_CH} (alinear canal AP con ${HOSTAPD_INTERFACE})…"
+    cat > "$SYNC_HOSTAPD_CH" <<EOF
+#!/bin/bash
+CONF="${HOSTAPD_CONFIG}"
+WLAN="${HOSTAPD_INTERFACE}"
+[ -f "\$CONF" ] || exit 0
+line=\$(iw dev "\$WLAN" info 2>/dev/null | grep -E ' channel [0-9]+ ' | head -1)
+[ -n "\$line" ] || exit 0
+ch=\$(echo "\$line" | awk '{for(i=1;i<=NF;i++) if(\$i=="channel"){print \$(i+1); exit}}')
+freq=\$(echo "\$line" | sed -n 's/.*[(]\\([0-9][0-9]*\\) MHz[)].*/\\1/p')
+[ -n "\$ch" ] && [ -n "\$freq" ] || exit 0
+if [ "\$freq" -lt 3000 ] 2>/dev/null; then
+    sed -i 's/^hw_mode=.*/hw_mode=g/' "\$CONF"
+    sed -i "s/^channel=.*/channel=\$ch/" "\$CONF"
+    sed -i '/^ieee80211ac=/d' "\$CONF"
+else
+    sed -i 's/^hw_mode=.*/hw_mode=a/' "\$CONF"
+    sed -i "s/^channel=.*/channel=\$ch/" "\$CONF"
+    grep -q '^ieee80211n=' "\$CONF" || echo 'ieee80211n=1' >> "\$CONF"
+    grep -q '^ieee80211ac=' "\$CONF" || echo 'ieee80211ac=1' >> "\$CONF"
+fi
+exit 0
+EOF
+    chmod 755 "$SYNC_HOSTAPD_CH"
+    chown root:root "$SYNC_HOSTAPD_CH"
     
     # Configuración dnsmasq para DHCP y DNS en la red hostberry (ap0)
     # Usar archivo dedicado en /etc/dnsmasq.d para no pisar la config del sistema
@@ -2121,6 +2166,7 @@ After=create-ap0.service
 Requires=create-ap0.service
 
 [Service]
+ExecStartPre=${SYNC_HOSTAPD_CH}
 ExecStart=
 ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid ${HOSTAPD_CONFIG}
 PIDFile=/run/hostapd.pid
