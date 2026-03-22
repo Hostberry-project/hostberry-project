@@ -15,6 +15,7 @@
   function notify(type, message) {
     if (HB.showAlert) return HB.showAlert(type, message);
     if (window.showAlert) return window.showAlert(type, message);
+    if (window.HostBerry?.showAlert) return window.HostBerry.showAlert(type, message);
     alert(message);
   }
 

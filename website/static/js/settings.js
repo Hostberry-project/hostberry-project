@@ -12,6 +12,10 @@
       window.HostBerry.showAlert(hbType, message);
       return;
     }
+    if (window.showAlert) {
+      window.showAlert(hbType, message);
+      return;
+    }
     alert(message);
   };
 
