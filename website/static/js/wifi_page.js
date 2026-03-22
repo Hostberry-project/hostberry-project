@@ -67,6 +67,8 @@
   const showAlert = (type, message) => {
     if (window.HostBerry && window.HostBerry.showAlert) {
       window.HostBerry.showAlert(type, message);
+    } else if (window.showAlert) {
+      window.showAlert(type, message);
     } else {
       alert(message);
     }

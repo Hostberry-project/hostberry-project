@@ -19,7 +19,8 @@
     if (o.body && typeof o.body === 'object' && !(o.body instanceof FormData)) o.body = JSON.stringify(o.body);
     return fetch(url, o);
   };
-  const toast = (type, msg) => (HB.showAlert ? HB.showAlert(type, msg) : alert(msg));
+  const toast = (type, msg) =>
+    HB.showAlert ? HB.showAlert(type, msg) : window.showAlert ? window.showAlert(type, msg) : alert(msg);
 
   const setText = (id, value) => {
     const el = document.getElementById(id);

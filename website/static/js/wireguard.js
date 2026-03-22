@@ -2,7 +2,12 @@
 (function () {
   const api = (url, opts) => (window.HostBerry?.apiRequest ? window.HostBerry.apiRequest(url, opts) : fetch(url, opts));
   const t = (key, fallback) => (window.HostBerry?.t ? window.HostBerry.t(key, fallback) : fallback || key);
-  const showAlert = (type, msg) => (window.HostBerry?.showAlert ? window.HostBerry.showAlert(type, msg) : alert(msg));
+  const showAlert = (type, msg) =>
+    window.HostBerry?.showAlert
+      ? window.HostBerry.showAlert(type, msg)
+      : window.showAlert
+        ? window.showAlert(type, msg)
+        : alert(msg);
 
   function escapeHtml(s) {
     const str = String(s ?? '');
