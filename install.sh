@@ -1840,6 +1840,7 @@ ssid=${HOSTAPD_SSID}
 hw_mode=g
 channel=${HOSTAPD_CHANNEL}
 auth_algs=1
+wpa=0
 country_code=${HOSTAPD_COUNTRY}
 ieee80211d=1
 ignore_broadcast_ssid=0
