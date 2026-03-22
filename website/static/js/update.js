@@ -34,6 +34,10 @@
       window.showAlert(type, message);
       return;
     }
+    if (typeof window.showAlert === 'function') {
+      window.showAlert(type, message);
+      return;
+    }
     alert(message);
   }
 
