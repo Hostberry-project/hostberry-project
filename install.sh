@@ -1942,10 +1942,11 @@ EOF
     fi
     {
         echo "# HostBerry: DHCP y DNS para la red WiFi hostberry (ap0)"
-        echo "# bind-dynamic: ap0 virtual + bind-interfaces suele fallar hasta tener IPv4 en ap0."
+        echo "# bind-interfaces: la IPv4 en ap0 la aplica hostberry-dnsmasq-prep-ap0.sh antes de arrancar dnsmasq"
+        echo "# (evita carrera con hostapd y \"unknown interface ap0\" sin inet)."
         echo "# No usar loopback: listen-address=127.0.0.1 en dnsmasq.conf choca con blocky en :53."
         echo "except-interface=lo"
-        echo "bind-dynamic"
+        echo "bind-interfaces"
         echo "interface=ap0"
         [ -n "$DNSMASQ_NO_DHCP_LINE" ] && echo "$DNSMASQ_NO_DHCP_LINE"
         echo "dhcp-range=${HOSTAPD_DHCP_START},${HOSTAPD_DHCP_END},255.255.255.0,${HOSTAPD_LEASE_TIME}"
@@ -2212,8 +2213,8 @@ ExecStartPre=/usr/local/sbin/hostberry-create-ap0.sh
 ExecStartPre=${SYNC_HOSTAPD_CH}
 ExecStart=
 ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid ${HOSTAPD_CONFIG}
-# Tras levantar el AP, asegurar IPv4 en ap0 (sin eso dnsmasq suele dar "unknown interface ap0") y luego DHCP.
-ExecStartPost=-/bin/sh -c '/bin/sleep 1; /sbin/ip addr replace ${HOSTAPD_GATEWAY}/24 dev ap0 2>/dev/null || /sbin/ip addr add ${HOSTAPD_GATEWAY}/24 dev ap0 2>/dev/null || true; /bin/systemctl try-restart dnsmasq.service'
+# DHCP: el prep de dnsmasq pone la IPv4 en ap0; aquí sólo reintentamos dnsmasq por si hostapd arrancó antes.
+ExecStartPost=-/bin/systemctl try-restart dnsmasq.service
 PIDFile=/run/hostapd.pid
 Type=forking
 TimeoutStartSec=90
