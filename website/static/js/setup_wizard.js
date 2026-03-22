@@ -3,7 +3,7 @@
   const isEn = (lang === 'en');
   function d(enVal, esVal) { return isEn ? enVal : (esVal || enVal); }
   const t = window.HostBerry && window.HostBerry.t ? function(k, fallback) { return HostBerry.t(k, fallback); } : function(_, fallback) { return fallback || _; };
-  const showAlert = window.HostBerry && window.HostBerry.showAlert ? function(type, msg) { HostBerry.showAlert(type, msg); } : function(_, msg) { alert(msg); };
+  const showAlert = window.HostBerry && window.HostBerry.showAlert ? function(type, msg) { HostBerry.showAlert(type, msg); } : function(type, msg) { if (window.showAlert) window.showAlert(type || 'info', msg); else alert(msg); };
   const apiRequest = window.HostBerry && window.HostBerry.apiRequest ? function(u, o) { return HostBerry.apiRequest(u, o); } : function(u, o) { return fetch(u, Object.assign({ credentials: 'include' }, o)); };
 
   let selectedSSID = null;

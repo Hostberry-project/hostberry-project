@@ -156,6 +156,11 @@
             'System is up to date'
           )}</div>`;
         }
+        if (HB.attachTransientAlert) {
+          list.querySelectorAll('.alert').forEach(function (a) {
+            HB.attachTransientAlert(a);
+          });
+        }
       }
 
       const message = updatesAvailable
