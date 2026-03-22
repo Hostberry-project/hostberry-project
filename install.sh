@@ -2028,26 +2028,26 @@ EOF
         fi
     fi
     
-    # Crear archivo de override de systemd para hostapd si no existe
+    # Override hostapd: la unidad base suele usar Type=forking + PIDFile=/run/hostapd.pid.
+    # Sin -P, hostapd en segundo plano no escribe ese PID y systemd avisa (aunque el AP funcione).
     OVERRIDE_DIR="/etc/systemd/system/hostapd.service.d"
     OVERRIDE_FILE="${OVERRIDE_DIR}/override.conf"
-    if [ ! -f "$OVERRIDE_FILE" ]; then
-        print_info "Creando archivo de override de systemd para hostapd..."
-        mkdir -p "$OVERRIDE_DIR"
-        cat > "$OVERRIDE_FILE" <<EOF
+    print_info "Escribiendo override de systemd para hostapd (PID coherente con Type=forking)..."
+    mkdir -p "$OVERRIDE_DIR"
+    cat > "$OVERRIDE_FILE" <<EOF
 [Unit]
 After=create-ap0.service
 Requires=create-ap0.service
 
 [Service]
 ExecStart=
-ExecStart=/usr/sbin/hostapd -B ${HOSTAPD_CONFIG}
+ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid ${HOSTAPD_CONFIG}
+PIDFile=/run/hostapd.pid
+Type=forking
+TimeoutStartSec=90
 EOF
-        chmod 644 "$OVERRIDE_FILE"
-        print_success "Archivo de override de systemd creado"
-    else
-        print_info "Archivo de override de systemd ya existe"
-    fi
+    chmod 644 "$OVERRIDE_FILE"
+    print_success "Override de hostapd actualizado"
     
     # Asegurarse de que el servicio no esté masked
     # Importante en Raspberry Pi conectada por WiFi+SSH: si desmaskear hace que hostapd arranque,
