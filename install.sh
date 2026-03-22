@@ -1938,10 +1938,11 @@ EOF
     cat > "$DNSMASQ_AP_CONFIG" <<EOF
 # HostBerry: DHCP y DNS para la red WiFi hostberry (ap0)
 # Los clientes reciben IP 192.168.4.x y DNS apunta al gateway (portal cautivo)
-# bind-dynamic: ap0 puede crearse/recrearse; bind-interfaces dejaba dnsmasq sin escuchar en ap0.
+# bind-interfaces: dnsmasq en muchas Pi no soporta bind-dynamic (falla al arrancar el servicio).
+# Tras recrear ap0, hostapd hace try-restart de dnsmasq (override hostapd).
 interface=ap0
 no-dhcp-interface=wlan0
-bind-dynamic
+bind-interfaces
 dhcp-range=${HOSTAPD_DHCP_START},${HOSTAPD_DHCP_END},255.255.255.0,${HOSTAPD_LEASE_TIME}
 dhcp-option=3,${HOSTAPD_GATEWAY}
 dhcp-option=6,${HOSTAPD_GATEWAY}
