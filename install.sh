@@ -33,8 +33,7 @@ TEMP_CLONE_DIR="/tmp/hostberry-install"
 GENERATED_JWT_SECRET=""
 GENERATED_ADMIN_PASSWORD=""
 
-# Reboot al final para aplicar ap0, hostapd, unidades systemd y script create-ap0.
-# En install y --update; no si la ruta por defecto va por WiFi (evitar cortar SSH).
+# Reboot al final en install y --update (salvo HOSTBERRY_SKIP_REBOOT=1).
 NEED_REBOOT_FOR_AP0=0
 
 # Detectar si la ruta por defecto sale por una interfaz WiFi (wlan* / wl*)
@@ -120,7 +119,8 @@ show_usage() {
     echo ""
     echo "Opciones:"
     echo "  (sin opción)   Instalar HostBerry"
-    echo "  --update       Actualizar (preserva datos); al terminar, daemon-reload y reinicio si la ruta por defecto no es WiFi"
+    echo "  --update       Actualizar (preserva datos); al terminar, daemon-reload y reinicio del sistema"
+    echo "                 (omitir reinicio: HOSTBERRY_SKIP_REBOOT=1 sudo $0 --update)"
     echo "  --uninstall    Desinstalar HostBerry (elimina servicio, archivos, usuario y logs)"
     echo "  -h, --help     Mostrar esta ayuda"
     echo ""
