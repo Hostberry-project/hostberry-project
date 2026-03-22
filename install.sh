@@ -1934,6 +1934,14 @@ EOF
         grep -q '^wpa=0$' "$HOSTAPD_CONFIG" 2>/dev/null || echo 'wpa=0' >> "$HOSTAPD_CONFIG"
     fi
 
+    # Modo ap0+STA: hostapd debe anunciar el SSID en ap0, no en wlan* (si no, no se ve "hostberry" al escanear).
+    if command -v iw &>/dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
+        if grep -q '^interface=' "$HOSTAPD_CONFIG" 2>/dev/null; then
+            sed -i 's/^interface=.*/interface=ap0/' "$HOSTAPD_CONFIG" 2>/dev/null || true
+            print_info "hostapd.conf: interface=ap0 (SSID en la interfaz virtual del AP)"
+        fi
+    fi
+
     # Misma radio: el AP debe usar el mismo canal (y banda) que wlan0 en STA o no se emiten beacons útiles
     SYNC_HOSTAPD_CH="/usr/local/sbin/hostberry-sync-hostapd-channel.sh"
     print_info "Instalando ${SYNC_HOSTAPD_CH} (alinear canal AP con ${HOSTAPD_INTERFACE})…"
@@ -2611,6 +2619,7 @@ enable_and_start_hostberry_wifi_ap() {
     fi
     print_info "Habilitando en el arranque: ap0, hostapd (SSID hostberry), dnsmasq y portal cautivo…"
     systemctl daemon-reload 2>/dev/null || true
+    rfkill unblock wifi 2>/dev/null || true
     systemctl unmask hostapd.service 2>/dev/null || true
     systemctl unmask dnsmasq.service 2>/dev/null || true
     systemctl enable create-ap0.service 2>/dev/null || true
