@@ -176,6 +176,49 @@
   // Tiempo hasta auto-cierre de notificaciones flotantes (ms)
   var HB_ALERT_AUTO_DISMISS_MS = 8000;
 
+  /** Cierra banner in-place (timer + ocultar). */
+  function dismissTransientAlert(bannerEl) {
+    if (!bannerEl) return;
+    if (bannerEl._hbDismissTimer) {
+      clearTimeout(bannerEl._hbDismissTimer);
+      bannerEl._hbDismissTimer = null;
+    }
+    bannerEl.classList.add('d-none');
+    bannerEl.style.display = 'none';
+  }
+
+  /**
+   * Alerta en el propio documento: botón X y cierre automático a los 8 s.
+   * Reutilizable en banners fijos (HTTPS, solo lectura) y alertas inyectadas (p. ej. actualizaciones).
+   */
+  function attachTransientAlert(bannerEl) {
+    if (!bannerEl) return;
+    if (!bannerEl.querySelector('.hb-transient-alert-close')) {
+      bannerEl.classList.add('alert-dismissible', 'd-flex', 'align-items-center', 'gap-2', 'flex-wrap');
+      const wrap = document.createElement('div');
+      wrap.className = 'flex-grow-1';
+      while (bannerEl.firstChild) {
+        wrap.appendChild(bannerEl.firstChild);
+      }
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'btn-close flex-shrink-0 hb-transient-alert-close';
+      closeBtn.setAttribute('aria-label', t('common.close', 'Close'));
+      bannerEl.appendChild(wrap);
+      bannerEl.appendChild(closeBtn);
+      closeBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        dismissTransientAlert(bannerEl);
+      });
+    }
+    if (bannerEl._hbDismissTimer) {
+      clearTimeout(bannerEl._hbDismissTimer);
+    }
+    bannerEl._hbDismissTimer = setTimeout(function () {
+      dismissTransientAlert(bannerEl);
+    }, HB_ALERT_AUTO_DISMISS_MS);
+  }
+
   // Floating alert top right: auto-cierra a los 8s y botón X manual
   function showAlert(type, message){
     const containerId = 'hb-alert-container';
