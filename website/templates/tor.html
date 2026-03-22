@@ -223,7 +223,7 @@
                 <!-- Información del Circuito -->
                 <div id="tor-circuit-info" style="display: none;">
                     <h6>{{ call .t "tor.circuit_info" "Circuit Information" }}</h6>
-                    <div class="alert alert-info">
+                    <div id="tor-circuit-alert" class="alert alert-info">
                         <pre id="tor-circuit-text" class="mb-0"></pre>
                     </div>
                     <button class="btn btn-outline-primary btn-sm" onclick="loadTorCircuit()">

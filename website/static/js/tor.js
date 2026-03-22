@@ -22,6 +22,32 @@
     return resp?.json?.().catch(() => ({}));
   }
 
+  let hbTorCircuitSectionWasVisible = false;
+
+  function hideTorCircuitSection(circuitInfo) {
+    hbTorCircuitSectionWasVisible = false;
+    if (!circuitInfo) return;
+    const al = circuitInfo.querySelector('.alert');
+    if (al && HB.dismissTransientAlert) HB.dismissTransientAlert(al);
+    circuitInfo.style.display = 'none';
+  }
+
+  function showTorCircuitSection(circuitInfo) {
+    if (!circuitInfo) return;
+    const justShown = !hbTorCircuitSectionWasVisible;
+    hbTorCircuitSectionWasVisible = true;
+    circuitInfo.style.display = 'block';
+    const al = circuitInfo.querySelector('.alert');
+    if (al) {
+      al.classList.remove('d-none');
+      al.style.display = '';
+      if (HB.attachTransientAlert) {
+        const noClose = !al.querySelector('.hb-transient-alert-close');
+        HB.attachTransientAlert(al, { restartTimer: justShown || noClose });
+      }
+    }
+  }
+
   async function loadTorStatus() {
     try {
       const resp = await api('/api/v1/tor/status', { method: 'GET' });
@@ -65,7 +91,7 @@
           if (serviceText) serviceText.textContent = t('tor.running', 'Running');
           if (enableBtn) enableBtn.style.display = 'none';
           if (disableBtn) disableBtn.style.display = 'block';
-          if (circuitInfo) circuitInfo.style.display = 'block';
+          showTorCircuitSection(circuitInfo);
 
           if (torIpText) torIpText.textContent = status?.tor_ip ? String(status.tor_ip) : '--';
 

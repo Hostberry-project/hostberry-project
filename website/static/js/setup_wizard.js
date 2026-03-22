@@ -146,11 +146,20 @@
     }
     textEl.textContent = msg;
     banner.classList.remove('d-none');
+    banner.style.display = '';
+    if (window.HostBerry && HostBerry.attachTransientAlert) {
+      HostBerry.attachTransientAlert(banner);
+    }
   }
 
   function hideCurrentWifiBanner() {
     var banner = document.getElementById('wizard-current-wifi-banner');
-    if (banner) banner.classList.add('d-none');
+    if (banner) {
+      if (window.HostBerry && HostBerry.dismissTransientAlert) {
+        HostBerry.dismissTransientAlert(banner);
+      }
+      banner.classList.add('d-none');
+    }
     currentConnectedSSID = null;
   }
 

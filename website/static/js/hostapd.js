@@ -551,6 +551,11 @@
         
         html += '</div>';
         container.innerHTML = html;
+        container.querySelectorAll('.alert').forEach(function (a) {
+          if (window.HostBerry && HostBerry.attachTransientAlert) {
+            HostBerry.attachTransientAlert(a);
+          }
+        });
       } else {
         const errorText = await resp.text().catch(() => '');
         container.innerHTML = `
