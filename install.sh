@@ -2073,9 +2073,19 @@ fi
 
 /bin/ip link set "\${WLAN_IF}" up 2>/dev/null || true
 
+# ap0 puede existir en "ip link" pero no en nl80211 (iw) → ENODEV; hay que borrarla y recrear.
 if ip link show ap0 >/dev/null 2>&1; then
-    /bin/ip link set ap0 up 2>/dev/null || true
-else
+    if ! "\$IW_BIN" dev ap0 info >/dev/null 2>&1; then
+        echo "hostberry-create-ap0: ap0 rota (ip sí, iw no); recreando…" >&2
+        /bin/ip link set ap0 down 2>/dev/null || true
+        "\$IW_BIN" dev ap0 del 2>/dev/null || true
+        sleep 1
+    else
+        /bin/ip link set ap0 up 2>/dev/null || true
+    fi
+fi
+
+if ! ip link show ap0 >/dev/null 2>&1; then
     ok=0
     for _ in \$(seq 1 15); do
         if "\$IW_BIN" phy "\$PHY" interface add ap0 type __ap 2>/dev/null; then
@@ -2151,9 +2161,12 @@ EOF
     cat > "$OVERRIDE_FILE" <<EOF
 [Unit]
 After=create-ap0.service
-Requires=create-ap0.service
+Wants=create-ap0.service
 
 [Service]
+# create-ap0 es oneshot RemainAfterExit: si ap0 desaparece después, no se vuelve a ejecutar.
+# Antes de hostapd, asegurar ap0 (idempotente) + canal alineado con wlan0.
+ExecStartPre=/usr/local/sbin/hostberry-create-ap0.sh
 ExecStartPre=${SYNC_HOSTAPD_CH}
 ExecStart=
 ExecStart=/usr/sbin/hostapd -B -P /run/hostapd.pid ${HOSTAPD_CONFIG}
