@@ -2072,8 +2072,8 @@ chown root:netdev /run/wpa_supplicant 2>/dev/null || chown root:root /run/wpa_su
 chmod 775 /run/wpa_supplicant
 print_success "Directorio /run/wpa_supplicant configurado con permisos 775"
 
-# Crear archivo de configuración base de wpa_supplicant
-WPA_CONFIG="/etc/wpa_supplicant/wpa_supplicant-wlan0.conf"
+# Crear archivo de configuración base de wpa_supplicant (misma interfaz que la STA detectada)
+WPA_CONFIG="/etc/wpa_supplicant/wpa_supplicant-${HOSTAPD_INTERFACE}.conf"
 if [ ! -f "$WPA_CONFIG" ]; then
     print_info "Creando archivo de configuración de wpa_supplicant: $WPA_CONFIG"
     cat > "$WPA_CONFIG" <<EOF
