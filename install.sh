@@ -2403,6 +2403,37 @@ TimeoutStartSec=90
 EOF
     chmod 644 "$OVERRIDE_FILE"
     print_success "Override de hostapd actualizado"
+
+    # Debian/Ubuntu: /etc/init.d/hostapd y herramientas leen DAEMON_CONF; sin esto a veces el servicio no usa nuestra conf.
+    HOSTAPD_DEFAULT="/etc/default/hostapd"
+    if [ -f "$HOSTAPD_DEFAULT" ] || [ -d "/etc/hostapd" ]; then
+        print_info "Asegurando ${HOSTAPD_DEFAULT} (DAEMON_CONF → ${HOSTAPD_CONFIG})…"
+        if [ -f "$HOSTAPD_DEFAULT" ]; then
+            grep -q '^DAEMON_CONF=' "$HOSTAPD_DEFAULT" 2>/dev/null && sed -i 's|^DAEMON_CONF=.*|DAEMON_CONF="'"$HOSTAPD_CONFIG"'"|' "$HOSTAPD_DEFAULT" || echo "DAEMON_CONF=\"$HOSTAPD_CONFIG\"" >> "$HOSTAPD_DEFAULT"
+            grep -q '^RUN_DAEMON=' "$HOSTAPD_DEFAULT" 2>/dev/null || echo 'RUN_DAEMON=yes' >> "$HOSTAPD_DEFAULT"
+        else
+            cat > "$HOSTAPD_DEFAULT" <<HDEOF
+# HostBerry: hostapd usa esta configuración (coherente con systemd override)
+RUN_DAEMON=yes
+DAEMON_CONF="$HOSTAPD_CONFIG"
+HDEOF
+            chmod 644 "$HOSTAPD_DEFAULT"
+        fi
+        print_success "Actualizado $HOSTAPD_DEFAULT"
+    fi
+
+    # NetworkManager suele “poseer” wlan* y hostapd no puede crear ap0 / emitir SSID hostberry.
+    NM_DROPIN="/etc/NetworkManager/conf.d/99-hostberry-unmanaged.conf"
+    if [ -d /etc/NetworkManager/conf.d ]; then
+        print_info "Excluyendo wlan*/ap0 de NetworkManager (modo AP+STA)…"
+        cat > "$NM_DROPIN" <<'NMEOF'
+[keyfile]
+# HostBerry: no gestionar estas interfaces (hostapd + wpa_supplicant en paralelo)
+unmanaged-devices=interface-name:ap0;interface-name:wlan0;interface-name:wlan1;interface-name:wlan2;interface-name:wlan3
+NMEOF
+        chmod 644 "$NM_DROPIN"
+        print_success "Creado $NM_DROPIN (reinicia NetworkManager o el sistema para aplicar)"
+    fi
     
     print_info "Verificando estado del servicio hostapd…"
     if systemctl is-enabled hostapd 2>&1 | grep -q "masked"; then
@@ -2462,7 +2493,8 @@ After=network.target create-ap0.service hostapd.service
 Wants=create-ap0.service hostapd.service
 
 [Service]
-ExecStartPre=${DNSMASQ_PREP_SCRIPT}
+# El guión '-' evita que un fallo temporal de ap0 impida arrancar dnsmasq (se reintenta al reiniciar).
+ExecStartPre=-${DNSMASQ_PREP_SCRIPT}
 EOF
         chmod 644 "$DNSMASQ_OVERRIDE_FILE"
         print_success "Override de dnsmasq actualizado"
