@@ -2342,6 +2342,36 @@ EOF
         else
             print_warning "El servicio se inició pero ap0 no está disponible aún (puede necesitar reinicio)"
         fi
+    else
+        # Sin iw, hostapd.conf usa interfaz física; ExecStartPre debe existir o hostapd falla al arrancar.
+        print_warning "iw no está disponible: no se puede crear ap0; instalando script mínimo y unidad create-ap0 (no-op)."
+        CREATE_AP0_SCRIPT="/usr/local/sbin/hostberry-create-ap0.sh"
+        cat > "$CREATE_AP0_SCRIPT" <<'HOSTBERRY_AP0_STUB'
+#!/bin/bash
+# HostBerry: sin iw no hay interfaz virtual ap0; hostapd usa la interfaz física configurada en hostapd.conf.
+exit 0
+HOSTBERRY_AP0_STUB
+        chmod 755 "$CREATE_AP0_SCRIPT"
+        chown root:root "$CREATE_AP0_SCRIPT"
+        AP0_SERVICE="/etc/systemd/system/create-ap0.service"
+        cat > "$AP0_SERVICE" <<EOF
+[Unit]
+Description=HostBerry create-ap0 stub (iw not installed)
+After=network-pre.target
+Before=hostapd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=${CREATE_AP0_SCRIPT}
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        chmod 644 "$AP0_SERVICE"
+        systemctl daemon-reload 2>/dev/null || true
+        systemctl enable create-ap0.service 2>/dev/null || true
+        systemctl start create-ap0.service 2>/dev/null || true
     fi
     
     # Override hostapd: la unidad base suele usar Type=forking + PIDFile=/run/hostapd.pid.
@@ -2804,6 +2834,8 @@ show_final_info() {
 
     print_info "Web:    ${web_url}"
     print_info "        $(public_url "$scheme" "$mdns_name" "$port")  (mDNS: hostberry.local)"
+    print_info "WiFi AP: red abierta «hostberry» (sin contraseña). Tras asociarte: http://192.168.4.1:${port} (gateway del AP en ap0)."
+    print_info "        Si no ves el SSID: reinicia y revisa journalctl -u hostapd -u create-ap0 -b (hace falta interfaz WiFi y paquetes iw, hostapd, dnsmasq)."
     if [ "$scheme" = "https" ] && [ -n "$http_redir" ] && [ "$http_redir" != "0" ] && [ "$http_redir" != "$port" ]; then
         print_info "HTTP:   $(public_url "http" "${ip:-localhost}" "$http_redir") (redirige a HTTPS)"
         print_info "        $(public_url "http" "$mdns_name" "$http_redir") (redirige a HTTPS)"
