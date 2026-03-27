@@ -37,7 +37,7 @@
     } else {
       const alertDiv = document.createElement('div');
       alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed d-flex align-items-center`;
-      alertDiv.style.cssText = 'top:20px; right:20px; z-index:9999; min-width:300px;';
+      alertDiv.style.cssText = 'top:20px; left:50%; transform:translateX(-50%); z-index:9999; min-width:300px; max-width:92vw;';
       alertDiv.setAttribute('role', 'alert');
       const msg = document.createElement('span');
       msg.className = 'flex-grow-1 me-2';

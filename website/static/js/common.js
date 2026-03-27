@@ -298,11 +298,12 @@
         container.style.transform = 'translateX(-50%)';
         container.style.right = 'auto';
         container.style.width = 'min(92vw, 640px)';
+        container.style.maxWidth = '92vw';
       } else {
         container.style.right = '20px';
+        container.style.maxWidth = '360px';
       }
       container.style.zIndex = '9999';
-      container.style.maxWidth = '360px';
       document.body.appendChild(container);
     }
     const alertEl = document.createElement('div');
