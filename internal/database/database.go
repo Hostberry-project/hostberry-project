@@ -70,7 +70,7 @@ func Init() error {
 }
 
 func autoMigrate() error {
-	return DB.AutoMigrate(
+	if err := DB.AutoMigrate(
 		&models.User{},
 		&models.SystemLog{},
 		&models.SystemStatistic{},
@@ -79,7 +79,15 @@ func autoMigrate() error {
 		&models.WireGuardConfig{},
 		&models.AdBlockConfig{},
 		&models.SystemConfig{},
-	)
+	); err != nil {
+		return err
+	}
+	// Cuentas con varios logins exitosos ya completaron el flujo antiguo (antes de first_login_completed).
+	// login_count == 2 puede ser usuario atascado por bug o recién cambiado: se deja en false para permitir POST /first-login/change.
+	if err := DB.Model(&models.User{}).Where("login_count >= ?", 3).Update("first_login_completed", true).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // InsertLog registra una entrada en el log del sistema.

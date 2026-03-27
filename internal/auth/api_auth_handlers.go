@@ -48,6 +48,8 @@ func LoginAPIHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	req.Username = strings.TrimSpace(req.Username)
+
 	if err := validators.ValidateUsername(req.Username); err != nil {
 		return err
 	}
@@ -68,8 +70,8 @@ func LoginAPIHandler(c *fiber.Ctx) error {
 	userID := user.ID
 	database.InsertLog("INFO", database.LogMsg("Inicio de sesión correcto", user.Username), "auth", &userID)
 
-	// Primer login o credenciales por defecto (admin/admin): forzar cambio de contraseña en first-login
-	passwordChangeRequired := user.LoginCount == 1 || (user.Username == "admin" && CheckPassword("admin", user.Password))
+	// Primer login o credenciales por defecto (admin/admin): forzar cambio en /first-login
+	passwordChangeRequired := !user.FirstLoginCompleted || (user.Username == "admin" && CheckPassword("admin", user.Password))
 
 	cookieExpiry := time.Duration(config.AppConfig.Security.TokenExpiry) * time.Minute
 	secure := false
@@ -247,7 +249,7 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if user.LoginCount != 1 {
+	if user.FirstLoginCompleted {
 		return c.Status(403).JSON(fiber.Map{
 			"error": i18n.T(c, "auth.first_login_only", "This endpoint is only available on first login"),
 		})
@@ -262,6 +264,8 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 			"error": "Datos inválidos",
 		})
 	}
+
+	req.NewUsername = strings.TrimSpace(req.NewUsername)
 
 	if req.NewUsername != "" {
 		if err := validators.ValidateUsername(req.NewUsername); err != nil {
@@ -295,6 +299,7 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	}
 	user.Password = hashed
 	user.LoginCount++
+	user.FirstLoginCompleted = true
 	user.FailedAttempts = 0
 	user.LockedUntil = nil
 	if user.TokenVersion <= 0 {
