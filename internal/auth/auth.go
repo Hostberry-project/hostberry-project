@@ -176,7 +176,17 @@ func Login(username, password string) (*models.User, string, error) {
 	user.FailedAttempts = 0
 	user.LockedUntil = nil
 	user.LastLogin = &now
-	user.LoginCount++
+	// LoginCount==1 indica “primer acceso” hasta que FirstLoginChangeAPIHandler pase a 2.
+	// Si aquí incrementáramos en un segundo login antes de cambiar credenciales, LoginCount pasaría a 2,
+	// FirstLoginChange rechazaría con 403 y las nuevas credenciales nunca se guardarían.
+	switch {
+	case user.LoginCount == 0:
+		user.LoginCount = 1
+	case user.LoginCount == 1:
+		// Sin incrementar: sigue pendiente POST /first-login/change
+	default:
+		user.LoginCount++
+	}
 	if user.TokenVersion <= 0 {
 		user.TokenVersion = 1
 	}

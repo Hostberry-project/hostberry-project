@@ -295,6 +295,8 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	}
 	user.Password = hashed
 	user.LoginCount++
+	user.FailedAttempts = 0
+	user.LockedUntil = nil
 	if user.TokenVersion <= 0 {
 		user.TokenVersion = 1
 	}
