@@ -188,13 +188,6 @@
         </ul>
     </div>
 
-    <!-- Aviso sencillo sobre HTTP/HTTPS en la parte superior derecha -->
-    <div id="hb-https-warning" class="alert alert-warning py-1 px-2 small position-fixed" style="top: 10px; right: 10px; z-index: 1050; display:none;">
-        <span id="hb-https-warning-text">
-            {{ call .t "https.insecure_http_warning" "Warning: You are accessing HostBerry over HTTP (not encrypted)." }}
-        </span>
-    </div>
-
     <button id="theme-toggle" class="theme-toggle" type="button" title="{{ call .t "common.change_theme" "Change theme" }}" aria-label="{{ call .t "common.change_theme" "Change theme" }}"></button>
 
     {{ if or (eq .page "login") (eq .page "first_login") }}

@@ -624,22 +624,6 @@
     setupSidebarToggle();
     setupSessionKeepAlive();
 
-    // Aviso HTTP/HTTPS: solo mostrar si se está en HTTP (sin TLS)
-    try{
-      var isSecure = window.location.protocol === 'https:' ||
-        (window.location.port === '' && window.location.protocol === 'https:');
-      var warnEl = document.getElementById('hb-https-warning');
-      if(warnEl){
-        if(!isSecure){
-          warnEl.style.display = 'block';
-          warnEl.classList.remove('d-none');
-          attachTransientAlert(warnEl);
-        }else{
-          dismissTransientAlert(warnEl);
-        }
-      }
-    }catch(_e){}
-    
     const el = document.getElementById('hb-current-username');
     const page = document.body && document.body.getAttribute ? document.body.getAttribute('data-page') : '';
     const isAuthPage = (page === 'login' || page === 'first_login');
