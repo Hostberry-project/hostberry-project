@@ -2426,11 +2426,12 @@ HDEOF
     # NetworkManager suele “poseer” wlan* y hostapd no puede crear ap0 / emitir SSID hostberry.
     NM_DROPIN="/etc/NetworkManager/conf.d/99-hostberry-unmanaged.conf"
     if [ -d /etc/NetworkManager/conf.d ]; then
-        print_info "Excluyendo wlan*/ap0 de NetworkManager (modo AP+STA)…"
+        # Sólo ap0: si marcamos wlan* como unmanaged, NetworkManager suelta el cliente WiFi y se corta SSH por WiFi.
+        print_info "Excluyendo solo ap0 de NetworkManager (wlan* sigue gestionada para no perder la conexión)…"
         cat > "$NM_DROPIN" <<'NMEOF'
 [keyfile]
-# HostBerry: no gestionar estas interfaces (hostapd + wpa_supplicant en paralelo)
-unmanaged-devices=interface-name:ap0;interface-name:wlan0;interface-name:wlan1;interface-name:wlan2;interface-name:wlan3
+# HostBerry: sólo la interfaz virtual del AP; wlan* la sigue gestionando NM/wpa_supplicant (cliente WiFi).
+unmanaged-devices=interface-name:ap0
 NMEOF
         chmod 644 "$NM_DROPIN"
         print_success "Creado $NM_DROPIN (reinicia NetworkManager o el sistema para aplicar)"
