@@ -232,9 +232,16 @@
     }
     const hadCloseBefore = !!bannerEl.querySelector('.hb-transient-alert-close');
     if (!hadCloseBefore) {
-      bannerEl.classList.add('alert-dismissible', 'd-flex', 'align-items-center', 'gap-2', 'flex-wrap');
+      bannerEl.classList.add(
+        'alert-dismissible',
+        'd-flex',
+        'hb-notification-row',
+        'align-items-start',
+        'flex-nowrap'
+      );
       const wrap = document.createElement('div');
       wrap.className = 'flex-grow-1';
+      wrap.style.minWidth = '0';
       while (bannerEl.firstChild) {
         wrap.appendChild(bannerEl.firstChild);
       }
