@@ -36,6 +36,8 @@ type User struct {
 
 	LastLogin          *time.Time
 	LoginCount         int       `gorm:"default:0"`
+	// FirstLoginCompleted: true tras completar POST /auth/first-login/change (no usar solo LoginCount: el bug del doble login dejaba LoginCount=2 sin guardar credenciales).
+	FirstLoginCompleted bool `gorm:"default:false"`
 	TokenVersion       int       `gorm:"default:1"`
 	FailedAttempts     int       `gorm:"default:0"`
 	LockedUntil        *time.Time

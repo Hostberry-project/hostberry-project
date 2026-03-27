@@ -139,6 +139,7 @@ func IsDefaultAdminCredentialsInUse() bool {
 
 // Login autentica usuario y devuelve el usuario, token JWT o error (LoginError).
 func Login(username, password string) (*models.User, string, error) {
+	username = strings.TrimSpace(username)
 	var user models.User
 	if err := database.DB.Where("username = ? AND is_active = ?", username, true).First(&user).Error; err != nil {
 		return nil, "", &models.LoginError{Key: "auth.invalid_credentials", Default: "usuario o contraseña incorrectos"}
@@ -176,17 +177,7 @@ func Login(username, password string) (*models.User, string, error) {
 	user.FailedAttempts = 0
 	user.LockedUntil = nil
 	user.LastLogin = &now
-	// LoginCount==1 indica “primer acceso” hasta que FirstLoginChangeAPIHandler pase a 2.
-	// Si aquí incrementáramos en un segundo login antes de cambiar credenciales, LoginCount pasaría a 2,
-	// FirstLoginChange rechazaría con 403 y las nuevas credenciales nunca se guardarían.
-	switch {
-	case user.LoginCount == 0:
-		user.LoginCount = 1
-	case user.LoginCount == 1:
-		// Sin incrementar: sigue pendiente POST /first-login/change
-	default:
-		user.LoginCount++
-	}
+	user.LoginCount++
 	if user.TokenVersion <= 0 {
 		user.TokenVersion = 1
 	}
@@ -227,6 +218,7 @@ func Register(username, password, email string) (*models.User, error) {
 	user := models.User{
 		Username: username, Password: hashedPassword, Email: email,
 		Role: "admin", Timezone: "UTC", IsActive: true, TokenVersion: 1,
+		FirstLoginCompleted: false,
 	}
 	if err := database.DB.Create(&user).Error; err != nil {
 		return nil, fmt.Errorf("error creando usuario en BD: %v", err)
@@ -253,6 +245,7 @@ func RegisterBootstrap(username, password, email string) (*models.User, error) {
 	user := models.User{
 		Username: username, Password: hashedPassword, Email: email,
 		Role: "admin", Timezone: "UTC", IsActive: true, TokenVersion: 1,
+		FirstLoginCompleted: false,
 	}
 	if err := database.DB.Create(&user).Error; err != nil {
 		return nil, fmt.Errorf("error creando usuario en BD: %v", err)
