@@ -3,10 +3,11 @@
   const api = (url, opts) => {
     if (window.HostBerry?.apiRequest) return window.HostBerry.apiRequest(url, opts);
     const o = Object.assign({ credentials: 'include' }, opts || {});
-    if (o.body && typeof o.body === 'object' && !(o.body instanceof FormData)) o.body = JSON.stringify(o.body);
-    if (!o.headers) o.headers = {};
-    if (o.body && typeof o.body === 'string' && !o.headers['Content-Type'] && !o.headers['content-type']) {
-      o.headers['Content-Type'] = 'application/json';
+    if (o.body && typeof o.body === 'object' && !(o.body instanceof FormData)) {
+      o.body = JSON.stringify(o.body);
+      const h = new Headers(o.headers || {});
+      if (!h.has('Content-Type')) h.set('Content-Type', 'application/json');
+      o.headers = h;
     }
     return fetch(url, o);
   };
