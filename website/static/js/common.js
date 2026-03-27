@@ -645,12 +645,6 @@
 
           if (!isAdmin) {
             document.body.classList.add('hb-readonly');
-            var banner = document.getElementById('hb-readonly-banner');
-            if (banner) {
-              banner.classList.remove('d-none');
-              banner.style.display = '';
-              attachTransientAlert(banner);
-            }
             document.querySelectorAll('[data-action="restart"],[data-action="shutdown"]').forEach(function(btn){
               btn.classList.add('d-none');
             });
@@ -659,11 +653,6 @@
             });
           } else {
             document.body.classList.remove('hb-readonly');
-            var banner = document.getElementById('hb-readonly-banner');
-            if (banner) {
-              dismissTransientAlert(banner);
-              banner.classList.add('d-none');
-            }
           }
         }
       }catch(_e){
