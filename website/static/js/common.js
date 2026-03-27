@@ -176,6 +176,28 @@
   // Tiempo hasta auto-cierre de notificaciones flotantes (ms)
   var HB_ALERT_AUTO_DISMISS_MS = 8000;
 
+  function isAuthNotificationPage() {
+    const page = document.body && document.body.getAttribute ? document.body.getAttribute('data-page') : '';
+    return page === 'login' || page === 'first_login';
+  }
+
+  function getAuthAlertContainer() {
+    const id = 'hb-auth-alert-container';
+    let c = document.getElementById(id);
+    if (c) return c;
+    c = document.createElement('div');
+    c.id = id;
+    c.style.position = 'fixed';
+    c.style.top = '20px';
+    c.style.left = '50%';
+    c.style.transform = 'translateX(-50%)';
+    c.style.zIndex = '10050';
+    c.style.width = 'min(92vw, 640px)';
+    c.style.pointerEvents = 'none';
+    document.body.appendChild(c);
+    return c;
+  }
+
   /** Cierra banner in-place (timer + ocultar). */
   function dismissTransientAlert(bannerEl) {
     if (!bannerEl) return;
@@ -194,6 +216,20 @@
   function attachTransientAlert(bannerEl, opts) {
     opts = opts || {};
     if (!bannerEl) return;
+    if (isAuthNotificationPage() && !bannerEl.closest('#hb-alert-container')) {
+      const authContainer = getAuthAlertContainer();
+      if (!bannerEl.closest('#hb-auth-alert-container')) {
+        authContainer.appendChild(bannerEl);
+      }
+      bannerEl.style.position = 'relative';
+      bannerEl.style.left = '';
+      bannerEl.style.right = '';
+      bannerEl.style.top = '';
+      bannerEl.style.transform = '';
+      bannerEl.style.marginBottom = '10px';
+      bannerEl.style.pointerEvents = 'auto';
+      bannerEl.style.width = '100%';
+    }
     const hadCloseBefore = !!bannerEl.querySelector('.hb-transient-alert-close');
     if (!hadCloseBefore) {
       bannerEl.classList.add('alert-dismissible', 'd-flex', 'align-items-center', 'gap-2', 'flex-wrap');
@@ -257,7 +293,14 @@
       container.id = containerId;
       container.style.position = 'fixed';
       container.style.top = '20px';
-      container.style.right = '20px';
+      if (isAuthNotificationPage()) {
+        container.style.left = '50%';
+        container.style.transform = 'translateX(-50%)';
+        container.style.right = 'auto';
+        container.style.width = 'min(92vw, 640px)';
+      } else {
+        container.style.right = '20px';
+      }
       container.style.zIndex = '9999';
       container.style.maxWidth = '360px';
       document.body.appendChild(container);
