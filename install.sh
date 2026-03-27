@@ -1927,8 +1927,10 @@ EOF
         fi
 
         # Usar ap0 para la configuración si hay soporte (create-ap0.service + intento en caliente arriba).
+        # No exigir MAC aquí: en instalación headless la interfaz puede no tener sysfs aún y MAC queda vacía;
+        # el script hostberry-create-ap0.sh lee la MAC en tiempo de arranque.
         AP_INTERFACE="$HOSTAPD_INTERFACE"
-        if command -v iw &> /dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
+        if command -v iw &> /dev/null && [ -n "$PHY_NAME" ]; then
             AP_INTERFACE="ap0"
             print_info "Configurando hostapd para usar ap0 (ap0 se creará en el arranque)."
         else
@@ -2021,7 +2023,7 @@ EOF
     fi
 
     # Modo ap0+STA: hostapd debe anunciar el SSID en ap0, no en wlan* (si no, no se ve "hostberry" al escanear).
-    if command -v iw &>/dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
+    if command -v iw &>/dev/null && [ -n "$PHY_NAME" ]; then
         if grep -q '^interface=' "$HOSTAPD_CONFIG" 2>/dev/null; then
             sed -i 's/^interface=.*/interface=ap0/' "$HOSTAPD_CONFIG" 2>/dev/null || true
             print_info "hostapd.conf: interface=ap0 (SSID en la interfaz virtual del AP)"
@@ -2195,8 +2197,8 @@ else
     fi
 fi
     
-    # Crear script + servicio systemd para ap0 al arrancar (si se necesita)
-    if command -v iw &> /dev/null && [ -n "$PHY_NAME" ] && [ -n "$MAC_ADDRESS" ]; then
+    # Crear script + servicio systemd para ap0 al arrancar (iw + phy; MAC opcional en instalación)
+    if command -v iw &> /dev/null && [ -n "$PHY_NAME" ]; then
         CREATE_AP0_SCRIPT="/usr/local/sbin/hostberry-create-ap0.sh"
         AP0_SERVICE="/etc/systemd/system/create-ap0.service"
         IW_BIN="$(command -v iw 2>/dev/null || true)"
