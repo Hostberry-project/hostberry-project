@@ -296,19 +296,11 @@
       document.body.appendChild(container);
     }
     container.style.top = '20px';
-    if (isAuthNotificationPage()) {
-      container.style.left = '50%';
-      container.style.transform = 'translateX(-50%)';
-      container.style.right = 'auto';
-      container.style.width = 'min(92vw, 640px)';
-      container.style.maxWidth = '92vw';
-    } else {
-      container.style.left = 'auto';
-      container.style.transform = 'none';
-      container.style.right = '20px';
-      container.style.width = 'auto';
-      container.style.maxWidth = '360px';
-    }
+    container.style.left = '50%';
+    container.style.transform = 'translateX(-50%)';
+    container.style.right = 'auto';
+    container.style.width = 'min(92vw, 640px)';
+    container.style.maxWidth = '92vw';
     const alertEl = document.createElement('div');
     alertEl.className = 'alert alert-' + (type || 'info') + ' alert-dismissible fade show shadow d-flex align-items-center';
     alertEl.setAttribute('role', 'alert');
