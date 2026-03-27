@@ -71,11 +71,11 @@
     const ms = (window.HostBerry && window.HostBerry.NOTIFICATION_AUTO_DISMISS_MS) || 8000;
     const closeLabel = t('common.close', 'Close');
     const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed d-flex align-items-start flex-nowrap hb-notification-row`;
-    alertDiv.style.cssText = 'top:20px;left:50%;transform:translateX(-50%);z-index:9999;min-width:300px;max-width:92vw;margin:0;';
-    alertDiv.setAttribute('role', 'alert');
-    const messageNode = document.createElement('span');
-    messageNode.className = 'flex-grow-1';
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed d-flex align-items-center flex-nowrap hb-notification-row`;
+      alertDiv.style.cssText = 'top:20px;left:50%;transform:translateX(-50%);z-index:9999;width:min(92vw,640px);max-width:92vw;margin:0;';
+      alertDiv.setAttribute('role', 'alert');
+      const messageNode = document.createElement('span');
+      messageNode.className = 'flex-grow-1 hb-notification-message';
     messageNode.style.minWidth = '0';
     messageNode.textContent = String(message ?? '');
     const closeBtn = document.createElement('button');

@@ -36,11 +36,11 @@
       window.HostBerry.showAlert(type, message);
     } else {
       const alertDiv = document.createElement('div');
-      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed d-flex align-items-start flex-nowrap hb-notification-row`;
-      alertDiv.style.cssText = 'top:20px; left:50%; transform:translateX(-50%); z-index:9999; min-width:300px; max-width:92vw;';
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed d-flex align-items-center flex-nowrap hb-notification-row`;
+      alertDiv.style.cssText = 'top:20px; left:50%; transform:translateX(-50%); z-index:9999; width:min(92vw,640px); max-width:92vw; margin:0;';
       alertDiv.setAttribute('role', 'alert');
       const msg = document.createElement('span');
-      msg.className = 'flex-grow-1';
+      msg.className = 'flex-grow-1 hb-notification-message';
       msg.style.minWidth = '0';
       msg.textContent = String(message ?? '');
       const closeBtn = document.createElement('button');
