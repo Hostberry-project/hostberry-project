@@ -2215,6 +2215,9 @@ fi
 #!/bin/bash
 # Generado por HostBerry: crea ap0 cuando nl80211 y la interfaz STA están listos.
 # "command failed: No such file or directory (-2)" de iw = ENOENT nl80211 (phy no listo / nombre incorrecto).
+if command -v rfkill >/dev/null 2>&1; then
+    rfkill unblock wifi 2>/dev/null || true
+fi
 set -u
 WLAN_IF="$HOSTAPD_INTERFACE"
 IW_BIN="$IW_BIN"
