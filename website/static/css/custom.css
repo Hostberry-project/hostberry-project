@@ -361,15 +361,22 @@ body.light-theme .alert-warning {
   opacity: 1;
 }
 
-/* Fila notificación: texto a la izquierda (crece), X a la derecha */
+/* Fila notificación: texto a la izquierda (crece), X a la derecha junto al texto */
 .alert.hb-notification-row {
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-start;
   flex-wrap: nowrap;
   gap: 0.5rem;
 }
 .alert.hb-notification-row > .flex-grow-1 {
   min-width: 0;
+}
+.alert.hb-notification-row > .btn-close,
+.alert.hb-notification-row .btn-close.hb-transient-alert-close {
+  margin-top: 0;
+  align-self: center;
+  margin-left: auto;
 }
 
 /* Botón X en tema oscuro (icono legible sobre fondos oscuros) */

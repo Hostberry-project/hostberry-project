@@ -2,8 +2,12 @@
 (function(){
   const api = (url, opts) => {
     if (window.HostBerry?.apiRequest) return window.HostBerry.apiRequest(url, opts);
-    const o = Object.assign({}, opts);
+    const o = Object.assign({ credentials: 'include' }, opts || {});
     if (o.body && typeof o.body === 'object' && !(o.body instanceof FormData)) o.body = JSON.stringify(o.body);
+    if (!o.headers) o.headers = {};
+    if (o.body && typeof o.body === 'string' && !o.headers['Content-Type'] && !o.headers['content-type']) {
+      o.headers['Content-Type'] = 'application/json';
+    }
     return fetch(url, o);
   };
 
@@ -43,7 +47,14 @@
           body: { current_password: fd.get('current_password'), new_password: newPassword }
         });
         if(resp?.ok){ HostBerry.showAlert('success', HostBerry.t('auth.password_changed')); this.reset(); }
-        else { HostBerry.showAlert('danger', HostBerry.t('errors.operation_failed')); }
+        else {
+          let msg = HostBerry.t('errors.operation_failed');
+          try {
+            const errData = await resp.json();
+            if (errData && errData.error) msg = String(errData.error);
+          } catch (_e) { /* usar msg genérico */ }
+          HostBerry.showAlert('danger', msg);
+        }
       }catch(_e){ HostBerry.showAlert('danger', HostBerry.t('errors.network_error')); }
     });
   }
