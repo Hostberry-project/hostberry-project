@@ -193,6 +193,10 @@
     c.style.transform = 'translateX(-50%)';
     c.style.zIndex = '10050';
     c.style.width = 'min(92vw, 640px)';
+    c.style.maxWidth = '92vw';
+    c.style.display = 'flex';
+    c.style.flexDirection = 'column';
+    c.style.alignItems = 'stretch';
     c.style.pointerEvents = 'none';
     document.body.appendChild(c);
     return c;
@@ -236,11 +240,11 @@
         'alert-dismissible',
         'd-flex',
         'hb-notification-row',
-        'align-items-start',
+        'align-items-center',
         'flex-nowrap'
       );
       const wrap = document.createElement('div');
-      wrap.className = 'flex-grow-1';
+      wrap.className = 'flex-grow-1 hb-notification-message';
       wrap.style.minWidth = '0';
       while (bannerEl.firstChild) {
         wrap.appendChild(bannerEl.firstChild);
@@ -308,16 +312,19 @@
     container.style.right = 'auto';
     container.style.width = 'min(92vw, 640px)';
     container.style.maxWidth = '92vw';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.alignItems = 'stretch';
     const alertEl = document.createElement('div');
     alertEl.className =
       'alert alert-' +
       (type || 'info') +
-      ' alert-dismissible fade show shadow d-flex align-items-start flex-nowrap hb-notification-row';
+      ' alert-dismissible fade show shadow d-flex align-items-center flex-nowrap hb-notification-row';
     alertEl.setAttribute('role', 'alert');
     alertEl.style.marginBottom = '10px';
 
     const msgSpan = document.createElement('span');
-    msgSpan.className = 'flex-grow-1';
+    msgSpan.className = 'flex-grow-1 hb-notification-message';
     msgSpan.style.minWidth = '0';
     msgSpan.textContent = message || '';
 
