@@ -188,12 +188,6 @@
         </ul>
     </div>
 
-    <!-- Aviso solo lectura (usuarios no admin): se muestra desde common.js -->
-    <div id="hb-readonly-banner" class="alert alert-info py-2 px-3 small position-fixed d-none" style="top: 10px; left: 50%; transform: translateX(-50%); z-index: 1049; max-width: 90%;" role="status" aria-live="polite">
-        <i class="bi bi-eye me-2" aria-hidden="true"></i>
-        <span id="hb-readonly-banner-text">{{ call .t "auth.readonly_mode" "You are viewing the panel in read-only mode. Only administrators can make changes." }}</span>
-    </div>
-
     <!-- Aviso sencillo sobre HTTP/HTTPS en la parte superior derecha -->
     <div id="hb-https-warning" class="alert alert-warning py-1 px-2 small position-fixed" style="top: 10px; right: 10px; z-index: 1050; display:none;">
         <span id="hb-https-warning-text">
