@@ -2409,7 +2409,8 @@ EOF
     if [ -f "$HOSTAPD_DEFAULT" ] || [ -d "/etc/hostapd" ]; then
         print_info "Asegurando ${HOSTAPD_DEFAULT} (DAEMON_CONF → ${HOSTAPD_CONFIG})…"
         if [ -f "$HOSTAPD_DEFAULT" ]; then
-            grep -q '^DAEMON_CONF=' "$HOSTAPD_DEFAULT" 2>/dev/null && sed -i 's|^DAEMON_CONF=.*|DAEMON_CONF="'"$HOSTAPD_CONFIG"'"|' "$HOSTAPD_DEFAULT" || echo "DAEMON_CONF=\"$HOSTAPD_CONFIG\"" >> "$HOSTAPD_DEFAULT"
+            sed -i '/^DAEMON_CONF=/d' "$HOSTAPD_DEFAULT" 2>/dev/null || true
+            echo "DAEMON_CONF=\"$HOSTAPD_CONFIG\"" >> "$HOSTAPD_DEFAULT"
             grep -q '^RUN_DAEMON=' "$HOSTAPD_DEFAULT" 2>/dev/null || echo 'RUN_DAEMON=yes' >> "$HOSTAPD_DEFAULT"
         else
             cat > "$HOSTAPD_DEFAULT" <<HDEOF
@@ -2790,6 +2791,9 @@ enable_and_start_hostberry_wifi_ap() {
     print_info "Habilitando en el arranque: ap0, hostapd (SSID hostberry), dnsmasq y portal cautivo…"
     systemctl daemon-reload 2>/dev/null || true
     rfkill unblock wifi 2>/dev/null || true
+    if systemctl is-active --quiet NetworkManager 2>/dev/null; then
+        systemctl reload NetworkManager 2>/dev/null || systemctl restart NetworkManager 2>/dev/null || true
+    fi
     systemctl unmask hostapd.service 2>/dev/null || true
     systemctl unmask dnsmasq.service 2>/dev/null || true
     systemctl enable create-ap0.service 2>/dev/null || true

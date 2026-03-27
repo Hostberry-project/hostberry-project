@@ -267,6 +267,7 @@ func FirstLoginChangeAPIHandler(c *fiber.Ctx) error {
 	}
 
 	req.NewUsername = strings.TrimSpace(req.NewUsername)
+	req.NewPassword = strings.TrimSpace(req.NewPassword)
 
 	if req.NewUsername != "" {
 		if err := validators.ValidateUsername(req.NewUsername); err != nil {
