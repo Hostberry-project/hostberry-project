@@ -309,12 +309,16 @@
     container.style.width = 'min(92vw, 640px)';
     container.style.maxWidth = '92vw';
     const alertEl = document.createElement('div');
-    alertEl.className = 'alert alert-' + (type || 'info') + ' alert-dismissible fade show shadow d-flex align-items-center';
+    alertEl.className =
+      'alert alert-' +
+      (type || 'info') +
+      ' alert-dismissible fade show shadow d-flex align-items-start flex-nowrap hb-notification-row';
     alertEl.setAttribute('role', 'alert');
     alertEl.style.marginBottom = '10px';
 
     const msgSpan = document.createElement('span');
-    msgSpan.className = 'flex-grow-1 me-2';
+    msgSpan.className = 'flex-grow-1';
+    msgSpan.style.minWidth = '0';
     msgSpan.textContent = message || '';
 
     const closeBtn = document.createElement('button');
