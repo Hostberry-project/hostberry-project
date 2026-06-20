@@ -1,0 +1,364 @@
+/* HostBerry WiFi - estilos específicos
+   Componentes base (stat-card / dashboard-card) vienen de `custom.css`.
+*/
+
+.wifi-page {
+  padding: 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Ajustes: valores largos */
+.wifi-page .stat-value.text-disconnected,
+.wifi-page .stat-value[data-status="disconnected"] {
+  font-size: 1.1rem;
+}
+
+.wifi-page .info-value.text-disconnected,
+.wifi-page .info-value[data-status="disconnected"] {
+  font-size: 0.9rem;
+}
+
+/* Controls */
+.wifi-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wifi-interface-label {
+  display: flex;
+  align-items: center;
+  font-weight: 650;
+  margin-bottom: 0.65rem;
+}
+
+.wifi-interface-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.wifi-interface-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.75rem;
+  cursor: pointer;
+}
+
+.wifi-interface-select-icon {
+  position: absolute;
+  right: 1rem;
+  pointer-events: none;
+  color: var(--hb-text-muted);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.wifi-interface-select-wrapper:hover .wifi-interface-select-icon {
+  color: var(--hb-primary);
+}
+
+.wifi-interface-select:focus + .wifi-interface-select-icon {
+  color: var(--hb-primary);
+  transform: rotate(180deg);
+}
+
+.wifi-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wifi-buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.wifi-buttons-row .btn {
+  flex: 1 1 0;
+  min-height: 38px;
+}
+
+@media (max-width: 768px) {
+  .wifi-buttons-row .btn {
+    flex: 1 1 calc(50% - 0.25rem);
+  }
+  .wifi-buttons-row .btn:last-child {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .wifi-buttons-row .btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* Info grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: var(--hb-text-muted);
+}
+
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--hb-text-light);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Networks cards */
+.networks-cards-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.network-card {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-border);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body.light-theme .network-card {
+  background: var(--hb-surface-2);
+}
+
+.network-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--hb-primary-rgb), 0.35);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+}
+
+.network-card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.network-card-icon {
+  font-size: 1.25rem;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.network-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.network-card-ssid {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--hb-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.network-card-details {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+  font-size: 0.8rem;
+  color: var(--hb-text-muted);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.network-card-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.network-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Connect form */
+.network-connect-form-wrapper {
+  width: 100%;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--hb-border);
+}
+
+.network-connect-form {
+  margin-top: 0.75rem;
+  display: none;
+}
+
+.network-connect-form.show {
+  display: block;
+  animation: hb-slideDown 0.25s ease;
+}
+
+@keyframes hb-slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.network-connect-info {
+  background: rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--hb-border);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+
+body.light-theme .network-connect-info {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.network-info-label {
+  font-size: 0.72rem;
+  color: var(--hb-text-muted);
+  font-weight: 650;
+  display: block;
+}
+
+.network-info-value {
+  font-size: 0.85rem;
+  font-weight: 750;
+  color: var(--hb-text-light);
+}
+
+.network-connect-form-group {
+  margin-bottom: 1rem;
+}
+
+.network-connect-form-label {
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--hb-text-muted);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.network-connect-form-input {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid var(--hb-border);
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--hb-text-light);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.light-theme .network-connect-form-input {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.network-connect-form-input:focus {
+  outline: none;
+  border-color: rgba(var(--hb-primary-rgb), 0.55);
+  box-shadow: 0 0 0 0.2rem rgba(var(--hb-primary-rgb), 0.18);
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .network-connect-form-input {
+  padding-right: 2.75rem;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 0.5rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--hb-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  background: rgba(255, 244, 235, 0.08);
+  border-color: var(--hb-border);
+  color: var(--hb-text-light);
+  transform: scale(1.03);
+}
+
+body.light-theme .password-toggle-btn:hover {
+  background: rgba(var(--hb-primary-rgb), 0.08);
+}
+
+.network-connect-form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.network-connect-form-actions .btn {
+  flex: 1 1 0;
+}
+
+@media (max-width: 768px) {
+  .network-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem 1rem;
+  }
+  .network-card-content {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .network-card-details {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .network-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+

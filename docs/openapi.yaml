@@ -1,0 +1,108 @@
+openapi: 3.0.3
+info:
+  title: HostBerry API
+  version: 2.1.0
+  description: API REST del panel HostBerry para Raspberry Pi / Linux.
+servers:
+  - url: /api/v1
+paths:
+  /auth/login:
+    post:
+      summary: Iniciar sesión
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: OK }
+        '401': { description: Credenciales inválidas }
+  /auth/me:
+    get:
+      summary: Usuario autenticado
+      tags: [auth]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: OK }
+  /auth/users/role:
+    post:
+      summary: Asignar rol a usuario (admin)
+      tags: [auth]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                role: { type: string, enum: [admin, operator] }
+      responses:
+        '200': { description: OK }
+  /wifi/status:
+    get:
+      summary: Estado WiFi
+      tags: [wifi]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: OK }
+  /wifi/connect:
+    post:
+      summary: Conectar WiFi (admin)
+      tags: [wifi]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: OK }
+  /network/status:
+    get:
+      summary: Estado de red
+      tags: [network]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: OK }
+  /system/backup:
+    post:
+      summary: Crear backup (admin)
+      tags: [system]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Backup creado }
+  /system/backups:
+    get:
+      summary: Listar backups (admin)
+      tags: [system]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Lista de archivos }
+  /system/restore:
+    post:
+      summary: Restaurar backup (admin)
+      tags: [system]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file: { type: string }
+      responses:
+        '200': { description: Restaurado }
+  /system/restart:
+    post:
+      summary: Reiniciar sistema (admin)
+      tags: [system]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Comando enviado }
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token

@@ -1,0 +1,1465 @@
+/* HostBerry UI - overrides y componentes faltantes
+   Tema cálido-oscuro moderno, sin depender de Bootstrap.
+   Se carga después de `hostberry.css` y `dashboard.css`.
+*/
+
+/* Accesibilidad: foco visible al navegar por teclado */
+:focus-visible {
+  outline: 2px solid rgba(var(--hb-primary-rgb), 0.55);
+  outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(var(--hb-primary-rgb), 0.7);
+  outline-offset: 2px;
+}
+
+/* Contenedor principal consistente (todas las páginas) */
+.container-fluid {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Páginas que usan solo .dashboard-container (error, etc.) */
+.main-content .dashboard-container {
+  padding-top: 0.5rem;
+}
+
+/* Utilidades de texto usadas en templates */
+.text-white { color: var(--hb-text-light) !important; }
+.text-white-50 { color: var(--hb-text-muted) !important; }
+.text-muted { color: var(--hb-text-muted) !important; }
+
+.text-primary { color: var(--hb-primary) !important; }
+.text-success { color: var(--hb-success) !important; }
+.text-warning { color: var(--hb-warning) !important; }
+body.dark-theme .text-warning { color: #ef4444 !important; }
+body.light-theme .text-warning { color: #2563eb !important; }
+.text-danger { color: var(--hb-danger) !important; }
+.text-info { color: var(--hb-info) !important; }
+
+.bg-dark { background: rgba(0, 0, 0, 0.25) !important; }
+.bg-white { background: rgba(255, 255, 255, 0.95) !important; }
+
+.border-secondary { border-color: var(--hb-border-strong) !important; }
+.border-0 { border: 0 !important; }
+
+.shadow { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25) !important; }
+.small { font-size: 0.875rem !important; }
+.fw-bold { font-weight: 700 !important; }
+
+/* Dropdown (tema cálido) */
+.dropdown-menu {
+  background: rgba(18, 15, 10, 0.96);
+  border: 1px solid var(--hb-border);
+  border-radius: 12px;
+  backdrop-filter: blur(18px);
+}
+.dropdown-item { color: var(--hb-text-light); }
+.dropdown-item:hover { background: rgba(255, 244, 235, 0.08); }
+.dropdown-divider { background: rgba(255, 244, 235, 0.12); }
+
+body.light-theme .dropdown-menu {
+  background: var(--hb-surface-2);
+  border-color: var(--hb-border);
+  color: var(--hb-text-light);
+}
+body.light-theme .dropdown-item { color: var(--hb-text-light); }
+body.light-theme .dropdown-item:hover { background: rgba(var(--hb-primary-rgb), 0.08); }
+
+/* Botón de tema y selector de idioma */
+.lang-dropdown { top: 20px; right: 20px; }
+
+.lang-dropdown .lang-toggle,
+.lang-dropdown .lang-toggle.dropdown-toggle {
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+body.dark-theme .lang-dropdown .lang-toggle {
+  background: rgba(18, 15, 10, 0.75);
+  border: 1px solid var(--hb-border);
+  color: #f6f1e8 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-theme .lang-dropdown .lang-toggle:hover {
+  background: rgba(var(--hb-primary-rgb), 0.18);
+  border-color: rgba(var(--hb-primary-rgb), 0.4);
+  color: #fff !important;
+}
+
+body.light-theme .lang-dropdown .lang-toggle {
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-border);
+  color: var(--hb-text-light) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .lang-dropdown .lang-toggle:hover {
+  background: rgba(var(--hb-primary-rgb), 0.12);
+  border-color: rgba(var(--hb-primary-rgb), 0.35);
+  color: var(--hb-primary-dark) !important;
+}
+
+body.dark-theme .lang-dropdown-menu {
+  background: rgba(18, 15, 10, 0.96);
+  border: 1px solid var(--hb-border);
+}
+
+body.dark-theme .lang-dropdown-menu .dropdown-item {
+  color: #f6f1e8 !important;
+}
+
+body.dark-theme .lang-dropdown-menu .dropdown-item:hover {
+  background: rgba(255, 244, 235, 0.08);
+  color: var(--hb-primary) !important;
+}
+
+body.light-theme .lang-dropdown-menu {
+  background: var(--hb-surface-2);
+  border: 1px solid var(--hb-border);
+}
+
+body.light-theme .lang-dropdown-menu .dropdown-item {
+  color: var(--hb-text-light) !important;
+}
+
+body.light-theme .lang-dropdown-menu .dropdown-item:hover {
+  background: rgba(var(--hb-primary-rgb), 0.1);
+  color: var(--hb-primary-dark) !important;
+}
+
+.theme-toggle.light,
+.theme-toggle.dark {
+  background: linear-gradient(135deg, rgba(var(--hb-primary-rgb), 0.98) 0%, var(--hb-primary-dark) 100%);
+  color: #fff;
+}
+
+/* Cards: misma estética en todas las páginas (VPN, WireGuard, Tor, Adblock, etc.) */
+.card {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.25s ease;
+}
+body.light-theme .card {
+  background: var(--hb-surface-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+.card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+body.light-theme .card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Línea superior sutil (igual que dashboard-header / glass-card) */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hb-border-strong), transparent);
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.card-header {
+  padding: 1rem 1.25rem;
+  background: var(--hb-surface-2);
+  border-bottom: 1px solid var(--hb-border);
+  position: relative;
+  z-index: 2;
+}
+.card-body {
+  padding: 1.25rem;
+  position: relative;
+  z-index: 2;
+  color: var(--hb-text-light);
+}
+.card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--hb-text-light);
+}
+.card .form-label,
+.card label {
+  color: var(--hb-text-muted);
+}
+.card h4, .card h5, .card h6 {
+  color: var(--hb-text-light);
+}
+.card .text-muted {
+  color: var(--hb-text-muted) !important;
+}
+
+/* Unificar superficies “glass” de páginas */
+.dashboard-header,
+.dashboard-card,
+.status-card,
+.actions-card,
+.info-card,
+.services-card,
+.logs-card,
+.glass-card,
+.stat-card {
+  background: var(--hb-surface);
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius);
+}
+body.light-theme .dashboard-header,
+body.light-theme .dashboard-card,
+body.light-theme .status-card,
+body.light-theme .actions-card,
+body.light-theme .info-card,
+body.light-theme .services-card,
+body.light-theme .logs-card,
+body.light-theme .glass-card,
+body.light-theme .stat-card {
+  background: var(--hb-surface-2);
+  border-color: var(--hb-border);
+}
+
+/* Stat cards (Dashboard/Network/WiFi) */
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  min-height: 110px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  backdrop-filter: blur(18px);
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--hb-primary-rgb), 0.35);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+}
+.stat-icon { font-size: 2.2rem; opacity: 0.9; }
+.stat-content { flex: 1; min-width: 0; }
+.stat-label { font-size: 0.85rem; color: var(--hb-text-muted); margin-bottom: 0.35rem; }
+.stat-value { font-size: 1.55rem; font-weight: 750; line-height: 1.15; }
+.stat-progress {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--hb-border);
+}
+body.light-theme .stat-progress { background: rgba(36, 26, 18, 0.10); }
+.stat-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--hb-primary), var(--hb-primary-dark));
+  transition: width 0.25s ease;
+}
+
+/* Dashboard cards (Dashboard/Network/WiFi) */
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+}
+.dashboard-card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--hb-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.dashboard-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.dashboard-card-body {
+  padding: 1.25rem;
+  flex: 1;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--hb-border);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.bg-secondary {
+  background: rgba(255, 244, 235, 0.10) !important;
+  border-color: var(--hb-border) !important;
+  color: var(--hb-text-light) !important;
+}
+.bg-success {
+  background: rgba(34, 197, 94, 0.18) !important;
+  border-color: rgba(34, 197, 94, 0.38) !important;
+  color: #d8ffe8 !important;
+}
+.bg-danger {
+  background: rgba(var(--hb-danger-rgb), 0.16) !important;
+  border-color: rgba(var(--hb-danger-rgb), 0.38) !important;
+  color: #ffe5e5 !important;
+}
+.bg-warning {
+  background: rgba(var(--hb-warning-rgb), 0.20) !important;
+  border-color: rgba(var(--hb-warning-rgb), 0.40) !important;
+  color: var(--hb-warning) !important;
+}
+body.dark-theme .bg-warning {
+  background: rgba(239, 68, 68, 0.20) !important;
+  border-color: rgba(239, 68, 68, 0.40) !important;
+  color: #ef4444 !important;
+}
+body.light-theme .bg-warning {
+  background: rgba(37, 99, 235, 0.20) !important;
+  border-color: rgba(37, 99, 235, 0.40) !important;
+  color: #2563eb !important;
+}
+.bg-info {
+  background: rgba(56, 189, 248, 0.18) !important;
+  border-color: rgba(56, 189, 248, 0.38) !important;
+  color: #e0f7ff !important;
+}
+
+/* Tablas */
+.table { width: 100%; border-collapse: collapse; color: var(--hb-text-light); }
+.table th, .table td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--hb-border);
+  vertical-align: middle;
+}
+.table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--hb-text-muted);
+}
+.table-hover tbody tr:hover { background: rgba(255, 244, 235, 0.06); }
+body.light-theme .table-hover tbody tr:hover { background: rgba(var(--hb-primary-rgb), 0.06); }
+
+/* Alertas (modo dark legible) */
+body.dark-theme .alert {
+  background: rgba(255, 244, 235, 0.06);
+  border-color: var(--hb-border);
+  color: var(--hb-text-light);
+}
+body.dark-theme .alert-success {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.28);
+  color: #d8ffe8;
+}
+body.dark-theme .alert-danger {
+  background: rgba(var(--hb-danger-rgb), 0.12);
+  border-color: rgba(var(--hb-danger-rgb), 0.28);
+  color: #ffe5e5;
+}
+body.dark-theme .alert-warning {
+  background: rgba(239, 68, 68, 0.14) !important;
+  border-color: rgba(239, 68, 68, 0.30) !important;
+  color: #fecaca !important;
+}
+body.light-theme .alert-warning {
+  background: rgba(37, 99, 235, 0.12) !important;
+  border-color: rgba(37, 99, 235, 0.35) !important;
+  color: #1e40af !important;
+}
+
+/* .btn-close (Bootstrap): el bundle completo no está; sin esto la X no se ve */
+.btn-close {
+  box-sizing: content-box;
+  width: 1em;
+  height: 1em;
+  padding: 0.35em;
+  color: #000;
+  background: transparent
+    url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e")
+    center / 1em auto no-repeat;
+  border: 0;
+  border-radius: 0.35rem;
+  opacity: 0.75;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 0.1em;
+}
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* Notificación flotante: mensaje centrado, X fija al borde derecho */
+.alert.hb-notification-row {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 0;
+  padding-inline: 1rem 2.75rem;
+  box-sizing: border-box;
+}
+.alert.hb-notification-row > .flex-grow-1,
+.alert.hb-notification-row > .hb-notification-message {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+}
+.alert.hb-notification-row > .btn-close,
+.alert.hb-notification-row .btn-close.hb-transient-alert-close {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  margin-top: 0;
+  margin-left: 0;
+  transform: translateY(-50%);
+  align-self: auto;
+}
+
+/* Botón X en tema oscuro (icono legible sobre fondos oscuros) */
+body.dark-theme .alert .btn-close {
+  filter: invert(1) grayscale(100%) brightness(1.15);
+  opacity: 0.9;
+}
+body.dark-theme .alert .btn-close:hover {
+  opacity: 1;
+}
+
+/* Progress */
+.progress {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--hb-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+body.light-theme .progress { background: rgba(36, 26, 18, 0.10); }
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--hb-primary), var(--hb-primary-dark));
+}
+
+/* Spinner (compat: “spinner-border”) */
+@keyframes hb-spin { to { transform: rotate(360deg); } }
+.spinner-border {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 0.2em solid rgba(255, 244, 235, 0.35);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: hb-spin 0.75s linear infinite;
+  vertical-align: -0.125em;
+}
+.spinner-border-sm {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-width: 0.18em;
+}
+
+/* Icon spinner helper (se usa en varias páginas) */
+.spinning { animation: hb-spin 1s linear infinite; }
+
+/* Botones outline extra (usados en páginas como VPN/Tor/Adblock) */
+.btn-outline-light {
+  background: transparent;
+  border-color: var(--hb-border-strong);
+  color: var(--hb-text-light);
+}
+.btn-outline-light:hover {
+  background: rgba(255, 244, 235, 0.10);
+  border-color: rgba(var(--hb-primary-rgb), 0.40);
+}
+
+.btn-outline-success {
+  background: transparent;
+  border-color: rgba(34, 197, 94, 0.55);
+  color: rgb(34, 197, 94);
+}
+.btn-outline-success:hover { background: rgba(34, 197, 94, 0.14); color: var(--hb-text-light); }
+
+.btn-outline-danger {
+  background: transparent;
+  border-color: rgba(var(--hb-danger-rgb), 0.55);
+  color: rgb(var(--hb-danger-rgb));
+}
+.btn-outline-danger:hover { background: rgba(var(--hb-danger-rgb), 0.14); color: var(--hb-text-light); }
+
+.btn-outline-warning {
+  background: transparent;
+  border-color: rgba(var(--hb-warning-rgb), 0.60);
+  color: var(--hb-warning);
+}
+body.dark-theme .btn-outline-warning {
+  border-color: rgba(239, 68, 68, 0.60) !important;
+  color: #ef4444 !important;
+}
+body.dark-theme .btn-outline-warning:hover {
+  background: rgba(239, 68, 68, 0.16) !important;
+  color: var(--hb-text-light) !important;
+}
+body.light-theme .btn-outline-warning {
+  border-color: rgba(37, 99, 235, 0.60) !important;
+  color: #2563eb !important;
+}
+body.light-theme .btn-outline-warning:hover {
+  background: rgba(37, 99, 235, 0.16) !important;
+  color: var(--hb-text-light) !important;
+}
+.btn-outline-warning:hover { background: rgba(var(--hb-warning-rgb), 0.16); color: var(--hb-text-light); }
+
+.btn-warning {
+  background: var(--hb-warning);
+  border-color: var(--hb-warning);
+  color: #fff;
+}
+body.dark-theme .btn-warning {
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #fff !important;
+}
+body.dark-theme .btn-warning:hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
+}
+body.light-theme .btn-warning {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #fff !important;
+}
+body.light-theme .btn-warning:hover {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  color: #fff !important;
+}
+
+.border-warning { border-color: rgba(var(--hb-warning-rgb), 0.5) !important; }
+.bg-warning.bg-opacity-10 { background: rgba(var(--hb-warning-rgb), 0.1) !important; }
+
+.btn-outline-info {
+  background: transparent;
+  border-color: rgba(56, 189, 248, 0.60);
+  color: rgb(56, 189, 248);
+}
+.btn-outline-info:hover { background: rgba(56, 189, 248, 0.16); color: var(--hb-text-light); }
+
+/* Status indicator (VPN/WireGuard/Tor/AdBlock/etc.) */
+.status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-right: 0.5rem;
+  background: rgba(255, 244, 235, 0.22);
+  box-shadow: 0 0 0 3px rgba(255, 244, 235, 0.08);
+  vertical-align: middle;
+}
+.status-indicator.status-online {
+  background: rgb(34, 197, 94);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+.status-indicator.status-offline {
+  background: rgb(var(--hb-danger-rgb));
+  box-shadow: 0 0 0 3px rgba(var(--hb-danger-rgb), 0.18);
+}
+.status-indicator.status-warning {
+  background: var(--hb-warning);
+  box-shadow: 0 0 0 3px rgba(var(--hb-warning-rgb), 0.18);
+}
+
+/* System page helpers */
+.system-manager-page .action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.system-manager-page .action-buttons .btn {
+  flex: 1;
+  min-width: 120px;
+}
+.system-manager-page .service-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.system-manager-page .service-controls .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Dashboard info grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.info-item {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--hb-border);
+  border-radius: calc(var(--hb-radius) - 2px);
+  background: rgba(255, 244, 235, 0.03);
+}
+body.light-theme .info-item { background: rgba(36, 26, 18, 0.05); }
+.info-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--hb-text-muted);
+}
+.info-value {
+  display: block;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--hb-text-light);
+  word-break: break-word;
+}
+body.light-theme .info-value { color: #212529; }
+
+/* Dashboard health status */
+.health-status {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+}
+@media (max-width: 575.98px) {
+  .health-status { grid-template-columns: 1fr; }
+}
+.health-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--hb-border);
+  border-radius: calc(var(--hb-radius) - 2px);
+  background: rgba(255, 244, 235, 0.03);
+}
+body.light-theme .health-item { background: rgba(36, 26, 18, 0.05); }
+.health-label {
+  font-size: 0.9rem;
+  color: var(--hb-text-muted);
+}
+.health-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.health-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 244, 235, 0.22);
+  box-shadow: 0 0 0 3px rgba(255, 244, 235, 0.08);
+  flex: 0 0 auto;
+}
+.health-dot-success,
+.health-dot-healthy {
+  background: rgb(34, 197, 94);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+.health-dot-warning {
+  background: var(--hb-warning);
+  box-shadow: 0 0 0 3px rgba(var(--hb-warning-rgb), 0.18);
+}
+.health-dot-danger {
+  background: rgb(var(--hb-danger-rgb));
+  box-shadow: 0 0 0 3px rgba(var(--hb-danger-rgb), 0.18);
+}
+.health-text {
+  font-size: 0.85rem;
+  font-weight: 750;
+  color: var(--hb-text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.light-theme .health-text { color: #212529; }
+
+/* Setup wizard: sin menú, altura fija al viewport, scroll interno */
+html:has(body.hb-page-wizard) {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+body.hb-page-wizard {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+body.hb-page-wizard .theme-toggle {
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  width: 44px;
+  height: 44px;
+  font-size: 1.25rem;
+}
+
+/* Selector de idioma destacado dentro del wizard: rojo (tema oscuro) / azul (tema claro) */
+body.dark-theme.hb-page-wizard .lang-dropdown .lang-toggle,
+body.dark-theme.hb-page-wizard .lang-dropdown .lang-toggle.dropdown-toggle {
+  background: #e03131;
+  border: 1px solid #ff6b6b;
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(224, 49, 49, 0.4);
+}
+body.dark-theme.hb-page-wizard .lang-dropdown .lang-toggle:hover {
+  background: #c92a2a;
+  border-color: #ff8787;
+  color: #fff !important;
+}
+body.light-theme.hb-page-wizard .lang-dropdown .lang-toggle,
+body.light-theme.hb-page-wizard .lang-dropdown .lang-toggle.dropdown-toggle {
+  background: #1c7ed6;
+  border: 1px solid #4dabf7;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(28, 126, 214, 0.3);
+}
+body.light-theme.hb-page-wizard .lang-dropdown .lang-toggle:hover {
+  background: #1971c2;
+  border-color: #74c0fc;
+  color: #fff !important;
+}
+.setup-wizard-main {
+  width: 100%;
+  margin-left: 0 !important;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.setup-wizard-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: max(0.75rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) max(1rem, env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+}
+.setup-wizard-header {
+  flex-shrink: 0;
+  padding: 0.5rem 0 0.75rem;
+}
+.setup-wizard-header .step-indicator {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  max-width: min(320px, 100%);
+  margin: 0 auto;
+}
+.setup-wizard-header .step-dot {
+  flex-shrink: 0;
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.95rem;
+  background: rgba(255, 244, 235, 0.12);
+  border: 2px solid var(--hb-border);
+  color: var(--hb-text-muted);
+  transition: all 0.2s ease;
+}
+.setup-wizard-header .step-dot.active {
+  background: var(--hb-primary);
+  border-color: var(--hb-primary);
+  color: #fff;
+}
+.setup-wizard-header .step-line {
+  flex: 1 1 auto;
+  min-width: 1rem;
+  max-width: 3.5rem;
+  width: auto;
+  height: 2px;
+  background: var(--hb-border);
+}
+.setup-wizard-pages {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.setup-wizard-page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0.25rem 0 0;
+}
+.setup-wizard-page-content.d-none { display: none !important; }
+.wizard-page-inner {
+  width: 100%;
+  max-width: min(760px, 100%);
+  margin: 0 auto;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.wizard-page-title {
+  flex-shrink: 0;
+  font-size: clamp(1.1rem, 3.5vw, 1.35rem);
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: var(--hb-text-light);
+  line-height: 1.25;
+}
+.wizard-page-desc {
+  flex-shrink: 0;
+  margin-bottom: 0.75rem;
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  line-height: 1.4;
+}
+#wizard-current-wifi-banner {
+  flex-shrink: 0;
+}
+.wizard-card {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.wizard-card > .card-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
+.wizard-security-option {
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+.wizard-security-option:hover {
+  border-color: var(--hb-primary);
+}
+/* Las tres tarjetas de seguridad (VPN/WireGuard/Tor) con el mismo tamaño y disposición. */
+#wizard-security-cards > [class*="col-"] {
+  display: flex;
+}
+#wizard-security-cards .wizard-security-option .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 240px;
+  width: 100%;
+  padding: 2rem 1.5rem;
+}
+#wizard-security-cards .wizard-security-option .card-body i {
+  display: block;
+  height: 4rem;
+  line-height: 4rem;
+  font-size: 3rem;
+}
+#wizard-security-cards .wizard-security-option h6 {
+  min-height: 1.6rem;
+  font-size: 1.25rem;
+  margin-top: 0.75rem !important;
+}
+#wizard-security-cards .wizard-security-option p {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Wizard: tarjetas de selección de banda WiFi (2.4 / 5 GHz) */
+.wizard-band-grid {
+  margin-bottom: 0;
+}
+.wizard-band-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 9rem;
+  padding: 1rem 0.75rem;
+  border: 2px solid var(--hb-border);
+  border-radius: var(--hb-radius);
+  background: var(--hb-surface);
+  color: var(--hb-text-light);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+.wizard-band-card:hover:not(.disabled) {
+  border-color: rgba(var(--hb-primary-rgb), 0.45);
+  background: rgba(var(--hb-primary-rgb), 0.06);
+}
+.wizard-band-card.selected {
+  border-color: var(--hb-primary);
+  background: rgba(var(--hb-primary-rgb), 0.12);
+  box-shadow: 0 0 0 1px rgba(var(--hb-primary-rgb), 0.25);
+}
+.wizard-band-card.disabled {
+  opacity: 0.55;
+  cursor: wait;
+  pointer-events: none;
+}
+.wizard-band-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 2.25rem;
+  line-height: 1;
+  color: var(--hb-primary);
+}
+.wizard-band-badge {
+  position: absolute;
+  right: -0.35rem;
+  bottom: -0.15rem;
+  min-width: 1.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: var(--hb-primary);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.wizard-band-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hb-text-light);
+}
+.wizard-band-desc {
+  font-size: 0.82rem;
+}
+.wizard-step1-actions,
+.wizard-card .d-flex.justify-content-between,
+.wizard-card .d-flex.justify-content-end {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+/* Compatibilidad: indicador de pasos dentro de .setup-wizard-steps (por si se usa en otro sitio) */
+.setup-wizard-steps .step-indicator {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+}
+.setup-wizard-steps .step-dot {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.95rem;
+  background: rgba(255, 244, 235, 0.12);
+  border: 2px solid var(--hb-border);
+  color: var(--hb-text-muted);
+  transition: all 0.2s ease;
+}
+.setup-wizard-steps .step-dot.active {
+  background: var(--hb-primary);
+  border-color: var(--hb-primary);
+  color: #fff;
+}
+.setup-wizard-steps .step-line {
+  width: 40px; height: 2px;
+  background: var(--hb-border);
+}
+
+/* Wizard: cuadrícula de redes WiFi (tarjetas pequeñas y cuadradas) */
+.wizard-networks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.6rem;
+  flex: 1 1 auto;
+  min-height: 7rem;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.15rem;
+  margin-bottom: 0 !important;
+  align-content: start;
+}
+.wizard-networks-empty {
+  grid-column: 1 / -1;
+  padding: 1.5rem 0.75rem;
+  text-align: center;
+  margin: auto 0;
+}
+.wizard-network-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  padding: 0.4rem 0.35rem;
+  border: 1px solid var(--hb-border);
+  border-radius: var(--hb-radius);
+  background: var(--hb-surface);
+  color: var(--hb-text-light);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.08s ease;
+}
+.wizard-network-card:hover {
+  border-color: rgba(var(--hb-primary-rgb), 0.45);
+  background: rgba(var(--hb-primary-rgb), 0.08);
+}
+.wizard-network-card:active { transform: scale(0.97); }
+.wizard-network-card.selected {
+  border-color: var(--hb-primary);
+  background: rgba(var(--hb-primary-rgb), 0.14);
+  box-shadow: inset 0 0 0 1px var(--hb-primary);
+}
+.wizard-network-card.wizard-network-connected {
+  border-color: rgba(var(--hb-success-rgb, 34, 197, 94), 0.6);
+  background: rgba(var(--hb-success-rgb, 34, 197, 94), 0.08);
+}
+.wizard-network-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--hb-primary);
+}
+.wizard-network-ssid {
+  width: 100%;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wizard-network-dist {
+  width: 100%;
+  margin-top: 0.05rem;
+  font-size: 0.62rem;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--hb-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wizard-network-lock {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.35rem;
+  font-size: 0.65rem;
+  color: var(--hb-text-muted);
+  opacity: 0.85;
+}
+.wizard-network-check {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--hb-primary);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.wizard-network-card.selected .wizard-network-check {
+  opacity: 1;
+  transform: scale(1);
+}
+.wizard-toggle-password {
+  min-width: 44px;
+}
+
+/* Wizard paso WiFi: diseño simple y espacioso (móvil y escritorio) */
+.wizard-wifi-step .wizard-wifi-alerts {
+  flex-shrink: 0;
+}
+.wizard-wifi-step .wizard-wifi-alerts .alert {
+  margin-bottom: 0.75rem;
+}
+.wizard-wifi-step .wizard-wifi-card > .card-body {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+/* Cabecera de la lista de redes: título + botón refrescar */
+.wizard-wifi-step .wizard-wifi-list-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.wizard-wifi-step .wizard-wifi-list-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--hb-text-light);
+}
+.wizard-wifi-step .wizard-wifi-scan-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+/* Lista de redes: zona con scroll propio (barra lateral visible) que ocupa el espacio libre */
+.wizard-wifi-step .wizard-wifi-networks-grid {
+  flex: 1 1 auto;
+  min-height: 6rem;
+  max-height: none;
+  overflow-y: scroll;
+  margin-bottom: 0 !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hb-primary) rgba(127, 127, 127, 0.18);
+}
+.wizard-wifi-step .wizard-wifi-networks-grid::-webkit-scrollbar {
+  width: 10px;
+}
+.wizard-wifi-step .wizard-wifi-networks-grid::-webkit-scrollbar-track {
+  background: rgba(127, 127, 127, 0.18);
+  border-radius: 8px;
+}
+.wizard-wifi-step .wizard-wifi-networks-grid::-webkit-scrollbar-thumb {
+  background: var(--hb-primary);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+/* Formulario debajo de la lista: contraseña arriba y país/región debajo (apilados, sin divisor) */
+.wizard-wifi-step .wizard-wifi-form {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+.wizard-wifi-step .wizard-wifi-fields-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.wizard-wifi-step .wizard-wifi-field {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+/* País/región: campo pequeño y centrado, encima de la contraseña */
+.wizard-wifi-step .wizard-wifi-field-country {
+  max-width: 220px;
+}
+/* Contraseña centrada */
+.wizard-wifi-step #wizard-wifi-password-box.wizard-wifi-field {
+  max-width: 340px;
+}
+.wizard-wifi-step .wizard-wifi-field .form-label {
+  margin-bottom: 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-align: center;
+}
+.wizard-wifi-step .wizard-wifi-input {
+  font-size: 0.8rem;
+  min-height: 2.05rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.wizard-wifi-step .wizard-toggle-password {
+  min-height: 2.05rem;
+  min-width: 38px;
+}
+.wizard-wifi-step .wizard-wifi-note {
+  display: flex;
+  align-items: center;
+}
+/* Barra de acciones fija abajo: los tres botones en la misma línea (sin línea divisoria) */
+.wizard-wifi-step .wizard-wifi-actions {
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 1rem -1.25rem 0;
+  padding: 0.85rem 1.25rem;
+  padding-bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, var(--hb-surface) 72%, rgba(var(--hb-surface-rgb, 30, 30, 30), 0.95) 92%, transparent);
+  flex-wrap: nowrap !important;
+  align-items: center;
+}
+.wizard-wifi-step .wizard-wifi-action-btn {
+  min-height: 2.6rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.wizard-wifi-step .wizard-wifi-action-group {
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+/* Móvil vertical: filas grandes, botones a lo ancho */
+@media (max-width: 575.98px) {
+  .wizard-wifi-step .wizard-wifi-card > .card-body {
+    padding: 1rem;
+    padding-bottom: 0;
+  }
+  .wizard-wifi-step .wizard-wifi-networks-grid {
+    min-height: 8rem;
+  }
+  .wizard-wifi-step .wizard-wifi-banner-action {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-left: 0 !important;
+  }
+  .wizard-wifi-step .wizard-wifi-banner-action .btn {
+    width: 100%;
+  }
+  .wizard-wifi-step .wizard-wifi-actions {
+    margin: 1rem -1rem 0;
+    padding: 0.85rem 1rem;
+    padding-bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .wizard-wifi-step .wizard-wifi-action-group {
+    flex: 1 1 auto;
+    flex-direction: row !important;
+  }
+  .wizard-wifi-step .wizard-wifi-action-group .wizard-wifi-action-btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .wizard-wifi-step .wizard-wifi-actions > .wizard-wifi-action-btn {
+    flex: 0 0 auto;
+    min-width: 5.25rem;
+  }
+}
+
+/* Móvil horizontal: cabecera/desc compactas, lista más baja */
+@media (max-height: 520px) and (orientation: landscape), (max-width: 920px) and (max-height: 480px) {
+  .wizard-wifi-step .wizard-page-desc.wizard-wifi-desc {
+    display: none;
+  }
+  .wizard-wifi-step .wizard-wifi-hint-collapsible {
+    display: none;
+  }
+  .wizard-wifi-step .wizard-wifi-card > .card-body {
+    padding: 0.75rem 1rem;
+    padding-bottom: 0;
+  }
+  .wizard-wifi-step .wizard-wifi-list-header {
+    margin-bottom: 0.5rem;
+  }
+  .wizard-wifi-step .wizard-wifi-networks-grid {
+    min-height: 4rem;
+  }
+  .wizard-wifi-step .wizard-wifi-form {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    gap: 0.65rem;
+  }
+  .setup-wizard-header {
+    padding-bottom: 0.35rem;
+  }
+  .wizard-wifi-step .wizard-page-title {
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+  .wizard-wifi-step .wizard-wifi-actions {
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Wizard: responsive móvil y tablet (general) */
+@media (max-width: 575.98px) {
+  .setup-wizard-page {
+    padding-left: max(0.65rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
+  }
+  .setup-wizard-header .step-dot {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+  .setup-wizard-header .step-line {
+    min-width: 0.75rem;
+    max-width: 2.5rem;
+  }
+  .wizard-networks-grid {
+    gap: 0.45rem;
+    min-height: 6rem;
+  }
+  #wizard-current-wifi-banner .btn {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-left: 0 !important;
+  }
+  .wizard-step1-actions,
+  .wizard-card .d-flex.justify-content-between:not(.wizard-wifi-actions),
+  .wizard-card .d-flex.justify-content-end {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .wizard-step1-actions .d-flex,
+  .wizard-card .d-flex.gap-2:not(.wizard-wifi-action-group) {
+    flex-direction: column;
+    width: 100%;
+  }
+  .wizard-step1-actions .btn,
+  .wizard-card .d-flex.gap-2:not(.wizard-wifi-action-group) .btn {
+    width: 100%;
+  }
+  /* Paso 4 (seguridad): tarjetas VPN/WireGuard/Tor a ancho completo del móvil y centradas */
+  #wizard-security-cards {
+    justify-content: center;
+  }
+  #wizard-security-cards > [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  #wizard-security-cards .wizard-security-option {
+    width: 100%;
+  }
+  #wizard-security-cards .wizard-security-option .card-body {
+    padding: 1.5rem 1.25rem;
+  }
+}
+/* Tablet y ordenador: wizard a pantalla completa (sin columna estrecha centrada) */
+@media (min-width: 576px) {
+  .wizard-page-inner {
+    max-width: 100%;
+  }
+  .wizard-wifi-step .wizard-networks-grid {
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+    gap: 0.75rem;
+  }
+  /* Campos centrados aunque la tarjeta ocupe todo el ancho */
+  .wizard-wifi-step .wizard-wifi-fields-row {
+    width: 100%;
+  }
+  /* Botones del wizard (todos los pasos): centrados y en una sola fila */
+  .setup-wizard-pages .wizard-card .d-flex.justify-content-between,
+  .setup-wizard-pages .wizard-card .d-flex.justify-content-end,
+  .setup-wizard-pages .wizard-step1-actions {
+    justify-content: center !important;
+    align-items: center;
+    flex-wrap: nowrap !important;
+    gap: 0.75rem;
+  }
+  /* Aplana los grupos anidados (Omitir + acción) para que todo quede en la misma línea */
+  .setup-wizard-pages .wizard-card .d-flex.justify-content-between > .d-flex,
+  .setup-wizard-pages .wizard-step1-actions > .d-flex,
+  .wizard-wifi-step .wizard-wifi-action-group {
+    display: contents;
+  }
+  .setup-wizard-pages .wizard-card .d-flex.justify-content-between > .btn,
+  .setup-wizard-pages .wizard-card .d-flex.justify-content-between .btn,
+  .wizard-wifi-step .wizard-wifi-action-btn {
+    flex: 0 0 auto;
+    width: auto;
+  }
+}
+@media (min-height: 700px) {
+  .wizard-networks-grid {
+    min-height: 10rem;
+  }
+}
+@media (max-height: 600px) {
+  .setup-wizard-header {
+    padding-bottom: 0.35rem;
+  }
+  .wizard-page-desc {
+    margin-bottom: 0.5rem;
+  }
+  .wizard-networks-grid {
+    min-height: 5rem;
+  }
+}
+
+/* CSP: estilos que antes estaban inline en templates */
+html, body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.dashboard-container {
+  min-height: calc(100vh - 200px);
+}
+body {
+  transition: min-height 0.3s ease-out;
+}
+.sidebar-brand-logo { height: 32px; }
+.hb-hidden { display: none; }
+.status-card-compact { min-height: auto; }
+.progress-init { width: 0%; }
+.progress-thin { height: 8px; }
+.hb-fs-12 { font-size: 1.2rem; font-weight: 600; }
+.hb-minw-80 { min-width: 80px; }
+.hb-minw-90 { min-width: 90px; }
+.hb-minw-150 { min-width: 150px; }
+.hb-chart-h300 { position: relative; height: 300px; }
+.hb-w-100 { width: 100%; }
+.hb-bg-white-input { background-color: #ffffff !important; }
+.hb-icon-2rem { font-size: 2rem; }
+.hb-timezone-dropdown { display: none; max-height: 300px; overflow-y: auto; z-index: 1000; }
+.hb-icon-2rem { font-size: 2rem; }
+.hb-icon-3rem { font-size: 3rem; }
+.hb-icon-4rem { font-size: 4rem; }
+.hb-icon-4rem-dim { font-size: 4rem; opacity: 0.5; }
+.hb-error-card { max-width: 560px; margin: 0 auto; }
+.hb-sr-only-data { display: none; }
+.hb-eye-emoji { font-size: 18px; line-height: 1; }
+.hb-credential-notice { display: block; visibility: visible; min-height: 2.5rem; }
+.wizard-security-option { cursor: pointer; }
+.hb-badge-sm { font-size: 0.7rem; font-weight: normal; }
+.hb-maxw-200 { max-width: 200px; }
+.hb-chart-h400 { position: relative; height: 400px; min-height: 400px; }
+.hb-chart-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.hb-pre-scroll { max-height: 300px; overflow-y: auto; font-size: 0.85rem; }

@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Validate install.sh syntax
+        run: bash -n install.sh && for f in scripts/install/lib/*.sh; do bash -n "$f"; done
+
+      - name: Validate i18n keys
+        run: bash scripts/validate-i18n.sh
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: Go test
+        run: go test ./... -count=1 -timeout 10m
+
+      - name: Go build
+        env:
+          CGO_ENABLED: '0'
+        run: go build -trimpath -ldflags="-s -w" -o hostberry .
+
+  build-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Cross-compile linux/${{ matrix.goarch }}
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -trimpath -ldflags="-s -w" -o hostberry-linux-${{ matrix.goarch }} .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hostberry-linux-${{ matrix.goarch }}
+          path: hostberry-linux-${{ matrix.goarch }}

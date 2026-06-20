@@ -1,0 +1,14 @@
+/* HostBerry First Login - ajustes específicos
+   Se carga solo en `first_login` desde `base.html`.
+*/
+
+body.hb-page-first_login .login-container {
+  width: min(480px, 94vw);
+}
+
+body.hb-page-first_login .login-header p {
+  max-width: 44ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+

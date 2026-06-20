@@ -1,0 +1,53 @@
+server:
+  host: "0.0.0.0"  # Escuchar en todas las interfaces (permite acceso por IP de red)
+  # En LAN: https://hostberry.local (sin puerto si usas 443) con Avahi/mDNS (install.sh).
+  port: 8000
+  # Con TLS (mkcert): el instalador suele dejar HTTPS en 443 y redirección HTTP en 80 (sin :puerto en el navegador).
+  debug: false
+  read_timeout: 30
+  write_timeout: 30
+  # Opcional: listener HTTP que sólo redirige a HTTPS (puerto TLS = server.port).
+  # 0 = desactivado. Con mkcert el instalador suele poner 80.
+  http_redirect_port: 0
+  # Opcional: TLS integrado (HTTPS directo, sin proxy inverso).
+  # Vacío = sólo HTTP. install.sh puede generar certificados con mkcert en /opt/hostberry/certs/.
+  #tls_cert_file: "/opt/hostberry/certs/hostberry.pem"
+  #tls_key_file: "/opt/hostberry/certs/hostberry-key.pem"
+
+database:
+  type: "sqlite"  # sqlite, postgres, mysql
+  path: "data/hostberry.db"
+  # Para PostgreSQL/MySQL:
+  # host: "localhost"
+  # port: 5432
+  # user: "hostberry"
+  # password: "password"
+  # database: "hostberry"
+
+security:
+  # Obligatorio en producción: deja vacío para que la app genere uno aleatorio en arranque,
+  # o define aquí un secreto largo y único gestionado fuera del repositorio.
+  jwt_secret: ""
+  token_expiry: 30  # minutos (sesión admin; se renueva automáticamente cerca de expirar)
+  bcrypt_cost: 10
+  rate_limit_rps: 10
+  lockout_minutes: 15
+  # Con TLS (mkcert/install.sh): se activa automáticamente enforce_https.
+  enforce_https: true
+  # IPs/CIDRs de proxy inverso de confianza para X-Forwarded-Proto (127.0.0.1 y ::1 siempre).
+  # trusted_proxy_ips:
+  #   - "10.0.0.0/8"
+  # Opcional: token para API WiFi sin sesión (status/scan/connect/disconnect).
+  # Vacío = se genera uno aleatorio en cada arranque (aparece en los logs del servicio).
+  # Con valor fijo = mismo token hasta que cambies config (útil para scripts).
+  # Cabecera: X-HostBerry-WiFi-Setup-Token
+  # wifi_setup_token: ""
+  # Orígenes CORS adicionales con credenciales (además del mismo Host que la petición y localhost).
+  # cors_allow_origins:
+  #   - "https://tu-dominio-publico.tld"
+
+logging:
+  level: "info"  # debug, info, warn, error
+  file: "logs/hostberry.log"
+  max_size: 10  # MB
+  max_backups: 5

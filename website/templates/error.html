@@ -1,0 +1,17 @@
+<div class="dashboard-container dashboard-page">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="dashboard-title">{{ .Code }}</h1>
+            <p class="dashboard-subtitle">{{ call .t "errors.error_occurred" "An error occurred" }}</p>
+        </div>
+    </div>
+    <div class="card glass-card border-0 hb-error-card">
+        <div class="card-body text-center py-5 px-4">
+            <p class="text-muted mb-4">{{ .Message }}</p>
+            <a href="/dashboard" class="btn btn-primary">
+                <i class="bi bi-house me-2"></i>
+                {{ call .t "common.back" "Back to Dashboard" }}
+            </a>
+        </div>
+    </div>
+</div>

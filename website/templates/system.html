@@ -1,0 +1,277 @@
+<div class="system-page dashboard-page dashboard-container">
+    <div class="dashboard-header mb-4">
+        <div class="header-content">
+            <h1 class="dashboard-title">
+                <i class="bi bi-gear-wide-connected me-2"></i>
+                {{ call .t "system.title" "System Manager" }}
+            </h1>
+            <p class="dashboard-subtitle">{{ call .t "system.overview" "System overview and management" }}</p>
+            <div class="dashboard-time">
+                <i class="bi bi-clock me-1"></i>
+                <span id="system-last-update">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status Cards -->
+    <div class="row mb-4 status-cards-row">
+        <div class="col-12 col-md-6 col-lg-3 mb-5">
+            <div class="status-card cpu-card status-card-compact">
+                <div class="status-card-header">
+                    <div class="status-icon cpu-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <div class="status-info">
+                        <h6>{{ call .t "system.cpu_usage" "CPU Usage" }}</h6>
+                        <h3 id="system-cpu-percent">--%</h3>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar cpu-progress progress-init" id="system-cpu-progress"></div>
+                </div>
+                <div class="status-footer">
+                    <span class="status-text" id="system-cpu-status">
+                        <span class="badge bg-secondary">--</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3 mb-5">
+            <div class="status-card memory-card status-card-compact">
+                <div class="status-card-header">
+                    <div class="status-icon memory-icon">
+                        <i class="bi bi-memory"></i>
+                    </div>
+                    <div class="status-info">
+                        <h6>{{ call .t "system.memory_usage" "Memory Usage" }}</h6>
+                        <h3 id="system-memory-percent">--%</h3>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar memory-progress progress-init" id="system-memory-progress"></div>
+                </div>
+                <div class="status-footer">
+                    <span class="status-text" id="system-memory-status">
+                        <span class="badge bg-secondary">--</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3 mb-5">
+            <div class="status-card disk-card status-card-compact">
+                <div class="status-card-header">
+                    <div class="status-icon disk-icon">
+                        <i class="bi bi-hdd"></i>
+                    </div>
+                    <div class="status-info">
+                        <h6>{{ call .t "system.disk_usage" "Disk Usage" }}</h6>
+                        <h3 id="system-disk-percent">--%</h3>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar disk-progress progress-init" id="system-disk-progress"></div>
+                </div>
+                <div class="status-footer">
+                    <span class="status-text" id="system-disk-status">
+                        <span class="badge bg-secondary">--</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3 mb-5">
+            <div class="status-card temp-card status-card-compact">
+                <div class="status-card-header">
+                    <div class="status-icon temp-icon">
+                        <i class="bi bi-thermometer-half"></i>
+                    </div>
+                    <div class="status-info">
+                        <h6>{{ call .t "system.temperature" "Temperature" }}</h6>
+                        <h3 id="system-temperature">--°C</h3>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar temp-progress progress-init" id="system-temp-progress"></div>
+                </div>
+                <div class="status-footer">
+                    <span class="status-text" id="system-temp-status">
+                        <span class="badge bg-secondary">--</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information & Services -->
+    <div class="row mb-4">
+        <!-- System Information -->
+        <div class="col-12 mb-4">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2">
+                        <h5 class="info-card-title text-center d-flex justify-content-center align-items-center">
+                            <i class="bi bi-info-circle me-2"></i>
+                            {{ call .t "system.information" "System Information" }}
+                        </h5>
+                        <button class="btn btn-sm btn-outline-light" id="refreshSystemInfo">
+                            <i class="bi bi-arrow-clockwise me-1"></i>{{ call .t "common.refresh" "Refresh" }}
+                        </button>
+                    </div>
+                </div>
+                <div class="info-card-body">
+                    <div class="row" id="system-info-grid">
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
+                            <div class="info-item-grid">
+                                <span class="info-label d-block">{{ call .t "system.hostname" "Hostname" }}</span>
+                                <span class="info-value" id="info-hostname">--</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
+                            <div class="info-item-grid">
+                                <span class="info-label d-block">{{ call .t "system.os_version" "OS Version" }}</span>
+                                <span class="info-value" id="info-os-version">--</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
+                            <div class="info-item-grid">
+                                <span class="info-label d-block">{{ call .t "system.kernel_version" "Kernel Version" }}</span>
+                                <span class="info-value" id="info-kernel">--</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
+                            <div class="info-item-grid">
+                                <span class="info-label d-block">{{ call .t "system.architecture" "Architecture" }}</span>
+                                <span class="info-value" id="info-architecture">--</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
+                            <div class="info-item-grid">
+                                <span class="info-label d-block">{{ call .t "system.uptime" "Uptime" }}</span>
+                                <span class="info-value" id="info-uptime">--</span>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-12 mb-3">
+                            <div class="info-item-grid">
+                                <span class="info-label d-block">{{ call .t "system.cpu_cores" "CPU Cores" }}</span>
+                                <span class="info-value" id="info-cpu-cores">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Actions -->
+    <div class="row mb-4 justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6 mb-4">
+            <div class="actions-card">
+                <div class="actions-card-header">
+                    <h5 class="actions-card-title text-center d-flex justify-content-center align-items-center">
+                        <i class="bi bi-lightning me-2"></i>
+                        {{ call .t "system.actions" "System Actions" }}
+                    </h5>
+                </div>
+                <div class="actions-card-body">
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="action-backup" data-requires-admin="true" aria-label="{{ call .t "system.backup" "Backup" }}">
+                            <i class="bi bi-hdd-network me-2" aria-hidden="true"></i>
+                            {{ call .t "system.backup" "Backup" }}
+                        </button>
+                        <button class="btn btn-outline-primary" id="action-restore" data-requires-admin="true" aria-label="{{ call .t "system.restore" "Restore" }}">
+                            <i class="bi bi-arrow-counterclockwise me-2" aria-hidden="true"></i>
+                            {{ call .t "system.restore" "Restore" }}
+                        </button>
+                        <button class="btn btn-success" id="action-update-system" data-requires-admin="true" aria-label="{{ call .t "update.update_system" "Actualizar Debian" }}">
+                            <i class="bi bi-arrow-up-circle me-2" aria-hidden="true"></i>
+                            {{ call .t "update.update_system" "Actualizar Debian" }}
+                        </button>
+                        <button class="btn btn-info" id="action-update-project" data-requires-admin="true" aria-label="{{ call .t "update.update_project" "Actualizar HostBerry" }}">
+                            <i class="bi bi-code-slash me-2" aria-hidden="true"></i>
+                            {{ call .t "update.update_project" "Actualizar HostBerry" }}
+                        </button>
+                        <button class="btn btn-warning" id="action-restart" data-requires-admin="true" aria-label="{{ call .t "system.restart" "Restart" }}">
+                            <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>
+                            {{ call .t "system.restart" "Restart" }}
+                        </button>
+                        <button class="btn btn-danger" id="action-shutdown" data-requires-admin="true" aria-label="{{ call .t "system.shutdown" "Shutdown" }}">
+                            <i class="bi bi-power me-2" aria-hidden="true"></i>
+                            {{ call .t "system.shutdown" "Shutdown" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Management -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="services-card">
+                <div class="services-card-header">
+                    <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2">
+                        <h5 class="services-card-title text-center d-flex justify-content-center align-items-center">
+                            <i class="bi bi-server me-2"></i>
+                            {{ call .t "system.services" "Services" }}
+                        </h5>
+                        <button class="btn btn-sm btn-outline-light" id="refreshServices">
+                            <i class="bi bi-arrow-clockwise me-1"></i>{{ call .t "common.refresh" "Refresh" }}
+                        </button>
+                    </div>
+                </div>
+                <div class="services-card-body">
+                    <div id="services-list">
+                        <div class="text-center py-4 text-white-50">
+                            <i class="bi bi-arrow-clockwise spinning"></i>
+                            <p class="mb-0 mt-2">{{ call .t "system.loading_services" "Loading services..." }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Logs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="logs-card">
+                <div class="logs-card-header">
+                    <div class="d-flex flex-column flex-md-row justify-content-center align-items-center flex-wrap gap-3">
+                        <div class="text-center">
+                            <h5 class="logs-card-title text-center d-flex justify-content-center align-items-center">
+                                <i class="bi bi-journal-text me-2"></i>
+                                {{ call .t "system.logs" "System Logs" }}
+                            </h5>
+                            <p class="text-white-50 mb-0 small">{{ call .t "system.logs_caption" "Recent system events and logs" }}</p>
+                        </div>
+                        <div class="d-flex justify-content-center align-items-center gap-2">
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary" id="logLevel">
+                                <option value="all">{{ call .t "system.logs_all" "All" }}</option>
+                                <option value="info">{{ call .t "system.logs_info" "Info" }}</option>
+                                <option value="warning">{{ call .t "system.logs_warning" "Warning" }}</option>
+                                <option value="error">{{ call .t "system.logs_error" "Error" }}</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-light" id="refreshLogs">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="logs-card-body">
+                    <div class="logs-container" id="system-logs">
+                        <div class="text-center py-4 text-white-50">
+                            <i class="bi bi-arrow-clockwise spinning"></i>
+                            <p class="mb-0 mt-2">{{ call .t "system.loading_logs" "Loading logs..." }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer src="/static/js/system.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
+
+

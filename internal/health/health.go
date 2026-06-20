@@ -1,0 +1,190 @@
+package health
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"runtime"
+	"strings"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"hostberry/internal/constants"
+	"hostberry/internal/database"
+	"hostberry/internal/i18n"
+	"hostberry/internal/metrics"
+)
+
+func HealthCheckHandler(c *fiber.Ctx) error {
+	status := "healthy"
+
+	if database.DB != nil {
+		sqlDB, err := database.DB.DB()
+		if err == nil {
+			if err := sqlDB.Ping(); err != nil {
+				status = "degraded"
+			}
+		} else {
+			status = "degraded"
+		}
+	} else {
+		status = "degraded"
+	}
+
+	if !i18n.Ready() {
+		status = "degraded"
+	}
+
+	c.Set(fiber.HeaderCacheControl, "no-store")
+	statusCode := 200
+	if status == "degraded" {
+		statusCode = 503
+	}
+
+	return c.Status(statusCode).JSON(fiber.Map{
+		"status": status,
+	})
+}
+
+func ReadinessCheckHandler(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderCacheControl, "no-store")
+	if database.DB == nil {
+		return c.Status(503).JSON(fiber.Map{
+			"status": "not_ready",
+		})
+	}
+
+	sqlDB, err := database.DB.DB()
+	if err != nil {
+		return c.Status(503).JSON(fiber.Map{
+			"status": "not_ready",
+		})
+	}
+
+	if err := sqlDB.Ping(); err != nil {
+		return c.Status(503).JSON(fiber.Map{
+			"status": "not_ready",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "ready",
+	})
+}
+
+func LivenessCheckHandler(c *fiber.Ctx) error {
+	c.Set(fiber.HeaderCacheControl, "no-store")
+	return c.JSON(fiber.Map{
+		"status": "alive",
+	})
+}
+
+// metricsHandler expone métricas sencillas en texto plano (formato tipo Prometheus).
+// Está pensado para ser consumido por Prometheus o por scripts de monitoreo.
+func MetricsHandler(c *fiber.Ctx) error {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	now := time.Now().Unix()
+
+	req2xx := metrics.Load2xx()
+	req4xx := metrics.Load4xx()
+	req5xx := metrics.Load5xx()
+
+	hostapdUp := serviceIsActive("hostapd")
+	dnsmasqUp := serviceIsActive("dnsmasq")
+	wifiIfaceUp := wifiInterfaceUp()
+
+	body := "" +
+		"# HELP hostberry_up 1 si la aplicación está respondiendo.\n" +
+		"# TYPE hostberry_up gauge\n" +
+		"hostberry_up 1\n\n" +
+		"# HELP hostberry_build_info Información básica de la build (versión estática y runtime).\n" +
+		"# TYPE hostberry_build_info gauge\n" +
+		"hostberry_build_info{version=\"" + constants.Version + "\",go_version=\"" + runtime.Version() + "\"} 1\n\n" +
+		"# HELP hostberry_mem_bytes Uso de memoria total reportado por Go (bytes).\n" +
+		"# TYPE hostberry_mem_bytes gauge\n" +
+		"hostberry_mem_bytes " + fmt.Sprintf("%d", m.Alloc) + "\n\n" +
+		"# HELP hostberry_goroutines Número de goroutines actuales.\n" +
+		"# TYPE hostberry_goroutines gauge\n" +
+		"hostberry_goroutines " + fmt.Sprintf("%d", runtime.NumGoroutine()) + "\n\n" +
+		"# HELP hostberry_unix_time_seconds Marca de tiempo UNIX del último scrape.\n" +
+		"# TYPE hostberry_unix_time_seconds gauge\n" +
+		"hostberry_unix_time_seconds " + fmt.Sprintf("%d", now) + "\n\n" +
+		"# HELP hostberry_http_requests_total Número total de peticiones HTTP por clase de código.\n" +
+		"# TYPE hostberry_http_requests_total counter\n" +
+		"hostberry_http_requests_total{code_class=\"2xx\"} " + fmt.Sprintf("%d", req2xx) + "\n" +
+		"hostberry_http_requests_total{code_class=\"4xx\"} " + fmt.Sprintf("%d", req4xx) + "\n" +
+		"hostberry_http_requests_total{code_class=\"5xx\"} " + fmt.Sprintf("%d", req5xx) + "\n\n" +
+		"# HELP hostberry_service_up Estado de servicios del sistema (1=activo, 0=no activo).\n" +
+		"# TYPE hostberry_service_up gauge\n" +
+		"hostberry_service_up{service=\"hostapd\"} " + fmt.Sprintf("%d", hostapdUp) + "\n" +
+		"hostberry_service_up{service=\"dnsmasq\"} " + fmt.Sprintf("%d", dnsmasqUp) + "\n\n" +
+		"# HELP hostberry_wifi_interface_up Indica si la interfaz WiFi principal está activa (1=UP,0=no).\n" +
+		"# TYPE hostberry_wifi_interface_up gauge\n" +
+		"hostberry_wifi_interface_up{interface=\"" + constants.DefaultWiFiInterface + "\"} " + fmt.Sprintf("%d", wifiIfaceUp) + "\n"
+
+	c.Set(fiber.HeaderContentType, "text/plain; charset=utf-8")
+	return c.SendString(body)
+}
+
+// metricsSummaryHandler devuelve un resumen JSON de las métricas para uso interno del panel.
+func MetricsSummaryHandler(c *fiber.Ctx) error {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	req2xx := metrics.Load2xx()
+	req4xx := metrics.Load4xx()
+	req5xx := metrics.Load5xx()
+
+	hostapdUp := serviceIsActive("hostapd")
+	dnsmasqUp := serviceIsActive("dnsmasq")
+	wifiIfaceUp := wifiInterfaceUp()
+
+	return c.JSON(fiber.Map{
+		"up":         true,
+		"version":    constants.Version,
+		"go_version": runtime.Version(),
+		"unix_time":  time.Now().Unix(),
+		"mem_bytes":  m.Alloc,
+		"goroutines": runtime.NumGoroutine(),
+		"http_2xx":   req2xx,
+		"http_4xx":   req4xx,
+		"http_5xx":   req5xx,
+		"hostapd_up": hostapdUp == 1,
+		"dnsmasq_up": dnsmasqUp == 1,
+		"wifi_iface": constants.DefaultWiFiInterface,
+		"wifi_up":    wifiIfaceUp == 1,
+	})
+}
+
+// serviceIsActive devuelve 1 si systemd reporta el servicio como "active", 0 en caso contrario.
+func serviceIsActive(name string) int {
+	cmd := exec.Command("systemctl", "is-active", name)
+	out, err := cmd.Output()
+	if err != nil {
+		return 0
+	}
+	state := strings.TrimSpace(string(out))
+	if state == "active" {
+		return 1
+	}
+	return 0
+}
+
+// wifiInterfaceUp devuelve 1 si la interfaz WiFi principal está UP, 0 en caso contrario.
+func wifiInterfaceUp() int {
+	if constants.DefaultWiFiInterface == "" {
+		return 0
+	}
+	if state, err := os.ReadFile("/sys/class/net/" + constants.DefaultWiFiInterface + "/operstate"); err == nil {
+		if strings.EqualFold(strings.TrimSpace(string(state)), "up") {
+			return 1
+		}
+	}
+	out, err := exec.Command("ip", "link", "show", constants.DefaultWiFiInterface).Output()
+	if err == nil && strings.Contains(strings.ToUpper(string(out)), "STATE UP") {
+		return 1
+	}
+	return 0
+}

@@ -1,0 +1,48 @@
+### HostBerry – ficheros que NO deben ir a Git
+
+## Configuración sensible
+# Archivo real de configuración (usar solo config.yaml.example en el repo)
+config.yaml
+
+# Cualquier otra variante local
+config.local.yaml
+config.*.local.yaml
+
+## Datos y bases de datos
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+## Logs y temporales
+logs/
+*.log
+*.tmp
+*.bak
+
+## Binarios y artefactos de compilación
+hostberry
+hostberry-*
+*.exe
+*.out
+
+## Archivos de instalación / sistema (no deberían copiarse al repo)
+/opt/
+
+## Dependencias / herramientas externas (si las generas localmente)
+node_modules/
+vendor/
+
+## Archivos de editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.#*
+
+## Otros comunes
+coverage/
+dist/
+build/
+

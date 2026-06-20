@@ -1,0 +1,230 @@
+<div class="setup-wizard-page">
+    <div class="setup-wizard-header">
+        <div class="step-indicator d-flex justify-content-center align-items-center">
+            <div class="step-dot active" data-step="1" title="{{ call .t "setup_wizard.step_band_title" "Elegir banda WiFi" }}">1</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="2" title="{{ call .t "setup_wizard.step_wifi_title" "Conectar a tu WiFi" }}">2</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="3" title="{{ call .t "setup_wizard.step_hostapd_title" "Configurar red Hostberry" }}">3</div>
+            <div class="step-line"></div>
+            <div class="step-dot" data-step="4" title="{{ call .t "setup_wizard.step_account_short" "Credenciales" }}">4</div>
+        </div>
+    </div>
+
+    <div class="setup-wizard-pages">
+        <!-- Página 1: Elegir banda WiFi (2.4 / 5 GHz) -->
+        <div class="setup-wizard-page-content setup-step" id="step1" data-step="1">
+            <div class="wizard-page-inner">
+                <h2 class="wizard-page-title">
+                    <i class="bi bi-router me-2"></i>
+                    {{ call .t "setup_wizard.step_band_title" "Elegir banda WiFi" }}
+                </h2>
+                <p class="wizard-page-desc text-muted">{{ call .t "setup_wizard.step_band_desc" "Selecciona la banda WiFi que quieres usar. Luego buscaremos las redes de esa frecuencia." }}</p>
+                <div class="card glass-card wizard-card">
+                    <div class="card-body">
+                        <div id="wizard-band-selector">
+                            <div class="row g-3 wizard-band-grid" role="group" aria-label="{{ call .t "setup_wizard.band_select_label" "¿A qué banda WiFi quieres conectarte?" }}">
+                                <div class="col-6">
+                                    <div class="wizard-band-card h-100" data-band="2.4" role="button" tabindex="0" aria-pressed="false">
+                                        <div class="wizard-band-icon" aria-hidden="true">
+                                            <i class="bi bi-wifi"></i>
+                                            <span class="wizard-band-badge">2.4</span>
+                                        </div>
+                                        <h6 class="wizard-band-title mb-1">{{ call .t "setup_wizard.band_24_title" "2.4 GHz" }}</h6>
+                                        <p class="wizard-band-desc small text-muted mb-0">{{ call .t "setup_wizard.band_24_desc" "Más alcance" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="wizard-band-card h-100" data-band="5" role="button" tabindex="0" aria-pressed="false">
+                                        <div class="wizard-band-icon" aria-hidden="true">
+                                            <i class="bi bi-wifi"></i>
+                                            <span class="wizard-band-badge">5</span>
+                                        </div>
+                                        <h6 class="wizard-band-title mb-1">{{ call .t "setup_wizard.band_5_title" "5 GHz" }}</h6>
+                                        <p class="wizard-band-desc small text-muted mb-0">{{ call .t "setup_wizard.band_5_desc" "Más velocidad" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-muted small mt-3 mb-0">{{ call .t "setup_wizard.band_select_help" "Durante la configuración el AP usa 2.4 GHz para que no se corte tu conexión. La banda elegida se aplicará al reiniciar al final del asistente." }}</p>
+                        </div>
+                        <div class="wizard-step1-actions d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-sm btn-primary text-nowrap" id="wizard-band-next" disabled>
+                                <span class="btn-text">{{ call .t "setup_wizard.next" "Siguiente" }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página 2: Conectar WiFi (búsqueda según banda elegida) -->
+        <div class="setup-wizard-page-content setup-step wizard-wifi-step d-none" id="step2" data-step="2">
+            <div class="wizard-page-inner">
+                <h2 class="wizard-page-title">
+                    <i class="bi bi-wifi me-2"></i>
+                    {{ call .t "setup_wizard.step_wifi_title" "Conectar a tu WiFi" }}
+                </h2>
+                <div class="card glass-card wizard-card wizard-wifi-card">
+                    <div class="card-body">
+                        <div class="wizard-wifi-list-header">
+                            <span class="wizard-wifi-list-title">
+                                <i class="bi bi-broadcast me-2"></i>{{ call .t "setup_wizard.available_networks" "Redes disponibles" }}
+                            </span>
+                            <button type="button" class="btn btn-sm btn-outline-primary wizard-wifi-scan-btn" id="wizard-scan-btn">
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+                                {{ call .t "setup_wizard.scan_networks" "Buscar redes" }}
+                            </button>
+                        </div>
+                        <div id="wizard-networks-grid" class="wizard-networks-grid wizard-wifi-networks-grid"></div>
+                        <div class="wizard-wifi-form">
+                            <div class="wizard-wifi-fields-row">
+                            <div class="wizard-wifi-field wizard-wifi-field-country">
+                                <label class="form-label" for="wizard-country">{{ call .t "setup_wizard.country_label" "País / región" }}</label>
+                                <select class="form-select wizard-wifi-input" id="wizard-country">
+                                    <option value="ES">España (ES)</option>
+                                    <option value="US">United States (US)</option>
+                                    <option value="GB">United Kingdom (GB)</option>
+                                    <option value="FR">France (FR)</option>
+                                    <option value="DE">Deutschland (DE)</option>
+                                    <option value="IT">Italia (IT)</option>
+                                    <option value="PT">Portugal (PT)</option>
+                                    <option value="NL">Nederland (NL)</option>
+                                    <option value="BE">Belgique (BE)</option>
+                                    <option value="IE">Ireland (IE)</option>
+                                    <option value="CH">Switzerland (CH)</option>
+                                    <option value="MX">México (MX)</option>
+                                    <option value="AR">Argentina (AR)</option>
+                                    <option value="CL">Chile (CL)</option>
+                                    <option value="CO">Colombia (CO)</option>
+                                    <option value="BR">Brasil (BR)</option>
+                                    <option value="CA">Canada (CA)</option>
+                                    <option value="AU">Australia (AU)</option>
+                                </select>
+                            </div>
+                            <div id="wizard-wifi-password-box" class="wizard-wifi-field d-none">
+                                <label class="form-label" for="wizard-wifi-password">{{ call .t "setup_wizard.password" "Contraseña" }}</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control wizard-wifi-input" id="wizard-wifi-password" placeholder="" autocomplete="off" inputmode="text">
+                                    <button type="button" class="btn btn-outline-secondary wizard-toggle-password" id="wizard-wifi-toggle-pwd" title="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}" aria-label="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="wizard-wifi-actions d-flex justify-content-between flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary wizard-wifi-action-btn" id="wizard-back-2">{{ call .t "setup_wizard.back" "Atrás" }}</button>
+                            <div class="d-flex flex-nowrap gap-2 wizard-wifi-action-group">
+                                <button type="button" class="btn btn-outline-secondary wizard-skip-btn wizard-wifi-action-btn">{{ call .t "setup_wizard.skip_step" "Omitir" }}</button>
+                                <button type="button" class="btn btn-primary wizard-wifi-action-btn" id="wizard-connect-btn">
+                                    <span class="btn-text">{{ call .t "setup_wizard.connect_continue" "Comprobar y continuar" }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página 3: Configurar hostapd (SSID único según banda) -->
+        <div class="setup-wizard-page-content setup-step d-none" id="step3" data-step="3">
+            <div class="wizard-page-inner">
+                <h2 class="wizard-page-title">
+                    <i class="bi bi-broadcast me-2"></i>
+                    {{ call .t "setup_wizard.step_hostapd_title" "Configurar red Hostberry" }}
+                </h2>
+                <p class="wizard-page-desc text-muted">{{ call .t "setup_wizard.step_hostapd_desc" "Define el nombre (SSID) y la contraseña de la red que emitirá tu HostBerry (portal cautivo)." }}</p>
+                <div class="card glass-card wizard-card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="wizard-ap-ssid">{{ call .t "setup_wizard.ssid_name" "Nombre de la red (SSID)" }}</label>
+                            <input type="text" class="form-control" id="wizard-ap-ssid" value="hostberry" placeholder="hostberry" maxlength="32">
+                            <div class="form-text" id="wizard-ap-ssid-help">{{ call .t "setup_wizard.ssid_24_help" "Red 2.4 GHz (hostberry)" }}</div>
+                        </div>
+                        <div id="wizard-ap-channel-note" class="alert alert-info small py-2 d-none" role="note">
+                            <i class="bi bi-broadcast-pin me-2"></i><span></span>
+                        </div>
+                        <div class="mb-3">
+                            <div id="wizard-ap-password-box">
+                                <label class="form-label" for="wizard-ap-password">{{ call .t "setup_wizard.ap_password" "Contraseña del punto de acceso" }}</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="wizard-ap-password" placeholder="{{ call .t "setup_wizard.ap_password_placeholder" "Mín. 8 caracteres (WPA2/WPA3)" }}" minlength="8" maxlength="63" autocomplete="off" required>
+                                    <button type="button" class="btn btn-outline-secondary wizard-toggle-password" id="wizard-ap-toggle-pwd" title="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}" aria-label="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">{{ call .t "setup_wizard.ap_password_help" "Obligatoria: entre 8 y 63 caracteres. Estándar WiFi WPA2/WPA3." }}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4 flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-secondary" id="wizard-back-3">{{ call .t "setup_wizard.back" "Atrás" }}</button>
+                            <button type="button" class="btn btn-primary" id="wizard-next-3">
+                                <span class="btn-text">{{ call .t "setup_wizard.next" "Siguiente" }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página 4: Cambiar credenciales por defecto (first-login con estética del asistente) -->
+        <div class="setup-wizard-page-content setup-step d-none" id="step4" data-step="4">
+            <div class="wizard-page-inner">
+                <h2 class="wizard-page-title">
+                    <i class="bi bi-person-lock me-2"></i>
+                    {{ call .t "setup_wizard.step_account_title" "Tus credenciales de acceso" }}
+                </h2>
+                <p class="wizard-page-desc text-muted">{{ call .t "setup_wizard.step_account_desc" "Crea tu usuario y contraseña para administrar el HostBerry. Sustituyen a las credenciales por defecto (admin/admin)." }}</p>
+                <div class="card glass-card wizard-card">
+                    <div class="card-body">
+                        <form id="wizard-account-form" novalidate>
+                            <div class="mb-3">
+                                <label class="form-label" for="wizard-acc-username">
+                                    <i class="bi bi-person me-1"></i>{{ call .t "auth.new_username" "Nuevo usuario" }}
+                                </label>
+                                <input type="text" class="form-control" id="wizard-acc-username" name="new_username" value="admin" required minlength="3" maxlength="50" autocomplete="username" placeholder="{{ call .t "auth.new_username" "Nuevo usuario" }}">
+                                <div class="form-text">{{ call .t "setup_wizard.acc_username_help" "Entre 3 y 50 caracteres: letras, números y guiones bajos." }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="wizard-acc-password">
+                                    <i class="bi bi-lock me-1"></i>{{ call .t "auth.new_password" "Nueva contraseña" }}
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="wizard-acc-password" name="new_password" required minlength="8" maxlength="100" autocomplete="new-password" placeholder="{{ call .t "auth.new_password" "Nueva contraseña" }}">
+                                    <button type="button" class="btn btn-outline-secondary wizard-toggle-password" id="wizard-acc-toggle-pwd" title="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}" aria-label="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">{{ call .t "setup_wizard.acc_password_help" "Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial." }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="wizard-acc-password2">
+                                    <i class="bi bi-lock-fill me-1"></i>{{ call .t "auth.confirm_password" "Confirmar contraseña" }}
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="wizard-acc-password2" name="confirm_password" required minlength="8" maxlength="100" autocomplete="new-password" placeholder="{{ call .t "auth.confirm_password" "Confirmar contraseña" }}">
+                                    <button type="button" class="btn btn-outline-secondary wizard-toggle-password" id="wizard-acc-toggle-pwd2" title="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}" aria-label="{{ call .t "setup_wizard.show_password" "Ver contraseña" }}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="alert alert-info small py-2 mb-0" role="note">
+                                <i class="bi bi-info-circle me-2"></i>{{ call .t "setup_wizard.acc_finish_note" "Al finalizar, el equipo se reiniciará para aplicar la red WiFi elegida. Vuelve a conectarte en un minuto con tus nuevas credenciales." }}
+                            </div>
+                            <div class="d-flex justify-content-between mt-4 flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-secondary" id="wizard-back-4">{{ call .t "setup_wizard.back" "Atrás" }}</button>
+                                <button type="submit" class="btn btn-success" id="wizard-account-submit">
+                                    <span class="btn-text">{{ call .t "setup_wizard.finish_wizard" "Finalizar" }}</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script defer src="/static/js/setup_wizard.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
+<script defer src="/static/js/setup_wizard_finish.js{{ if .last_update }}?v={{ .last_update }}{{ end }}"></script>
