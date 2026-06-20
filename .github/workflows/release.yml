@@ -15,10 +15,28 @@ jobs:
         include:
           - goos: linux
             goarch: amd64
+            goarm: ''
             asset: hostberry-linux-amd64
           - goos: linux
             goarch: arm64
+            goarm: ''
             asset: hostberry-linux-arm64
+          - goos: linux
+            goarch: arm
+            goarm: '7'
+            asset: hostberry-linux-armv7
+          - goos: linux
+            goarch: arm
+            goarm: '6'
+            asset: hostberry-linux-armv6
+          - goos: linux
+            goarch: '386'
+            goarm: ''
+            asset: hostberry-linux-386
+          - goos: linux
+            goarch: riscv64
+            goarm: ''
+            asset: hostberry-linux-riscv64
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,9 +50,10 @@ jobs:
           CGO_ENABLED: '0'
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
         run: |
           go build -trimpath -ldflags="-s -w" -o "${{ matrix.asset }}" .
-          sha256sum "${{ matrix.asset }}" > "${{ matrix.asset }}.sha256"
+          sha256sum "${{ matrix.asset }}" | awk '{print $1}' > "${{ matrix.asset }}.sha256"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -52,6 +71,16 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+
+      - name: Generar SHA256SUMS combinado (verificacion manual)
+        working-directory: dist
+        run: |
+          : > SHA256SUMS
+          for f in hostberry-linux-*; do
+            case "$f" in *.sha256) continue ;; esac
+            printf '%s  %s\n' "$(sha256sum "$f" | awk '{print $1}')" "$f" >> SHA256SUMS
+          done
+          cat SHA256SUMS
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
