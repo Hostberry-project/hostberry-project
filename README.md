@@ -6,7 +6,7 @@
 
 **Convierte tu Raspberry Pi (o cualquier Linux) en un router WiFi + pasarela de privacidad, gestionado desde el navegador.**
 
-[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 
 **🌐 [English](#-english)  ·  [Español](#-español)**
 
@@ -80,7 +80,7 @@ Updates keep a backup of the previous version and roll back automatically if the
 
 ### 📄 License
 
-**PolyForm Noncommercial 1.0.0** — free to use, study, modify and share **for non-commercial purposes**. **You may NOT sell it or use it commercially.** You must keep the author's copyright notice. See [LICENSE](LICENSE).
+**GNU General Public License v3.0 (GPL-3.0)** — free software: you can use, study, modify and share it. If you distribute it (modified or not), you **must** keep it open and release your source under the same GPL-3.0 license, preserving the original copyright notices. See [LICENSE](LICENSE).
 
 ### ✍️ Author
 
@@ -142,7 +142,7 @@ Las actualizaciones guardan una copia de la versión anterior y la restauran aut
 
 ### 📄 Licencia
 
-**PolyForm Noncommercial 1.0.0** — libre para usar, estudiar, modificar y compartir **con fines no comerciales**. **NO se puede vender ni usar comercialmente.** Hay que mantener el aviso de copyright del autor. Ver [LICENSE](LICENSE).
+**Licencia Pública General de GNU v3.0 (GPL-3.0)** — software libre: puedes usarlo, estudiarlo, modificarlo y compartirlo. Si lo distribuyes (modificado o no), **debes** mantenerlo abierto y publicar tu código fuente bajo la misma licencia GPL-3.0, conservando los avisos de copyright originales. Ver [LICENSE](LICENSE).
 
 ### ✍️ Autoría
 
