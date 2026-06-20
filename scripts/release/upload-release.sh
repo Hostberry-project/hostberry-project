@@ -38,7 +38,9 @@ default_tag() {
 
 TAG="${1:-$(default_tag)}"
 TARGET="main"   # commit/rama sobre la que se crea la etiqueta si no existe
-BIN_ASSETS=("hostberry-linux-amd64" "hostberry-linux-arm64")
+
+# Arquitecturas soportadas (deben coincidir con build-binaries.sh / release_binary.sh).
+KNOWN_ARCHES=(amd64 arm64 armv7 armv6 386 riscv64)
 
 : "${GITHUB_TOKEN:?Define GITHUB_TOKEN con tu token de GitHub}"
 
@@ -46,10 +48,14 @@ API="https://api.github.com/repos/$REPO"
 UPLOADS="https://uploads.github.com/repos/$REPO"
 AUTH=(-H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json")
 
-echo ">> Comprobando binarios en $DIR"
-for a in "${BIN_ASSETS[@]}"; do
-  [ -f "$DIR/$a" ] || { echo "ERROR: falta $DIR/$a (compila los binarios primero)"; exit 1; }
+# Sube los binarios que realmente existan en dist/ (los que hayas compilado).
+echo ">> Buscando binarios en $DIR"
+BIN_ASSETS=()
+for arch in "${KNOWN_ARCHES[@]}"; do
+  [ -f "$DIR/hostberry-linux-$arch" ] && BIN_ASSETS+=("hostberry-linux-$arch")
 done
+[ "${#BIN_ASSETS[@]}" -gt 0 ] || { echo "ERROR: no hay binarios hostberry-linux-* en $DIR (ejecuta build-binaries.sh primero)"; exit 1; }
+echo "   Encontrados: ${BIN_ASSETS[*]}"
 
 # Genera un .sha256 por binario (nombre exacto que descarga release_binary.sh)
 # y un SHA256SUMS combinado para verificación manual.
@@ -68,12 +74,14 @@ for a in "${BIN_ASSETS[@]}"; do ASSETS+=("$a.sha256"); done
 ASSETS+=("SHA256SUMS")
 
 echo ">> Creando release $TAG en $REPO"
+BIN_LIST=""
+for a in "${BIN_ASSETS[@]}"; do BIN_LIST+="- $a (+ .sha256)\\n"; done
 BODY=$(cat <<EOF
 {
   "tag_name": "$TAG",
   "target_commitish": "$TARGET",
   "name": "$TAG",
-  "body": "Binarios precompilados (linux estáticos, sin dependencias).\\n\\n- hostberry-linux-amd64 (+ .sha256)\\n- hostberry-linux-arm64 (+ .sha256)\\n\\nEl instalador (install.sh / --update) descarga el binario según arquitectura y verifica el .sha256. Verificación manual: sha256sum -c SHA256SUMS",
+  "body": "Binarios precompilados (linux estáticos, sin dependencias).\\n\\n${BIN_LIST}\\nEl instalador (install.sh / --update) descarga el binario según arquitectura y verifica el .sha256. Verificación manual: sha256sum -c SHA256SUMS",
   "draft": false,
   "prerelease": false
 }

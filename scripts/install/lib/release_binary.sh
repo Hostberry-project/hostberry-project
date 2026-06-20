@@ -7,9 +7,13 @@ hostberry_detect_arch() {
     local machine
     machine="$(uname -m 2>/dev/null || echo unknown)"
     case "$machine" in
-        aarch64|arm64) echo "arm64" ;;
-        x86_64|amd64)  echo "amd64" ;;
-        *)             echo "unknown" ;;
+        aarch64|arm64)             echo "arm64" ;;   # Pi 3/4/5 y Zero 2 con OS de 64 bits, PC ARM64
+        x86_64|amd64)              echo "amd64" ;;   # PC/servidor x86 de 64 bits
+        armv7l|armv7|armv8l|armhf) echo "armv7" ;;   # Pi 2/3/4 con OS de 32 bits
+        armv6l|armv6)              echo "armv6" ;;   # Pi 1 / Pi Zero (32 bits)
+        i386|i486|i586|i686|x86)   echo "386" ;;     # PC x86 de 32 bits
+        riscv64)                   echo "riscv64" ;; # placas RISC-V de 64 bits
+        *)                         echo "unknown" ;;
     esac
 }
 
