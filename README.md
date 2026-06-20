@@ -1,15 +1,59 @@
-# HostBerry
+<div align="center">
 
-Panel de administración para Raspberry Pi y Linux: WiFi, red, VPN, hostapd, AdBlock, Tor y sistema.
+# 🍓 HostBerry
 
-## Requisitos
+**Turn your Raspberry Pi (or any Linux box) into a WiFi router + privacy gateway, managed from your browser.**
 
-- **SO:** Debian 12+, Ubuntu 22+, Raspberry Pi OS (64-bit recomendado)
-- **Go:** ≥ 1.23 (el instalador lo instala vía `apt`)
-- **Hardware:** Raspberry Pi 3/4/5 o PC Linux con WiFi (opcional)
-- **Privilegios:** `sudo` para instalación
+**Convierte tu Raspberry Pi (o cualquier Linux) en un router WiFi + pasarela de privacidad, gestionado desde el navegador.**
 
-## Instalación rápida
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue.svg)](LICENSE)
+
+**🌐 [English](#-english)  ·  [Español](#-español)**
+
+</div>
+
+---
+
+## 📸 Screenshots / Capturas
+
+> Add your images to `docs/screenshots/` · Añade tus imágenes en `docs/screenshots/`
+
+| Dashboard | Setup Wizard / Asistente |
+|:---:|:---:|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Wizard](docs/screenshots/wizard.png) |
+| **WiFi** | **VPN** |
+| ![WiFi](docs/screenshots/wifi.png) | ![VPN](docs/screenshots/vpn.png) |
+
+---
+
+## 🇬🇧 English
+
+### What is HostBerry?
+
+HostBerry runs on your Raspberry Pi and gives you a simple web panel to:
+
+- 📶 **Share internet** — your Pi becomes a WiFi access point (AP) while also connecting to another WiFi or cable.
+- 🛡️ **Block ads** network-wide (Blocky DNS).
+- 🔒 **VPN** — OpenVPN and WireGuard.
+- 🧅 **Tor** routing.
+- 🔥 **Firewall** with easy rules.
+- 📊 **Monitor** system, network and run speed tests.
+
+Everything from a clean, secure (HTTPS) web page. No command line needed after install.
+
+### ✅ Supported devices
+
+| Device | Works? |
+|---|---|
+| Raspberry Pi 3 / 4 / 5 (64-bit OS) | ✅ |
+| Raspberry Pi 2 / 3 / 4 (32-bit OS) | ✅ |
+| Raspberry Pi 1 / Pi Zero | ✅ |
+| Regular PC / server (x86) | ✅ |
+| RISC-V boards | ✅ |
+
+The installer **auto-detects your device** and downloads the right ready-made program. If there is none, it builds it for you.
+
+### 🚀 Install (1 command)
 
 ```bash
 git clone https://github.com/Hostberry-project/hostberry-project.git
@@ -17,130 +61,95 @@ cd hostberry-project
 sudo ./install.sh
 ```
 
-Para acortar la instalación (omite VPN, Blocky y LibreSpeed; usa binario precompilado si hay release):
+That's it. When it finishes (it may reboot once), open the panel:
+
+1. Go to **`https://hostberry.local`** (or `https://<your-Pi-IP>`).
+2. Your first password is in **`/opt/hostberry/INSTALL_CREDENTIALS.txt`**.
+3. Log in as **`admin`** and follow the setup wizard.
+
+> 💡 Faster install (skips VPN/ad-blocker extras): `HOSTBERRY_FAST_INSTALL=1 sudo ./install.sh`
+
+### 🔄 Update / ❌ Uninstall
 
 ```bash
-HOSTBERRY_FAST_INSTALL=1 sudo ./install.sh
+sudo ./install.sh --update     # update (keeps your data)
+sudo ./install.sh --remove     # uninstall
 ```
 
-Tras instalar:
+Updates keep a backup of the previous version and roll back automatically if the new one fails to start.
 
-1. Accede por HTTPS: `https://hostberry.local` o `https://<IP>` (mkcert en el instalador)
-2. Credenciales iniciales en `/opt/hostberry/INSTALL_CREDENTIALS.txt` (se borran tras el primer cambio de contraseña)
-3. Cambia la contraseña de `admin` en el primer acceso
+### 📄 License
 
-## Modos del instalador
+**PolyForm Noncommercial 1.0.0** — free to use, study, modify and share **for non-commercial purposes**. **You may NOT sell it or use it commercially.** You must keep the author's copyright notice. See [LICENSE](LICENSE).
 
-| Comando | Descripción |
-|---------|-------------|
-| `sudo ./install.sh --install` | Instalación completa (también sin argumentos) |
-| `sudo ./install.sh --update` | Actualiza binario y archivos (conserva datos) |
-| `sudo ./install.sh --remove` | Desinstala el servicio (`--uninstall` sigue funcionando) |
+### ✍️ Author
 
-El script principal (`install.sh`, ~10 líneas) carga módulos desde `scripts/install/lib/`. En `--install` y `--update` instala todos los paquetes apt en **un solo paso** (git, golang-go, WiFi, mkcert, avahi, etc.) e intenta un binario precompilado de GitHub Releases (`HOSTBERRY_USE_RELEASE_BINARY=0` para desactivar).
+Created and maintained by **HostBerry-project**. Please keep the attribution.
 
-## Variables de entorno
+---
 
-| Variable | Descripción |
-|----------|-------------|
-| `HOSTBERRY_DEFAULT_ADMIN_PASSWORD` | Contraseña inicial del usuario `admin` (generada por el instalador) |
-| `HOSTBERRY_SKIP_MKCERT=1` | No generar certificados TLS con mkcert |
-| `HOSTBERRY_REGENERATE_MKCERT=1` | Regenerar certificados aunque existan |
-| `HOSTBERRY_SKIP_REBOOT=1` | No reiniciar al final de install/update |
-| `HOSTBERRY_SKIP_AP_START=1` | No iniciar el AP en caliente (solo tras reinicio) |
-| `HOSTBERRY_START_AP_NOW=1` | Forzar inicio del AP durante la instalación (puede cortar SSH por WiFi) |
-| `HOSTBERRY_BUILD_TIMEOUT=1200` | Timeout de compilación en segundos |
-| `HOSTBERRY_USE_RELEASE_BINARY=1` | Descargar binario de GitHub Releases en lugar de compilar |
-| `HOSTBERRY_FAST_INSTALL=1` | Instalación mínima: omite Tor/OpenVPN/WireGuard, Blocky y LibreSpeed CLI |
-| `HOSTBERRY_RELEASE_TAG=v2.1.0` | Tag concreto del release (por defecto: versión del proyecto) |
-| `HOSTBERRY_PRIVILEGED_EXEC` | Ruta al wrapper sudo (`/usr/local/sbin/hostberry-safe/privileged-exec`) |
-| `HOSTBERRY_INSTALL_LANG=es\|en` | Idioma de mensajes del instalador |
+## 🇪🇸 Español
 
-## Configuración
+### ¿Qué es HostBerry?
 
-Copia `config.yaml.example` a `config.yaml` (el instalador lo hace en `/opt/hostberry/config.yaml`).
+HostBerry se instala en tu Raspberry Pi y te da un panel web sencillo para:
 
-```yaml
-server:
-  port: 443
-  tls_cert_file: "/opt/hostberry/certs/hostberry.pem"
-  tls_key_file: "/opt/hostberry/certs/hostberry-key.pem"
-security:
-  enforce_https: true
-  token_expiry: 30
-logging:
-  level: info
-  file: logs/hostberry.log
-  max_size: 10
-  max_backups: 5
-```
+- 📶 **Compartir internet** — tu Pi se convierte en un punto de acceso WiFi (AP) y a la vez se conecta a otra WiFi o cable.
+- 🛡️ **Bloquear anuncios** en toda la red (Blocky DNS).
+- 🔒 **VPN** — OpenVPN y WireGuard.
+- 🧅 Salida por **Tor**.
+- 🔥 **Cortafuegos** con reglas fáciles.
+- 📊 **Monitorizar** sistema y red, y hacer test de velocidad.
 
-## Desarrollo local
+Todo desde una página web limpia y segura (HTTPS). No necesitas usar la terminal después de instalar.
+
+### ✅ Dispositivos compatibles
+
+| Dispositivo | ¿Funciona? |
+|---|---|
+| Raspberry Pi 3 / 4 / 5 (SO de 64 bits) | ✅ |
+| Raspberry Pi 2 / 3 / 4 (SO de 32 bits) | ✅ |
+| Raspberry Pi 1 / Pi Zero | ✅ |
+| PC / servidor normal (x86) | ✅ |
+| Placas RISC-V | ✅ |
+
+El instalador **detecta tu dispositivo automáticamente** y descarga el programa ya hecho para tu arquitectura. Si no hay ninguno, lo compila por ti.
+
+### 🚀 Instalar (1 comando)
 
 ```bash
-cp config.yaml.example config.yaml
-# Sin TLS en desarrollo:
-#   enforce_https: false
-export HOSTBERRY_DEFAULT_ADMIN_PASSWORD='Hb!DevPass9a'
-go run .
+git clone https://github.com/Hostberry-project/hostberry-project.git
+cd hostberry-project
+sudo ./install.sh
 ```
+
+Ya está. Cuando termine (puede reiniciar una vez), abre el panel:
+
+1. Entra en **`https://hostberry.local`** (o `https://<IP-de-tu-Pi>`).
+2. Tu primera contraseña está en **`/opt/hostberry/INSTALL_CREDENTIALS.txt`**.
+3. Accede como **`admin`** y sigue el asistente de configuración.
+
+> 💡 Instalación rápida (omite VPN/bloqueador de anuncios): `HOSTBERRY_FAST_INSTALL=1 sudo ./install.sh`
+
+### 🔄 Actualizar / ❌ Desinstalar
 
 ```bash
-go test ./...
-go vet ./...
+sudo ./install.sh --update     # actualizar (conserva tus datos)
+sudo ./install.sh --remove     # desinstalar
 ```
 
-## Roles de usuario
+Las actualizaciones guardan una copia de la versión anterior y la restauran automáticamente si la nueva no arranca.
 
-| Rol | Permisos |
-|-----|----------|
-| `admin` | Acceso completo (reinicio, WiFi, firewall, configuración) |
-| `operator` | Lectura y monitorización; sin acciones destructivas |
+### 📄 Licencia
 
-Los administradores pueden asignar roles vía `POST /api/v1/auth/users/role`.
+**PolyForm Noncommercial 1.0.0** — libre para usar, estudiar, modificar y compartir **con fines no comerciales**. **NO se puede vender ni usar comercialmente.** Hay que mantener el aviso de copyright del autor. Ver [LICENSE](LICENSE).
 
-## API
+### ✍️ Autoría
 
-- Base: `/api/v1`
-- Especificación OpenAPI: `/api/v1/openapi.yaml`
-- Salud: `/health`, `/health/ready`, `/health/live`
-- Métricas Prometheus (admin): `/metrics`
+Creado y mantenido por **HostBerry-project**. Por favor, mantén la atribución.
 
-## Backup y restauración
+---
 
-- Crear backup: `POST /api/v1/system/backup` (admin)
-- Listar: `GET /api/v1/system/backups` (admin)
-- Restaurar: `POST /api/v1/system/restore` con `{"file":"nombre.tar.gz"}` (admin)
-
-Los backups se guardan en `/opt/hostberry/backups/`.
-
-## Estructura del proyecto
-
-```
-├── main.go
-├── install.sh              # Instalador principal
-├── scripts/
-│   ├── install/lib/        # Módulos del instalador
-│   ├── privileged-exec.sh  # Wrapper sudo con allowlist
-│   └── validate-i18n.sh    # Valida claves es/en
-├── internal/               # Código Go
-├── website/                # Templates y estáticos
-├── locales/                # Traducciones
-└── docs/openapi.yaml       # Especificación API
-```
-
-## Solución de problemas
-
-**Compilación en Pi:** SQLite pure Go (sin CGO). El instalador descarga binarios precompilados si hay release publicado. Usa `HOSTBERRY_BUILD_TIMEOUT=1800` si compila desde fuente.
-
-**CSP estricta:** scripts solo desde `/static/js/` (sin `unsafe-inline`); el asistente de configuración usa `data-wizard-step4` en lugar de scripts inline.
-
-**HTTPS no funciona:** Ejecuta `sudo ./install.sh --update` o revisa certificados en `/opt/hostberry/certs/`.
-
-**WiFi no responde:** Comprueba `sudo systemctl status hostberry` y permisos en `/etc/sudoers.d/hostberry`.
-
-**Rollback tras update fallido:** El instalador conserva `hostberry.prev` y restaura si el binario nuevo no arranca.
-
-## Licencia
-
-Ver repositorio del proyecto HostBerry.
+<div align="center">
+<sub>Made with 🍓 for the Raspberry Pi community · Hecho con 🍓 para la comunidad Raspberry Pi</sub>
+</div>
