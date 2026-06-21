@@ -124,4 +124,13 @@ func revertSetupModeSupplicant(iface string) {
 	if out, err := execPrivilegedOutput(fmt.Sprintf("nmcli device set %s managed yes", iface)); err != nil {
 		log.Printf("Setup supplicant: nmcli managed yes: %v (%s)", err, out)
 	}
+	// Recargar NetworkManager para que reconozca la configuración de wpa_supplicant escrita por el wizard
+	// Esto es necesario para que NetworkManager se conecte automáticamente a la red guardada después del reinicio
+	if out, err := execPrivilegedOutput("nmcli connection reload 2>/dev/null || true"); err != nil {
+		log.Printf("Setup supplicant: nmcli connection reload: %v (%s)", err, strings.TrimSpace(out))
+	}
+	// Opcionalmente, intentar reconectar la interfaz para forzar la conexión inmediata
+	if out, err := execPrivilegedOutput(fmt.Sprintf("nmcli device connect %s 2>/dev/null || true", iface)); err != nil {
+		log.Printf("Setup supplicant: nmcli device connect: %v (%s)", err, strings.TrimSpace(out))
+	}
 }

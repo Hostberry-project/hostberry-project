@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"hostberry/internal/constants"
+	"hostberry/internal/wifi"
 )
 
 // ApplyNormalAPMode deja el AP "hostberry" en modo NORMAL (post-asistente):
@@ -18,6 +19,7 @@ import (
 //     de modo que el tráfico de los clientes salga a Internet en lugar de redirigirse al panel.
 //   - Habilita el reenvío IPv4 (persistente) y el NAT (MASQUERADE) del subred del AP hacia el
 //     uplink real (Ethernet o la WiFi STA), independientemente de la interfaz de salida.
+//   - Aplica la configuración de seguridad (SSID/contraseña) guardada en el asistente.
 //
 // Es idempotente: se ejecuta al finalizar el asistente y en cada arranque cuando el setup ya está
 // completado (porque las reglas iptables no persisten tras reiniciar).
@@ -30,6 +32,10 @@ func ApplyNormalAPMode() {
 
 	clearCaptivePortalRules()
 	enableAPInternetSharing()
+
+	// Aplicar la configuración de seguridad guardada en el asistente (SSID/contraseña)
+	// Esto asegura que hostapd.conf tenga la contraseña correcta después del reinicio
+	applySavedHostapdSecurity()
 
 	if dnsmasqChanged {
 		if out, err := executeCommand("systemctl restart dnsmasq 2>/dev/null || true"); err != nil {
@@ -220,4 +226,42 @@ func enableAPInternetSharing() {
 	// La regla de aislamiento ap0->ap0 (si existe) se inserta en la posición 1 y mantiene prioridad.
 	executeCommand(fmt.Sprintf("iptables -C FORWARD -s %s -j ACCEPT 2>/dev/null || iptables -A FORWARD -s %s -j ACCEPT", cidr, cidr))
 	executeCommand(fmt.Sprintf("iptables -C FORWARD -d %s -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || iptables -A FORWARD -d %s -m state --state RELATED,ESTABLISHED -j ACCEPT", cidr, cidr))
+}
+
+// applySavedHostapdSecurity aplica la configuración de seguridad (SSID/contraseña) guardada
+// en el asistente al hostapd.conf activo. Esto asegura que después del reinicio el AP tenga
+// la contraseña correcta configurada por el usuario.
+func applySavedHostapdSecurity() {
+	country := constants.DefaultCountryCode
+	cfg := wifi.LoadDualBandAPConfig(country)
+	
+	// Determinar la banda activa actual
+	activeBand := wifi.ConcurrentOperatingBandExport(wifi.DetectWiFiInterface())
+	if activeBand == "" {
+		activeBand = "2.4GHz"
+	}
+	
+	// Seleccionar el perfil según la banda activa
+	var profile wifi.DualBandAPProfile
+	if activeBand == "5GHz" {
+		profile = cfg.Band5
+	} else {
+		profile = cfg.Band24
+	}
+	
+	// Si el perfil tiene seguridad configurada, aplicarla
+	if profile.Security != "open" && profile.Password != "" {
+		log.Printf("AP normal: aplicando configuración de seguridad guardada (SSID=%s, security=%s)", profile.SSID, profile.Security)
+		
+		// Usar EnsureDualBandHostapd con setupPending=false para aplicar la configuración guardada
+		result := wifi.EnsureDualBandHostapd("", false)
+		if success, ok := result["success"].(bool); ok && !success {
+			log.Printf("AP normal: error aplicando configuración de seguridad: %v", result["error"])
+		}
+		
+		// Reiniciar hostapd para aplicar la nueva configuración
+		if out, err := executeCommand("systemctl restart hostapd 2>/dev/null || true"); err != nil {
+			log.Printf("AP normal: restart hostapd tras aplicar seguridad: %v (%s)", err, strings.TrimSpace(out))
+		}
+	}
 }

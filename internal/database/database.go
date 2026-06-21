@@ -129,11 +129,15 @@ func migrateOnboardingFlagsOnce() error {
 }
 
 // repairInconsistentOnboardingFlags revierte wizard completado sin pasar por la API oficial.
+// Solo revierte si el usuario NO ha completado el first-login, para evitar forzar al usuario
+// a repetir el wizard cuando ya ha cambiado sus credenciales.
 func repairInconsistentOnboardingFlags() error {
 	if val, err := GetConfig(setupWizardCompletedByAPIKey); err == nil && val == "1" {
 		return nil
 	}
-	return DB.Model(&models.User{}).Where("setup_wizard_completed = ?", true).
+	// Solo revertir si el usuario no ha completado el first-login
+	// Si first_login_completed = true, asumimos que el usuario ya pasó por el flujo completo
+	return DB.Model(&models.User{}).Where("setup_wizard_completed = ? AND first_login_completed = ?", true, false).
 		Update("setup_wizard_completed", false).Error
 }
 
