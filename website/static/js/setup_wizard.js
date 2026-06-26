@@ -11,7 +11,8 @@
   let currentConnectedSSID = null; // SSID al que está conectado el dispositivo (desde wifi/status)
   let wizardStep = 1;
   let selectedSecurityOption = null; // 'vpn' | 'wireguard' | 'tor'
-  let selectedBand = null; // banda elegida en el paso 1 ('2.4' | '5')
+  let selectedBand = null; // banda elegida en el paso 2 ('2.4' | '5')
+  let selectedConnectionType = null; // 'cable' | 'wifi' elegido en el paso 1
 
   // Información del entorno WiFi/AP detectada por el backend (interfaz STA, AP concurrente,
   // soporte CSA, país y canal de la WiFi ya conectada). Sirve para no hardcodear valores.
@@ -236,9 +237,12 @@
       el.classList.toggle('active', parseInt(el.getAttribute('data-step'), 10) === step);
     });
 
-    // En el paso 2 (conectar WiFi), refrescar periódicamente el estado WiFi
+    // Mostrar/ocultar step dots según el tipo de conexión
+    updateStepIndicators();
+
+    // En el paso 3 (conectar WiFi), refrescar periódicamente el estado WiFi
     // para mantener actualizado el banner y la red marcada como conectada.
-    if (step === 2) {
+    if (step === 3) {
       if (!window.__hbWizardWifiTimer) {
         window.__hbWizardWifiTimer = setInterval(function() {
           fetchWifiStatus();
@@ -249,11 +253,34 @@
       window.__hbWizardWifiTimer = null;
     }
 
-    // Al entrar en el paso 3 (config hostapd), ajustar SSID/ayuda y canal según la banda elegida.
-    if (step === 3) {
+    // Al entrar en el paso 4 (config hostapd), ajustar SSID/ayuda y canal según la banda elegida.
+    if (step === 4) {
       updateHostapdBandUI();
       updateApChannelNote();
     }
+  }
+
+  function updateStepIndicators() {
+    // Si es cable, ocultar pasos 2 y 3 (banda y WiFi)
+    // Si es WiFi, mostrar todos los pasos
+    const isCable = selectedConnectionType === 'cable';
+    document.querySelectorAll('.step-dot').forEach(function(el) {
+      const stepNum = parseInt(el.getAttribute('data-step'), 10);
+      if (isCable) {
+        // Cable: solo pasos 1, 4, 5 visibles
+        if (stepNum === 2 || stepNum === 3) {
+          el.classList.add('d-none');
+          el.nextElementSibling && el.nextElementSibling.classList.contains('step-line') && el.nextElementSibling.classList.add('d-none');
+        } else {
+          el.classList.remove('d-none');
+          el.nextElementSibling && el.nextElementSibling.classList.contains('step-line') && el.nextElementSibling.classList.remove('d-none');
+        }
+      } else {
+        // WiFi: todos los pasos visibles
+        el.classList.remove('d-none');
+        el.nextElementSibling && el.nextElementSibling.classList.contains('step-line') && el.nextElementSibling.classList.remove('d-none');
+      }
+    });
   }
 
   function signalBars(signal) {
@@ -339,17 +366,17 @@
         var pwdBox = document.getElementById('wizard-wifi-password-box');
         var pwdInput = document.getElementById('wizard-wifi-password');
         var sec = (card.dataset.security || '').toUpperCase();
-        // Redes abiertas: no pedimos contraseña
-        if (sec === 'OPEN') {
-          if (pwdBox) pwdBox.classList.add('d-none');
-          if (pwdInput) pwdInput.value = '';
-        } else {
-          if (pwdBox) pwdBox.classList.remove('d-none');
-          if (pwdInput) {
-            pwdInput.value = '';
-            pwdInput.placeholder = d('WiFi password', 'Contraseña WiFi');
-            pwdInput.focus();
-          }
+        // Mostramos SIEMPRE el campo de contraseña. La detección de seguridad del escaneo no es
+        // fiable (algunas redes WPA2/WPA3 aparecen como "Open"); si lo ocultáramos, el usuario no
+        // podría introducir su clave y la red se guardaría abierta y no conectaría tras reiniciar.
+        // Para redes detectadas como abiertas dejamos la contraseña como opcional.
+        if (pwdBox) pwdBox.classList.remove('d-none');
+        if (pwdInput) {
+          pwdInput.value = '';
+          pwdInput.placeholder = (sec === 'OPEN')
+            ? d('WiFi password (leave empty if the network is open)', 'Contraseña WiFi (déjalo vacío si la red es abierta)')
+            : d('WiFi password', 'Contraseña WiFi');
+          pwdInput.focus();
         }
       });
       grid.appendChild(card);
@@ -506,19 +533,61 @@
   // securityForBackend: normaliza la seguridad enviada al backend. Para redes protegidas con tipo
   // desconocido enviamos "WPA2" para que el backend exija contraseña en lugar de tratarla como abierta.
   function securityForBackend() {
+    // Si el usuario introdujo una contraseña, la red es protegida aunque el escaneo la marcara
+    // como abierta: así el backend genera PSK/SAE y la conexión funciona tras reiniciar.
+    var pwd = ((document.getElementById('wizard-wifi-password') || {}).value || '').trim();
+    if (pwd !== '') {
+      var sec = (selectedSecurity || '').toUpperCase();
+      if (sec.indexOf('WPA3') >= 0 || sec.indexOf('SAE') >= 0) return 'WPA3';
+      return 'WPA2';
+    }
     if (isOpenNetwork()) return 'OPEN';
     return selectedSecurity || 'WPA2';
   }
 
   function validateWifiPassword(password) {
-    if (isOpenNetwork()) return null;
-    if (!password) {
-      return t('setup_wizard.wifi_password_required', d('Enter the WiFi password for this network.', 'Introduce la contraseña WiFi de esta red.'));
+    // Si hay contraseña, validamos su longitud (red protegida WPA2/WPA3: 8-63 caracteres).
+    if (password) {
+      if (password.length < 8) {
+        return t('setup_wizard.wifi_password_too_short', d('The WiFi password must be at least 8 characters.', 'La contraseña WiFi debe tener al menos 8 caracteres.'));
+      }
+      if (password.length > 63) {
+        return t('setup_wizard.wifi_password_too_long', d('The WiFi password must be at most 63 characters.', 'La contraseña WiFi debe tener como máximo 63 caracteres.'));
+      }
+      return null;
     }
-    if (password.length < 8) {
-      return t('setup_wizard.wifi_password_too_short', d('The WiFi password must be at least 8 characters.', 'La contraseña WiFi debe tener al menos 8 caracteres.'));
+    // Sin contraseña: solo es válido si la red se detectó como abierta.
+    if (isOpenNetwork()) return null;
+    return t('setup_wizard.wifi_password_required', d('Enter the WiFi password for this network.', 'Introduce la contraseña WiFi de esta red.'));
+  }
+
+  // Validación de contraseña con requisitos de seguridad (8 min, 1 mayúscula, 1 símbolo)
+  function validateSecurePassword(password, fieldName) {
+    if (!password || password.length < 8) {
+      return t('setup_wizard.password_too_short', d('The password must be at least 8 characters.', 'La contraseña debe tener al menos 8 caracteres.'));
+    }
+    if (!/[A-Z]/.test(password)) {
+      return t('setup_wizard.password_no_uppercase', d('The password must contain at least one uppercase letter.', 'La contraseña debe contener al menos una mayúscula.'));
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
+      return t('setup_wizard.password_no_symbol', d('The password must contain at least one special symbol.', 'La contraseña debe contener al menos un símbolo especial.'));
     }
     return null;
+  }
+
+  function updateConnectionCardSelection(connectionType) {
+    document.querySelectorAll('.wizard-connection-card').forEach(function(card) {
+      var cardType = card.getAttribute('data-connection');
+      var selected = cardType === connectionType;
+      card.classList.toggle('selected', selected);
+      card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+  }
+
+  function setConnectionCardsDisabled(disabled) {
+    document.querySelectorAll('.wizard-connection-card').forEach(function(card) {
+      card.classList.toggle('disabled', !!disabled);
+    });
   }
 
   function showConnectResult(data) {
@@ -733,10 +802,18 @@
       ssid5 = /-?5g$/i.test(base) ? base : (base + '-5G');
     }
     const password = (document.getElementById('wizard-ap-password') || {}).value.trim();
-    const saveBtn = document.getElementById('wizard-next-3');
+    const saveBtn = document.getElementById('wizard-next-4');
     // La red HostBerry SIEMPRE lleva contraseña (WPA2/WPA3): obligatoria para continuar.
-    if (password.length < 8 || password.length > 63) {
-      showAlert('warning', t('setup_wizard.ap_password_invalid', d('A password between 8 and 63 characters is required (WiFi WPA2/WPA3 standard).', 'La contraseña es obligatoria: entre 8 y 63 caracteres (estándar WiFi WPA2/WPA3).')));
+    // Validación con requisitos de seguridad: 8 min, 1 mayúscula, 1 símbolo
+    var pwdError = validateSecurePassword(password, 'hostapd');
+    if (pwdError) {
+      showAlert('warning', pwdError);
+      var pwdInput = document.getElementById('wizard-ap-password');
+      if (pwdInput) pwdInput.focus();
+      return;
+    }
+    if (password.length > 63) {
+      showAlert('warning', t('setup_wizard.ap_password_too_long', d('The password must be at most 63 characters.', 'La contraseña debe tener como máximo 63 caracteres.')));
       var pwdInput = document.getElementById('wizard-ap-password');
       if (pwdInput) pwdInput.focus();
       return;
@@ -771,7 +848,7 @@
       const data = await resp.json().catch(function() { return {}; });
       if (resp.ok && data.success !== false) {
         showAlert('success', t('setup_wizard.success_ap_dual', d('Dual-band access point configured (2.4 GHz and 5 GHz profiles).', 'Punto de acceso dual-band configurado (perfiles 2.4 y 5 GHz).')));
-        setStep(4);
+        setStep(5);
       } else {
         showAlert('danger', data.error || t('setup_wizard.error_save_ap', d('Error saving access point configuration', 'Error al guardar la configuración del punto de acceso')));
         if (saveBtn) { saveBtn.disabled = false; var bt = saveBtn.querySelector('.btn-text'); if (bt) bt.textContent = t('setup_wizard.next', d('Next', 'Siguiente')); }
@@ -813,8 +890,10 @@
       showAlert('warning', t('setup_wizard.acc_username_chars', d('The username can only contain letters, numbers and underscores.', 'El usuario solo puede contener letras, números y guiones bajos.')));
       return;
     }
-    if (password.length < 8) {
-      showAlert('warning', t('setup_wizard.acc_password_too_short', d('The password must be at least 8 characters.', 'La contraseña debe tener al menos 8 caracteres.')));
+    // Validación con requisitos de seguridad: 8 min, 1 mayúscula, 1 símbolo
+    var pwdError = validateSecurePassword(password, 'account');
+    if (pwdError) {
+      showAlert('warning', pwdError);
       return;
     }
     if (password !== confirm) {
@@ -854,7 +933,34 @@
     var scanBtn = document.getElementById('wizard-scan-btn');
     if (scanBtn) scanBtn.addEventListener('click', function() { scanNetworks(true); });
 
-    // Paso 1 — Tarjetas de banda 2.4/5 GHz: al elegir, se marca y se habilita "Siguiente".
+    // Paso 1 — Tarjetas de conexión (Cable/WiFi): al elegir, se marca y se habilita "Siguiente".
+    document.querySelectorAll('.wizard-connection-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        if (card.classList.contains('disabled')) return;
+        selectedConnectionType = card.getAttribute('data-connection');
+        updateConnectionCardSelection(selectedConnectionType);
+        var nextBtn = document.getElementById('wizard-connection-next');
+        if (nextBtn) nextBtn.disabled = false;
+      });
+      card.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        card.click();
+      });
+    });
+    // Paso 1 — "Siguiente": según el tipo de conexión, va al paso correspondiente.
+    var connectionNext = document.getElementById('wizard-connection-next');
+    if (connectionNext) connectionNext.addEventListener('click', function() {
+      if (selectedConnectionType === 'cable') {
+        // Cable: saltar directamente a configuración de hostapd (paso 4)
+        setStep(4);
+      } else if (selectedConnectionType === 'wifi') {
+        // WiFi: ir a selección de banda (paso 2)
+        setStep(2);
+      }
+    });
+
+    // Paso 2 — Tarjetas de banda 2.4/5 GHz: al elegir, se marca y se habilita "Siguiente".
     document.querySelectorAll('.wizard-band-card').forEach(function(card) {
       card.addEventListener('click', function() {
         if (card.classList.contains('disabled')) return;
@@ -869,12 +975,12 @@
         card.click();
       });
     });
-    // Paso 1 — "Siguiente": aplica la banda elegida, pasa al escaneo y busca redes de esa banda.
+    // Paso 2 — "Siguiente": aplica la banda elegida, pasa al escaneo y busca redes de esa banda.
     var bandNext = document.getElementById('wizard-band-next');
     if (bandNext) bandNext.addEventListener('click', function() {
       var band = selectedBand || (setupInfo.band === '5' ? '5' : '2.4');
       setupInfo.scanBand = band;
-      setStep(2);
+      setStep(3);
       applyBand(band);
     });
     var connectBtn = document.getElementById('wizard-connect-btn');
@@ -890,7 +996,7 @@
             if (r && r.ok) {
               var s = await r.json().catch(function() { return {}; });
               if ((s && s.connection_type === 'ethernet') || (s && s.connection_type === 'wifi' && (s.connected === true || s.connected === undefined))) {
-                setStep(3);
+                setStep(4);
                 return;
               }
             }
@@ -899,28 +1005,35 @@
         })();
       });
     }
-    var back2 = document.getElementById('wizard-back-2');
     var back3 = document.getElementById('wizard-back-3');
-    var next3 = document.getElementById('wizard-next-3');
     var back4 = document.getElementById('wizard-back-4');
-    if (back2) back2.addEventListener('click', function() { setStep(1); });
+    var next4 = document.getElementById('wizard-next-4');
+    var back5 = document.getElementById('wizard-back-5');
     if (back3) back3.addEventListener('click', function() { setStep(2); });
-    if (next3) next3.addEventListener('click', function() { saveHostapd(); });
-    if (back4) back4.addEventListener('click', function() { setStep(3); });
+    if (back4) back4.addEventListener('click', function() { 
+      // Si es cable, volver al paso 1. Si es WiFi, volver al paso 3.
+      if (selectedConnectionType === 'cable') {
+        setStep(1);
+      } else {
+        setStep(3);
+      }
+    });
+    if (next4) next4.addEventListener('click', function() { saveHostapd(); });
+    if (back5) back5.addEventListener('click', function() { setStep(4); });
 
     document.querySelectorAll('.wizard-skip-btn').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         var stepEl = btn.closest('.setup-step');
         var step = stepEl ? parseInt(stepEl.getAttribute('data-step'), 10) : wizardStep;
-        if (step === 2) {
-          setStep(3);
+        if (step === 3) {
+          setStep(4);
           return;
         }
       });
     });
 
-    // Paso 4 — Credenciales (first-login): cambia el usuario/contraseña por defecto y, al tener
+    // Paso 5 — Credenciales (first-login): cambia el usuario/contraseña por defecto y, al tener
     // éxito, finaliza el asistente (que reinicia el equipo para aplicar el WiFi elegido).
     var accountForm = document.getElementById('wizard-account-form');
     if (accountForm) accountForm.addEventListener('submit', submitAccount);
@@ -936,13 +1049,13 @@
 
     var params = new URLSearchParams(window.location.search || '');
     var stepParam = params.get('step');
-    // step=4 (o el antiguo 3) abre directamente la pantalla de seguridad al volver de una subpágina.
-    if (stepParam === '4' || stepParam === '3') {
-      setStep(4);
+    // step=5 (o el antiguo 4) abre directamente la pantalla de seguridad al volver de una subpágina.
+    if (stepParam === '5' || stepParam === '4') {
+      setStep(5);
     } else {
       setStep(1);
     }
-    // Cargar info del entorno (interfaz, país, banda). El escaneo se lanza al pasar al paso 2.
+    // Cargar info del entorno (interfaz, país, banda). El escaneo se lanza al pasar al paso 3.
     fetchSetupInfo();
   }
 

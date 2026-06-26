@@ -1,19 +1,63 @@
 <div class="setup-wizard-page">
     <div class="setup-wizard-header">
         <div class="step-indicator d-flex justify-content-center align-items-center">
-            <div class="step-dot active" data-step="1" title="{{ call .t "setup_wizard.step_band_title" "Elegir banda WiFi" }}">1</div>
+            <div class="step-dot active" data-step="1" title="{{ call .t "setup_wizard.step_connection_title" "Tipo de conexión" }}">1</div>
             <div class="step-line"></div>
-            <div class="step-dot" data-step="2" title="{{ call .t "setup_wizard.step_wifi_title" "Conectar a tu WiFi" }}">2</div>
-            <div class="step-line"></div>
-            <div class="step-dot" data-step="3" title="{{ call .t "setup_wizard.step_hostapd_title" "Configurar red Hostberry" }}">3</div>
-            <div class="step-line"></div>
-            <div class="step-dot" data-step="4" title="{{ call .t "setup_wizard.step_account_short" "Credenciales" }}">4</div>
+            <div class="step-dot d-none" data-step="2" title="{{ call .t "setup_wizard.step_band_title" "Elegir banda WiFi" }}">2</div>
+            <div class="step-line d-none"></div>
+            <div class="step-dot d-none" data-step="3" title="{{ call .t "setup_wizard.step_wifi_title" "Conectar a tu WiFi" }}">3</div>
+            <div class="step-line d-none"></div>
+            <div class="step-dot d-none" data-step="4" title="{{ call .t "setup_wizard.step_hostapd_title" "Configurar red Hostberry" }}">4</div>
+            <div class="step-line d-none"></div>
+            <div class="step-dot d-none" data-step="5" title="{{ call .t "setup_wizard.step_account_short" "Credenciales" }}">5</div>
         </div>
     </div>
 
     <div class="setup-wizard-pages">
-        <!-- Página 1: Elegir banda WiFi (2.4 / 5 GHz) -->
+        <!-- Página 1: Seleccionar tipo de conexión (Cable o WiFi) -->
         <div class="setup-wizard-page-content setup-step" id="step1" data-step="1">
+            <div class="wizard-page-inner">
+                <h2 class="wizard-page-title">
+                    <i class="bi bi-gear me-2"></i>
+                    {{ call .t "setup_wizard.step_connection_title" "Tipo de conexión" }}
+                </h2>
+                <p class="wizard-page-desc text-muted">{{ call .t "setup_wizard.step_connection_desc" "Selecciona cómo se conectará tu HostBerry a Internet." }}</p>
+                <div class="card glass-card wizard-card">
+                    <div class="card-body">
+                        <div id="wizard-connection-selector">
+                            <div class="row g-3 wizard-connection-grid" role="group" aria-label="{{ call .t "setup_wizard.connection_select_label" "¿Cómo se conectará a Internet?" }}">
+                                <div class="col-6">
+                                    <div class="wizard-connection-card h-100" data-connection="cable" role="button" tabindex="0" aria-pressed="false">
+                                        <div class="wizard-connection-icon" aria-hidden="true">
+                                            <i class="bi bi-ethernet"></i>
+                                        </div>
+                                        <h6 class="wizard-connection-title mb-1">{{ call .t "setup_wizard.connection_cable_title" "Cable (Ethernet)" }}</h6>
+                                        <p class="wizard-connection-desc small text-muted mb-0">{{ call .t "setup_wizard.connection_cable_desc" "Conexión por cable" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="wizard-connection-card h-100" data-connection="wifi" role="button" tabindex="0" aria-pressed="false">
+                                        <div class="wizard-connection-icon" aria-hidden="true">
+                                            <i class="bi bi-wifi"></i>
+                                        </div>
+                                        <h6 class="wizard-connection-title mb-1">{{ call .t "setup_wizard.connection_wifi_title" "WiFi" }}</h6>
+                                        <p class="wizard-connection-desc small text-muted mb-0">{{ call .t "setup_wizard.connection_wifi_desc" "Conexión inalámbrica" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wizard-step1-actions d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-sm btn-primary text-nowrap" id="wizard-connection-next" disabled>
+                                <span class="btn-text">{{ call .t "setup_wizard.next" "Siguiente" }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página 2: Elegir banda WiFi (2.4 / 5 GHz) - solo para WiFi -->
+        <div class="setup-wizard-page-content setup-step d-none" id="step2" data-step="2">
             <div class="wizard-page-inner">
                 <h2 class="wizard-page-title">
                     <i class="bi bi-router me-2"></i>
@@ -57,8 +101,8 @@
             </div>
         </div>
 
-        <!-- Página 2: Conectar WiFi (búsqueda según banda elegida) -->
-        <div class="setup-wizard-page-content setup-step wizard-wifi-step d-none" id="step2" data-step="2">
+        <!-- Página 3: Conectar WiFi (búsqueda según banda elegida) -->
+        <div class="setup-wizard-page-content setup-step wizard-wifi-step d-none" id="step3" data-step="3">
             <div class="wizard-page-inner">
                 <h2 class="wizard-page-title">
                     <i class="bi bi-wifi me-2"></i>
@@ -113,7 +157,7 @@
                             </div>
                         </div>
                         <div class="wizard-wifi-actions d-flex justify-content-between flex-wrap gap-2">
-                            <button type="button" class="btn btn-outline-secondary wizard-wifi-action-btn" id="wizard-back-2">{{ call .t "setup_wizard.back" "Atrás" }}</button>
+                            <button type="button" class="btn btn-outline-secondary wizard-wifi-action-btn" id="wizard-back-3">{{ call .t "setup_wizard.back" "Atrás" }}</button>
                             <div class="d-flex flex-nowrap gap-2 wizard-wifi-action-group">
                                 <button type="button" class="btn btn-outline-secondary wizard-skip-btn wizard-wifi-action-btn">{{ call .t "setup_wizard.skip_step" "Omitir" }}</button>
                                 <button type="button" class="btn btn-primary wizard-wifi-action-btn" id="wizard-connect-btn">
@@ -126,8 +170,8 @@
             </div>
         </div>
 
-        <!-- Página 3: Configurar hostapd (SSID único según banda) -->
-        <div class="setup-wizard-page-content setup-step d-none" id="step3" data-step="3">
+        <!-- Página 4: Configurar hostapd (SSID único según banda) -->
+        <div class="setup-wizard-page-content setup-step d-none" id="step4" data-step="4">
             <div class="wizard-page-inner">
                 <h2 class="wizard-page-title">
                     <i class="bi bi-broadcast me-2"></i>
@@ -157,8 +201,8 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-between mt-4 flex-wrap gap-2">
-                            <button type="button" class="btn btn-outline-secondary" id="wizard-back-3">{{ call .t "setup_wizard.back" "Atrás" }}</button>
-                            <button type="button" class="btn btn-primary" id="wizard-next-3">
+                            <button type="button" class="btn btn-outline-secondary" id="wizard-back-4">{{ call .t "setup_wizard.back" "Atrás" }}</button>
+                            <button type="button" class="btn btn-primary" id="wizard-next-4">
                                 <span class="btn-text">{{ call .t "setup_wizard.next" "Siguiente" }}</span>
                             </button>
                         </div>
@@ -167,8 +211,8 @@
             </div>
         </div>
 
-        <!-- Página 4: Cambiar credenciales por defecto (first-login con estética del asistente) -->
-        <div class="setup-wizard-page-content setup-step d-none" id="step4" data-step="4">
+        <!-- Página 5: Cambiar credenciales por defecto (first-login con estética del asistente) -->
+        <div class="setup-wizard-page-content setup-step d-none" id="step5" data-step="5">
             <div class="wizard-page-inner">
                 <h2 class="wizard-page-title">
                     <i class="bi bi-person-lock me-2"></i>
@@ -212,7 +256,7 @@
                                 <i class="bi bi-info-circle me-2"></i>{{ call .t "setup_wizard.acc_finish_note" "Al finalizar, el equipo se reiniciará para aplicar la red WiFi elegida. Vuelve a conectarte en un minuto con tus nuevas credenciales." }}
                             </div>
                             <div class="d-flex justify-content-between mt-4 flex-wrap gap-2">
-                                <button type="button" class="btn btn-outline-secondary" id="wizard-back-4">{{ call .t "setup_wizard.back" "Atrás" }}</button>
+                                <button type="button" class="btn btn-outline-secondary" id="wizard-back-5">{{ call .t "setup_wizard.back" "Atrás" }}</button>
                                 <button type="submit" class="btn btn-success" id="wizard-account-submit">
                                     <span class="btn-text">{{ call .t "setup_wizard.finish_wizard" "Finalizar" }}</span>
                                 </button>
