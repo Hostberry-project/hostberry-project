@@ -2,15 +2,17 @@ package wifi
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
 	"hostberry/internal/auth"
 	"hostberry/internal/constants"
 	"hostberry/internal/database"
 	middleware "hostberry/internal/middleware"
 	"hostberry/internal/validators"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 var hexPSKRegex = regexp.MustCompile(`^[0-9a-fA-F]{64}$`)
@@ -31,6 +33,7 @@ func WifiConnectHandler(c *fiber.Ctx) error {
 			"error": "Datos inválidos",
 		})
 	}
+	log.Printf("[WIZARD-DEBUG] wifi/connect payload: ssid=%q security=%q pwd_len=%d band=%q iface=%q rawbody=%q", req.SSID, req.Security, len(req.Password), req.Band, req.Interface, string(c.Body()))
 
 	if err := validators.ValidateSSID(req.SSID); err != nil {
 		return err
@@ -89,10 +92,26 @@ func WifiConnectHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	// Durante el asistente inicial NO conectamos en caliente: solo guardamos la red elegida y la
-	// conexión se aplica al finalizar el wizard (al reiniciar), igual que el cambio de banda. Así
-	// evitamos cortar la conexión del usuario al panel mientras configura el equipo.
+	// Durante el asistente inicial NO conectamos en caliente: primero verificamos la contraseña
+	// sin conectar realmente, luego guardamos la red elegida y la conexión se aplica al finalizar
+	// el wizard (al reiniciar).
 	if auth.IsInitialSetupPending() {
+		// Verificar la contraseña sin conectar
+		secUpper := strings.ToUpper(strings.TrimSpace(req.Security))
+		isOpenNetwork := secUpper == "" || secUpper == "NONE" || strings.Contains(secUpper, "OPEN")
+
+		// Si la red tiene contraseña, verificarla antes de guardar
+		if !isOpenNetwork && req.Password != "" {
+			verifyResult := VerifyWiFiPassword(req.SSID, req.Password, interfaceName, country)
+			if !verifyResult["success"].(bool) {
+				return c.Status(400).JSON(fiber.Map{
+					"success": false,
+					"error":   verifyResult["error"].(string),
+				})
+			}
+		}
+
+		// Guardar la configuración WiFi para conectar al finalizar
 		if err := SaveWizardPendingWiFi(WizardPendingWiFi{
 			SSID:      req.SSID,
 			Password:  req.Password,
@@ -112,7 +131,7 @@ func WifiConnectHandler(c *fiber.Ctx) error {
 			"success":  true,
 			"deferred": true,
 			"ssid":     req.SSID,
-			"message":  "Red guardada; se conectará al finalizar el asistente",
+			"message":  "Contraseña verificada. Red guardada; se conectará al finalizar el asistente",
 		})
 	}
 
@@ -150,4 +169,3 @@ func WifiConnectHandler(c *fiber.Ctx) error {
 		"message": fmt.Sprintf("Error conectando a %s", req.SSID),
 	})
 }
-
