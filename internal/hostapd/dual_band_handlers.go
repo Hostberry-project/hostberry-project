@@ -45,6 +45,7 @@ func HostapdDualBandConfigHandler(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "error": "Invalid request body"})
 	}
+	log.Printf("[WIZARD-DEBUG] dual-band payload: ssid_24=%q ssid_5=%q ch24=%d ch5=%d security=%q pwd_len=%d iface=%q rawbody=%q", req.SSID24, req.SSID5, req.Channel24, req.Channel5, req.Security, len(req.Password), req.Interface, string(c.Body()))
 
 	country := strings.ToUpper(strings.TrimSpace(req.Country))
 	if len(country) != 2 {

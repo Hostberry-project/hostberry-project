@@ -235,15 +235,15 @@ func applySavedHostapdSecurity() {
 	country := constants.DefaultCountryCode
 	cfg := wifi.LoadDualBandAPConfig(country)
 	
-	// Determinar la banda activa actual
+	// Determinar la banda activa actual (ConcurrentOperatingBandExport devuelve "2.4" o "5")
 	activeBand := wifi.ConcurrentOperatingBandExport(wifi.DetectWiFiInterface())
 	if activeBand == "" {
-		activeBand = "2.4GHz"
+		activeBand = "2.4"
 	}
 	
 	// Seleccionar el perfil según la banda activa
 	var profile wifi.DualBandAPProfile
-	if activeBand == "5GHz" {
+	if activeBand == "5" {
 		profile = cfg.Band5
 	} else {
 		profile = cfg.Band24

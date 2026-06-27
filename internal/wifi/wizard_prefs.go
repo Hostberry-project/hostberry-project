@@ -1,6 +1,7 @@
 package wifi
 
 import (
+	"fmt"
 	"strings"
 
 	"hostberry/internal/database"
@@ -31,16 +32,19 @@ func GetWizardPreferredBand() string {
 	}
 }
 
-// PersistPreferredBandForReboot escribe hostapd.conf para la banda elegida antes del reinicio
-// post-wizard. El arranque en frío aplica el canal sin cortar clientes del asistente.
+// PersistPreferredBandForReboot escribe hostapd.conf con la configuración completa (SSID,
+// contraseña, seguridad, canal) de la banda elegida antes del reinicio post-wizard.
+// Usa EnsureDualBandHostapd con setupPending=false para que el arranque en frío aplique
+// la seguridad guardada por el usuario (no solo el canal).
 func PersistPreferredBandForReboot(band string) error {
 	if band != band24GHz && band != band5GHz {
 		return nil
 	}
-	ch := defaultAPChannelForBand(band)
-	mode := "g"
-	if band == band5GHz {
-		mode = "a"
+	result := EnsureDualBandHostapd("", false)
+	if success, ok := result["success"].(bool); ok && !success {
+		if errMsg, ok := result["error"].(string); ok && errMsg != "" {
+			return fmt.Errorf("%s", errMsg)
+		}
 	}
-	return writeHostapdChannelMode(ch, mode)
+	return nil
 }

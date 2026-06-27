@@ -829,13 +829,10 @@ func VerifyWiFiPassword(ssid, password, interfaceName, country string) map[strin
 	if strings.Contains(statusOut, "wpa_state=COMPLETED") || strings.Contains(statusOut, "wpa_state=ASSOCIATED") {
 		result["success"] = true
 		result["message"] = "Contraseña verificada correctamente"
-	} else if strings.Contains(statusOut, "wpa_state=4WAY_HANDSHAKE") || strings.Contains(statusOut, "pre-shared key may be incorrect") {
-		result["error"] = "Contraseña incorrecta"
 	} else {
-		// Si no hay señal de error específico, asumimos que la contraseña es válida
-		// (la red podría estar fuera de alcance pero la contraseña es correcta)
-		result["success"] = true
-		result["message"] = "Contraseña válida (red fuera de alcance o AP no responde)"
+		// Si no hay confirmación de conexión exitosa, la contraseña es incorrecta
+		// o no se pudo conectar (en cualquier caso, no podemos verificarla como válida)
+		result["error"] = "Contraseña incorrecta. Verifica el SSID y la contraseña."
 	}
 
 	return result

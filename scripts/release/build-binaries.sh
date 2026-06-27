@@ -45,7 +45,8 @@ build() {
   local arch="$1" goarch="$2" goarm="${3:-}"
   local asset="hostberry-linux-$arch"
   echo ">> Compilando $asset (GOARCH=$goarch${goarm:+ GOARM=$goarm})..."
-  GOOS=linux GOARCH="$goarch" GOARM="$goarm" go build -trimpath -ldflags="-s -w" -o "$OUT/$asset" .
+  # Limitar a 1 proceso de compilación para evitar sobrecarga de recursos
+  GOOS=linux GOARCH="$goarch" GOARM="$goarm" go build -p 1 -trimpath -ldflags="-s -w" -o "$OUT/$asset" .
   chmod +x "$OUT/$asset"
   echo "   OK: $OUT/$asset"
 }

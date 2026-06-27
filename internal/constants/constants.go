@@ -1,7 +1,7 @@
 package constants
 
 const (
-	Version              = "2.1.0"
+	Version              = "2.1.1"
 	DefaultWiFiInterface = "wlan0"
 	DefaultCountryCode   = "US"
 	DefaultServerHost    = "0.0.0.0"
